@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36a9b7e72f8fb448abc784a026c06ea5, type: 3}
+  m_Name: OpenAISettings
+  m_EditorClassIdentifier: 
+  ApiKey: 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
+  BaseUrl: https://api.openai.com/v1
+  Model: gpt-4.1
