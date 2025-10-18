@@ -1,0 +1,95 @@
+{
+  // LaTeX Workshop Configuration for ITA Thesis
+
+  // Set the root directory for LaTeX files
+  "latex-workshop.latex.rootFile.doNotPrompt": true,
+  "latex-workshop.latex.rootFile.useSubFile": false,
+
+  // Auto-build on save
+  "latex-workshop.latex.autoBuild.run": "onSave",
+
+  // Main LaTeX file
+  "latex-workshop.latex.rootFile.indicator": "tese.tex",
+
+  // Output directory
+  "latex-workshop.latex.outDir": "%DIR%",
+
+  // Recipe for building (pdflatex + bibtex + pdflatex + pdflatex)
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "pdfLaTeX + BibTeX + pdfLaTeX×2",
+      "tools": [
+        "pdflatex",
+        "bibtex",
+        "pdflatex",
+        "pdflatex"
+      ]
+    },
+    {
+      "name": "pdfLaTeX",
+      "tools": [
+        "pdflatex"
+      ]
+    }
+  ],
+
+  // Tool definitions
+  "latex-workshop.latex.tools": [
+    {
+      "name": "pdflatex",
+      "command": "pdflatex",
+      "args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "%DOC%"
+      ],
+      "env": {}
+    },
+    {
+      "name": "bibtex",
+      "command": "bibtex",
+      "args": [
+        "%DOCFILE%"
+      ],
+      "env": {}
+    }
+  ],
+
+  // PDF viewer settings
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.view.pdf.internal.synctex.keybinding": "double-click",
+
+  // Auto-clean auxiliary files
+  "latex-workshop.latex.autoClean.run": "onBuilt",
+  "latex-workshop.latex.clean.fileTypes": [
+    "*.aux",
+    "*.bbl",
+    "*.blg",
+    "*.idx",
+    "*.ind",
+    "*.lof",
+    "*.lot",
+    "*.out",
+    "*.toc",
+    "*.acn",
+    "*.acr",
+    "*.alg",
+    "*.glg",
+    "*.glo",
+    "*.gls",
+    "*.ist",
+    "*.fls",
+    "*.log",
+    "*.fdb_latexmk",
+    "*.synctex.gz"
+  ],
+
+  // Intellisense
+  "latex-workshop.intellisense.package.enabled": true,
+  "latex-workshop.intellisense.citation.backend": "bibtex",
+
+  // Linting
+  "latex-workshop.linting.chktex.enabled": false,
+  "latex-workshop.linting.lacheck.enabled": false
+}

@@ -1,0 +1,88 @@
+\section{Chronogram}
+\label{sec:chronogram}
+
+This section outlines the planned development schedule for the project. The work is broken down into five distinct phases, mapping the key implementation and evaluation tasks to a five-month timeline from July 2025 to November 2025. This chronogram serves as a high-level project plan to guide and track development progress.
+
+\vspace{0.5cm}
+
+\centering
+
+% --- Chronogram Table ---
+% FIX: Reduced column percentage widths to account for inter-column padding (\tabcolsep)
+% and prevent the "Overfull \hbox" warning.
+\setlength\LTleft{0pt}
+\setlength\LTright{0pt}
+\begin{longtable}{@{\extracolsep{\fill}} >{\raggedright\arraybackslash}p{0.22\linewidth} >{\raggedright\arraybackslash}p{0.45\linewidth} >{\centering\arraybackslash}p{0.15\linewidth} >{\centering\arraybackslash}p{0.08\linewidth}}
+
+    % --- Table Header ---
+    \hline
+    \rowcolor{gray!30}
+    \textbf{Phase} & \textbf{Key Tasks} & \textbf{Timeline} & \textbf{Status} \\
+    \hline
+    \endfirsthead
+    
+    % --- Header for subsequent pages ---
+    \hline
+    \rowcolor{gray!30}
+    \textbf{Phase} & \textbf{Key Tasks} & \textbf{Timeline} & \textbf{Status} \\
+    \hline
+    \endhead
+    
+    \hline
+    \endfoot
+    
+    \hline
+    \endlastfoot
+
+    % --- Phase 1: Completed ---
+    \rowcolor{phase1}
+    \textbf{Phase 1: \newline Core Simulation Engine (The "World")} &
+    \begin{itemize} \itemsep0em 
+        \item[$\bullet$] Project Setup (GitHub, Unity Project for Quest 3)
+        \item[$\bullet$] Implement Core Physics (Two-Body Problem)
+        \item[$\bullet$] Develop Visualizer \& Debug UI
+        \item[$\bullet$] First AR/VR Deployment \& Test
+    \end{itemize} &
+    \textbf{Completed} & \textcolor{green!60!black}{\Large\checkmark} \\
+
+    % --- Phase 2: July 2025 ---
+    \rowcolor{phase2}
+    \textbf{Phase 2: \newline Embodied Interface (The "Body")} &
+    \begin{itemize} \itemsep0em 
+        \item[$\bullet$] Hardware Prototyping (Sensor mounting)
+        \item[$\bullet$] Firmware Development (Arduino coding)
+        \item[$\bullet$] Unity-Arduino Integration (Serial communication)
+    \end{itemize} &
+    \textbf{July 2025} & \Large$\square$ \\
+    
+    % --- Phase 3: August - September 2025 ---
+    \rowcolor{phase3}
+    \textbf{Phase 3: \newline Generative Agent (The "Brain")} &
+    \begin{itemize} \itemsep0em 
+        \item[$\bullet$] API "Plumbing" (OpenAI, ElevenLabs, Speech-to-Text)
+        \item[$\bullet$] Implement Agent "Tool Use" (Function calling)
+        \item[$\bullet$] Close the Interaction Loop (Voice \textrightarrow{} Agent \textrightarrow{} Sim)
+    \end{itemize} &
+    \textbf{Aug - Sep 2025} & \Large$\square$ \\
+    
+    % --- Phase 4: October 2025 ---
+    \rowcolor{phase4}
+    \textbf{Phase 4: \newline Refinement \& User Experience (UX)} &
+    \begin{itemize} \itemsep0em 
+        \item[$\bullet$] UI/UX Development (Data display, visual feedback)
+        \item[$\bullet$] AR Experience Enhancement (Anchoring, stability)
+        \item[$\bullet$] Agent Persona Refinement (Improve tutoring)
+    \end{itemize} &
+    \textbf{October 2025} & \Large$\square$ \\
+
+    % --- Phase 5: November 2025 ---
+    \rowcolor{phase5}
+    \textbf{Phase 5: \newline Evaluation \& Finalization} &
+    \begin{itemize} \itemsep0em 
+        \item[$\bullet$] Technical Validation (Testing against metrics)
+        \item[$\bullet$] Conduct User Study
+        \item[$\bullet$] Final Project Documentation \& Video Demo
+    \end{itemize} &
+    \textbf{November 2025} & \Large$\square$ \\
+
+\end{longtable}

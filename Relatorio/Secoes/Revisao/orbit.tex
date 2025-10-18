@@ -1,0 +1,47 @@
+\section{Orbital Mechanics: The Physics of Celestial Motion}
+\label{sec:orbital_mechanics}
+
+The intuitive, visual understanding of orbital motion is a primary objective of this project. While the generative agent will handle the underlying calculations, a firm grasp of the governing principles is essential to frame the simulation's logic and appreciate its educational value. Orbital mechanics is the study of the motion of bodies under the influence of gravity. For missions in Earth's orbit and for most interplanetary transfers, the foundational principles discovered by Isaac Newton and Johannes Kepler provide a remarkably accurate framework for describing and predicting these celestial paths. This section outlines the core concepts that form the physical basis of the simulation system.
+
+\subsection{The Fundamental Law: Gravity and the Two-Body Problem}
+
+At the heart of all orbital motion lies gravity. In the 17th century, Sir Isaac Newton formulated the Law of Universal Gravitation, stating that any two bodies attract each other with a force proportional to the product of their masses and inversely proportional to the square of the distance between them \cite{Curtis2020}. This is expressed mathematically as:
+$$ F = G \frac{m_1 m_2}{r^2} $$
+where $F$ is the gravitational force, $G$ is the gravitational constant, $m_1$ and $m_2$ are the masses of the two bodies, and $r$ is the distance between their centers.
+
+When applied to a satellite orbiting a celestial body like Earth, this law simplifies into the cornerstone of astrodynamics: the \textbf{two-body problem}. This model makes a critical assumption: it considers only the gravitational force between the satellite and the primary body (e.g., Earth), ignoring all other perturbations such as atmospheric drag, solar radiation pressure, and the gravitational pull from other bodies like the Moon or the Sun \cite{Vallado2013}. While these forces are significant for high-precision, long-term trajectory prediction, the two-body model provides an elegant and highly accurate approximation for most foundational analysis and educational purposes. The resulting equation of motion is:
+$$ \ddot{\vec{r}} + \frac{\mu}{r^3}\vec{r} = 0 $$
+Here, $\vec{r}$ is the position vector of the satellite relative to the primary body, $\ddot{\vec{r}}$ is its acceleration, and $\mu$ (mu) is the standard gravitational parameter of the system ($\mu = G(m_1 + m_2)$). The solution to this equation reveals that the satellite's path must be a conic section: a circle, ellipse, parabola, or hyperbola \cite{Curtis2020}. For a satellite captured in orbit, its path will be an ellipse, or a circle as a special case of an ellipse.
+
+\subsection{The Language of Orbits: The Classical Orbital Elements}
+
+While the equation of motion describes the physics, it does not provide an intuitive description of an orbit's path. To define the size, shape, and orientation of an orbit in three-dimensional space, a set of six parameters, known as the \textbf{classical Keplerian orbital elements}, is used. These elements provide a unique and static description of the orbit that results from solving the two-body problem \cite{Bate1971}. They serve as the precise, non-ambiguous instruction set that a generative agent can use to calculate and render any given orbit within the simulation.
+
+The six elements are \cite{Curtis2020}:
+\begin{itemize}
+    \item \textbf{Semimajor Axis ($a$):} Defines the size of the orbit. It is half of the longest diameter of the ellipse.
+    \item \textbf{Eccentricity ($e$):} Defines the shape of the orbit. For a bound orbit, $e$ ranges from $0$ for a perfect circle to less than $1$ for an ellipse.
+    \item \textbf{Inclination ($i$):} Defines the tilt of the orbital plane with respect to a reference plane (typically Earth's equatorial plane). An inclination of $0^\circ$ is an equatorial orbit, while $90^\circ$ is a polar orbit.
+    \item \textbf{Right Ascension of the Ascending Node ($\Omega$):} Defines the orientation, or swivel, of the orbital plane in space. It is the angle measured in the reference plane from a reference direction (the vernal equinox) to the point where the satellite crosses the equator from south to north (the ascending node).
+    \item \textbf{Argument of Perigee ($\omega$):} Defines the orientation of the ellipse within its orbital plane. It is the angle measured from the ascending node to the orbit's point of closest approach to the primary body (the perigee).
+    \item \textbf{True Anomaly ($\nu$):} Defines the position of the satellite along its elliptical path at a specific time. It is the angle from the perigee to the satellite's current position vector.
+\end{itemize}
+
+\subsection{Changing Orbits: Impulsive Maneuvers and Delta-V}
+
+Orbits are not always static. To move a satellite from one orbit to another—for example, from a low parking orbit to a higher operational orbit—it must change its velocity vector ($\vec{v}$). In practice, this is achieved by firing a thruster. For mission planning and simulation, these burns are often modeled as \textbf{impulsive maneuvers}, which are assumed to be instantaneous changes in velocity \cite{Bate1971}. This simplification is highly effective when the burn time is short compared to the orbital period.
+
+The "cost" of performing such a maneuver is measured by \textbf{delta-v} ($\Delta v$), which is the total change in velocity required. Delta-v is the fundamental currency of spaceflight; every orbital maneuver has a $\Delta v$ budget, which ultimately dictates the amount of propellant required \cite{Vallado2013}.
+
+A classic and highly efficient example of an orbital maneuver is the \textbf{Hohmann transfer}, used to move between two circular, coplanar orbits. It consists of two impulsive maneuvers:
+\begin{enumerate}
+    \item A first burn ($\Delta v_1$) is performed to increase the satellite's speed, placing it into an elliptical transfer orbit that is tangent to both the initial and final orbits.
+    \item Upon reaching the highest point of the transfer orbit (apoapsis), a second burn ($\Delta v_2$) is performed to increase speed again, circularizing the path into the final, higher orbit.
+\end{enumerate}
+This is precisely the type of task an agent could execute in the simulation: a user could request a transfer between two orbits, and the agent would calculate the required $\Delta v$ and visualize the two-burn Hohmann transfer trajectory.
+
+\subsection{The Initial Step: From Surface to Orbit}
+
+Before a satellite can orbit, it must first get there. The launch phase involves a complex journey through the atmosphere to achieve the required altitude and velocity for orbit insertion. The fundamental challenge is to provide the launch vehicle with enough energy to overcome two primary obstacles: Earth's gravitational pull and atmospheric drag.
+
+Conceptually, a launch can be viewed as a process of gaining both vertical and horizontal velocity. The vehicle must ascend vertically to clear the densest part of the atmosphere, after which it performs a "gravity turn" to begin building horizontal speed. The objective is to reach a target altitude with a velocity vector that is nearly horizontal and has a magnitude equal to that required for a stable orbit. At this point, known as orbit insertion, the engines cut off, and the spacecraft begins its free-fall journey governed by the principles of orbital mechanics. For the purpose of this simulation, the complex atmospheric ascent can be abstracted, with the interactive experience beginning at the moment of orbit insertion, allowing the user to focus on the orbital dynamics that follow.

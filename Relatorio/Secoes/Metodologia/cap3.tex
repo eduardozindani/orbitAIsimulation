@@ -1,0 +1,93 @@
+\section{Design Philosophy and Approach}
+\label{sec:design_philosophy}
+
+The development of this project is fundamentally an exploratory research endeavour into a new paradigm of human-computer interaction for educational purposes. Given the innovative and complex nature of integrating generative AI, augmented reality, and embodied interfaces, a rigid, waterfall-style development plan would be inappropriate. Instead, the methodology is guided by a philosophy that embraces iteration and modularity to navigate the technical challenges and discovery process inherent in such work.
+
+The approach is defined by three core principles:
+\begin{itemize}
+    \item \textbf{Prototype-Driven:} The primary goal is the creation of a functional prototype that demonstrates the feasibility and potential of the proposed system. This approach prioritizes implementing the core functionalities of the user experience over exhaustive feature development, allowing for tangible and testable results that can validate the project's central thesis.
+    \item \textbf{Iterative Development:} The project will be built in iterative cycles, following a process of building a core feature, testing its performance and usability, and refining it based on the results. This allows for flexibility in the implementation details, acknowledging that the optimal solutions for sensor integration, agent prompting, and user interaction will be discovered and improved upon throughout the development lifecycle.
+    \item \textbf{Modular Architecture:} The system is designed as a collection of distinct yet interconnected modules: the generative agent (the "brain"), the simulation and visualisation engine (the "world"), and the physical interface (the "body"). This modularity, a key objective of this project, makes the complex system manageable, facilitates parallel development and testing of components, and ensures the final architecture is extensible for future work.
+\end{itemize}
+
+\section{System Architecture and Data Flow}
+\label{sec:system_architecture}
+
+This section outlines the high-level system architecture, describing the flow of information between the user, the physical interface, the software components, and the generative agent. This end-to-end process, or "fluxogram," illustrates how the various components work in concert to create a seamless, real-time interactive experience. The architecture is designed as a continuous "perceive-think-act" cycle, mirroring the agentic workflows described in the literature.
+
+The data flow for a single user interaction can be detailed in the following sequence:
+\begin{enumerate}
+    \item \textbf{User Input:} The interaction begins with the user issuing a multimodal command, such as speaking a request (e.g., "Show me an orbit with an inclination of 45 degrees") while simultaneously rotating the physical globe to a desired orientation.
+    \item \textbf{Physical Interface Capture:} The system's hardware interfaces capture the raw input data. The microphone on the AR/VR headset records the user's voice, while the Arduino microcontroller reads the rotational data from the sensor attached to the globe.
+    \item \textbf{Data Transmission to Core Application:} The captured audio stream and the serialized rotational data from the Arduino are transmitted in real-time to the central application running in the Unity engine.
+    \item \textbf{The Agentic Core (Reasoning and Planning):} Within Unity, the core logic orchestrates the agent's reasoning process. The application sends the transcribed user query and the relevant contextual data (e.g., globe orientation) to the OpenAI API. The generative agent, guided by its engineered prompt, interprets the user's intent, formulates a plan, and identifies the appropriate "tool" to use---a predefined C\# function within the Unity simulation.
+    \item \textbf{Simulation and Visualisation:} The agent invokes the corresponding function in the simulation engine, passing the translated parameters (e.g., \(\textit{i} = 45^\circ\), \(\Omega = \text{calculated\_value}\)). The Unity engine calculates the orbital trajectory based on these parameters and renders the path as a 3D visualisation on the Meta Quest 3, correctly synchronised with the virtual Earth's orientation.
+    
+    \item \textbf{Auditory Feedback Loop:} To complete the interaction, the agent generates a textual confirmation or explanation (e.g., “Certainly, here is the 45-degree inclination orbit you requested.”). This text is sent to the ElevenLabs API, which synthesizes a natural-sounding voice response that is played back to the user through the headset, providing coherent, conversational feedback \cite{anthropic2023agents}.
+\end{enumerate}
+
+\section{Core Component Implementation}
+\label{sec:core_components}
+
+The architecture described above is realized through the implementation of three distinct, yet deeply integrated, core components. This section details the specific role, planned tools, and development process for each component, clarifying how they contribute to the project's objectives.
+
+\subsection{The Generative Agent (The "Brain")}
+\label{subsec:agent}
+
+\begin{description}
+    \item[Role] The generative agent serves as the central intelligence of the system. Its primary role is to act as a natural language interface and reasoning engine, translating the user's high-level, often ambiguous, spoken intent into the precise, deterministic commands required by the simulation engine. It functions as an interactive, educational guide for the user.
+    
+    \item[Tools] The agent's capabilities will be powered by a suite of Application Programming Interfaces (APIs). The core reasoning and language understanding will be handled by the \textbf{OpenAI API}, leveraging a powerful Large Language Model (LLM) with function-calling capabilities. The agent's voice, providing auditory feedback, will be synthesized using the \textbf{ElevenLabs API}, chosen for its ability to generate high-quality, low-latency speech.
+    
+    \item[Process] The development will focus on prompt engineering to define the agent's persona and behaviour as an expert aerospace tutor. The agent will be provided with a schema of the available C\# functions within the Unity environment, effectively giving it a set of "tools" it can use. When a user issues a command, the agent will reason about the intent and select the appropriate function to call with the correct parameters. The challenge of LLM hallucination is acknowledged; mitigation strategies, such as providing contextually relevant information within the prompt and validating outputs, will be explored and refined during the iterative development cycles.
+\end{description}
+
+\subsection{The Simulation and AR Visualisation (The "World")}
+\label{subsec:simulation}
+
+\begin{description}
+    \item[Role] This component is responsible for creating a real-time, physically-grounded, and visually intuitive representation of the orbital environment. It must accurately simulate celestial motion and render the results in an interactive, three-dimensional space for the user.
+    
+    \item[Tools] The simulation and visualisation will be built using the \textbf{Unity} 3D development engine, chosen for its robust cross-platform capabilities and extensive support for XR development. The target hardware for deployment is the \textbf{Meta Quest 3}, selected for its high-resolution, full-colour passthrough, which is ideal for Augmented Reality (AR), and its powerful standalone processing capabilities.
+    
+    \item[Process] The simulation's physics will be implemented in Unity using C\# scripts. The core logic will be based on the principles of astrodynamics, primarily the two-body problem, to calculate orbital trajectories as described in the foundational literature\cite{Curtis2020}. The primary development goal is an AR experience, where the orbital visualisations are overlaid onto the user's real-world environment and anchored to the physical globe. The modular nature of the design, however, allows for the future extension to a fully immersive Virtual Reality (VR) mode within the same application.
+\end{description}
+
+\subsection{The Embodied Interface (The "Body")}
+\label{subsec:interface}
+
+\begin{description}
+    \item[Role] The embodied interface is the physical bridge between the user and the digital simulation. Its role is to capture the user's physical actions—specifically, the rotation of a globe—and convert them into a stream of digital input, enabling a tangible and intuitive method of controlling the simulation's orientation.
+    
+    \item[Tools] The hardware for this interface will consist of a physical \textbf{Globe}, an \textbf{Arduino} microcontroller (or a compatible equivalent) to process sensor data, and a rotational sensor.
+    
+    \item[Process] A rotational sensor will be physically integrated with the globe's axis of rotation. The initial development will explore the use of a \textbf{Potentiometer} for its simplicity in measuring single-axis rotation. Concurrently, an \textbf{Inertial Measurement Unit (IMU)} will be investigated as a more capable alternative that could provide multi-axis rotational data (pitch, roll, and yaw), offering a more expressive degree of control. The Arduino will be programmed to read the data from the chosen sensor and transmit it via a serial (USB) connection to the Unity application. This data stream will directly and continuously control the orientation of the virtual celestial body in the simulation, ensuring a one-to-one correspondence between the user's physical action and the digital visualisation.
+\end{description}
+
+\section{Development and Version Control}
+\label{sec:version_control}
+
+To ensure a systematic and traceable development process, the project will be managed using modern software engineering practices. The primary tool for this purpose is \textbf{GitHub}, a distributed version control system. All source code, including the C\# scripts for the \textbf{Unity} application and the C++ code for the \textbf{Arduino} firmware, will be stored in a centralized repository on GitHub. This approach provides a complete history of all changes, facilitates branching for experimental features without compromising the stability of the main project, and establishes a foundation for potential future collaboration. Regular commits will document the incremental progress, aligning with the iterative development philosophy outlined in Section \ref{sec:design_philosophy}.
+
+\section{Evaluation Plan}
+\label{sec:evaluation_plan}
+
+A critical component of this project is to measure its success, not only as a functional piece of software but also as a potentially effective educational tool. The evaluation plan is therefore designed to address two distinct aspects: the technical validation of the system and a qualitative assessment of its educational potential, directly addressing the final specific objective of this thesis \ref{sec:objetivos}.
+
+\subsection{Technical Validation}
+The first phase of evaluation will focus on verifying that the system's components function correctly, reliably, and efficiently. This involves a series of tests to measure key performance indicators:
+\begin{itemize}
+    \item \textbf{Agent Accuracy:} Testing the generative agent's ability to correctly parse a range of spoken commands and accurately invoke the corresponding simulation functions with the correct parameters.
+    \item \textbf{Simulation Fidelity:} Verifying that the rendered orbital trajectories are mathematically correct according to the implemented physics models.
+    \item \textbf{System Latency:} Measuring the end-to-end latency, from user input (voice and gesture) to the corresponding visual and auditory feedback, to ensure the interaction feels responsive and seamless.
+    \item \textbf{Interface Precision:} Assessing the accuracy of the physical interface by ensuring that the rotation of the physical globe maps precisely and smoothly to the orientation of the virtual model.
+\end{itemize}
+
+\subsection{Educational Potential Assessment}
+The second phase of evaluation aims to gather qualitative data on the platform's potential as a tool for facilitating conceptual understanding of orbital mechanics. This will be achieved through a small-scale, qualitative user study.
+\begin{description}
+    \item[Participants] A small group of target users (e.g., 3-5 undergraduate students in aerospace engineering or a related field) will be invited to participate.
+    \item[Procedure] Each participant will be given a brief introduction to the system's controls and features. They will then be asked to complete a series of exploratory tasks, such as creating a geostationary orbit, visualizing a polar orbit, or performing a Hohmann transfer between two altitudes.
+    \item[Data Collection] Following the interactive session, feedback will be collected through a semi-structured interview and a short questionnaire. Questions will focus on the user's experience regarding engagement, ease of use, and perceived value. Specifically, participants will be asked whether the platform helped them visualize or understand orbital concepts more intuitively compared to traditional learning methods like textbooks and diagrams.
+\end{description}
+The goal of this assessment is not to achieve statistical significance, but to gather rich, qualitative insights that can validate the educational premise of the project and inform future improvements.

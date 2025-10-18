@@ -1,0 +1,40 @@
+\section{Generative Agents}
+\label{sec:generative-agents}
+
+Traditional software and simulations have been predominantly \emph{deterministic}—given the same inputs, they yield the same outputs. Modern AI systems built on \emph{generative} models, by contrast, introduce stochasticity and creativity. Large Language Models (LLMs) do not follow hard-coded rules; instead, they sample from probability distributions learned from vast textual corpora. Consequently, an LLM can produce context-dependent, varied responses rather than a single predetermined answer. This marks a paradigm shift from scripted to emergent behaviour.  In recent work, advanced LLMs such as GPT-4 have even outperformed traditional reinforcement-learning agents in complex environments by reasoning through text rather than executing pre-programmed control policies \cite{carrasco2025LLM}.  While stochastic generation entails some unpredictability, it is precisely this creativity that lets \emph{generative agents} adapt to scenarios beyond their designers’ foresight.
+
+At a conceptual level an LLM is a statistical language engine: given a textual history, it predicts the most plausible continuation one word at a time.  Because it is trained on heterogeneous data, a single model can answer coding questions, analyse legal texts, or reason about orbital mechanics when prompted appropriately.  This broad, generative capability underpins the rise of \emph{LLM-powered agents} \cite{anthropic2023agents}.
+
+\textbf{LLM-based agents} are autonomous software entities that embed an LLM as their core “brain.”  An agent senses its environment, reasons about goals, and acts—iteratively—until a task is complete.  Industry definitions describe such an agent as “a system that uses an LLM to reason through a problem, create a plan, and execute that plan with tools” \cite{huang2024agentic,chen2023agents}.  The LLM supplies the reasoning; auxiliary modules provide planning, memory, and tool use \cite{anthropic2023agents}.  Crucially, the agent—not the user—controls the loop: it may decide which function to call, when to revise a plan, or whether to request clarification \cite{openai2023functions}.  Hence an agent is more than a single LLM invocation; it is a continual perceive–think–act cycle.
+
+\subsection*{Architectural Components}
+
+Generative-agent designs typically comprise five interacting elements \cite{anthropic2023agents,huang2024agentic}:
+
+\begin{itemize}
+  \item \textbf{Planning and reasoning.}  The agent decomposes high-level goals into actionable steps, often prompting the LLM to produce an internal plan or “chain of thought.”
+  \item \textbf{Memory.}  Short-term context (recent turns) and long-term knowledge (summaries or retrieved documents) are stored externally—e.g.\ in a vector database—and injected into prompts as needed.
+  \item \textbf{Tool use and APIs.}  Through structured outputs (JSON function calls, shell commands, \emph{etc.}) the agent invokes external tools to compute, query, or effect changes in its environment \cite{openai2023functions}.
+  \item \textbf{Iterative control loop.}  The agent cycles through \emph{observe} $\rightarrow$ \emph{reason} $\rightarrow$ \emph{act} $\rightarrow$ \emph{observe}, optionally reflecting or self-critiquing between steps to improve reliability.
+  \item \textbf{Autonomy and adaptation.}  Equipped with the above, the agent can switch strategies, recover from errors, and pursue its objective with minimal human micromanagement.
+\end{itemize}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=.8\linewidth]{Imagens/Effective_agents.png}
+  \caption{End-to-end agentic workflow from Anthropic’s “Building Effective Agents.”  
+           The human issues a query through an \textit{interface}; the LLM asks clarifying
+           questions until the task is precise, receives contextual files, iteratively writes
+           and tests code against the environment, and finally returns results for display
+           \cite{anthropic2023agents}.}
+  \label{fig:effective-agents-seq}
+\end{figure}
+
+\subsection*{Applications and Relevance}
+
+\begin{itemize}
+  \item \textbf{Simulations and interactive worlds.}  Park \emph{et al.}\ created “Generative Agents” that populate a sandbox town with virtual characters who plan, remember, and socially interact—producing emergent storylines never scripted by the developers \cite{park2023generative}.
+  \item \textbf{Aerospace guidance and control.}  Carrasco \emph{et al.}\ demonstrated an LLM agent piloting a spacecraft in the \textit{Kerbal Space Program} simulation by iteratively reading textual telemetry and issuing control actions, matching classical controllers without explicit orbital equations \cite{carrasco2025LLM}.
+  \item \textbf{Legal reasoning.}  Harvey AI equips law-firm associates with an agent that drafts memos, retrieves precedents, and iteratively refines analyses through dialogue—illustrating agentic workflows in language-dense tasks \cite{chen2023agents}.
+  \item \textbf{Education.}  Khan Academy’s \textit{Khanmigo} employs GPT-4 as a Socratic tutor that adapts explanations to each learner, providing hints rather than answers and thereby personalising study sessions at scale \cite{khanmigo2023}.
+\end{itemize}
