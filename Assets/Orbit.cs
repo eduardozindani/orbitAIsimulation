@@ -3,8 +3,8 @@ using UnityEngine;
 public class Orbit : MonoBehaviour
 {
     public Transform planet;
-    public float orbitRadius = 3f;
-    public float orbitSpeed = 2f;
+    public float orbitRadius = 5.32f; // ISS altitude: ~408km above Earth (5 + 408*0.000785)
+    public float orbitSpeed = 0.00119f; // ISS speed: ~7.66 km/s converted to rad/s
 
     private float angle;
 

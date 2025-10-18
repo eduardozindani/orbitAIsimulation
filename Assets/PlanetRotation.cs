@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(MeshRenderer))]
 public class PlanetRotation : MonoBehaviour
 {
-    public float rotationSpeed = 3f;           // degrees per second (sped-up day)
+    public float rotationSpeed = 0.00417f;     // degrees per second (realistic 24-hour day)
     private float rotY;                        // current angle
     Material mat;                              // cached material
 

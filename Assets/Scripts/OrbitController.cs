@@ -15,8 +15,24 @@ public class OrbitController : MonoBehaviour
     [Tooltip("Earth radius in kilometers (real Earth ≈ 6371 km)")]
     public float earthRadiusKm = 6371f;
     
+    [Tooltip("Earth radius in Unity units (matches your Planet GameObject scale)")]
+    public float earthRadiusUnity = 5f;
+    
     [Tooltip("Unity units per kilometer (adjust based on your Earth scale)")]
-    public float unityUnitsPerKm = 1f / 1000f; // Default: 1 Unity unit = 1000 km
+    public float unityUnitsPerKm = 5f / 6371f; // Earth radius = 5 Unity units, real Earth = 6371 km
+    
+    [Header("Validation")]
+    [Tooltip("Minimum safe altitude above Earth surface (km)")]
+    public float minAltitudeKm = 160f; // Below this, atmospheric drag becomes significant
+    
+    [Tooltip("Maximum reasonable altitude for simulation (km)")]
+    public float maxAltitudeKm = 35786f; // Geostationary orbit altitude
+    
+    [Tooltip("Minimum orbital speed (km/s)")]
+    public float minSpeedKmps = 1f; // Very slow orbit
+    
+    [Tooltip("Maximum orbital speed (km/s)")]
+    public float maxSpeedKmps = 11f; // Escape velocity is ~11.2 km/s
     
     [Header("Debug")]
     public bool showDebugLogs = true;
@@ -75,17 +91,32 @@ public class OrbitController : MonoBehaviour
         if (response.distance_km.HasValue)
         {
             float altitudeKm = response.distance_km.Value;
+            
+            // Validate altitude range
+            if (altitudeKm < minAltitudeKm)
+            {
+                if (showDebugLogs)
+                    Debug.LogWarning($"[OrbitController] Altitude {altitudeKm}km is below minimum safe altitude {minAltitudeKm}km. Clamping to minimum.");
+                altitudeKm = minAltitudeKm;
+            }
+            else if (altitudeKm > maxAltitudeKm)
+            {
+                if (showDebugLogs)
+                    Debug.LogWarning($"[OrbitController] Altitude {altitudeKm}km exceeds maximum {maxAltitudeKm}km. Clamping to maximum.");
+                altitudeKm = maxAltitudeKm;
+            }
+            
             if (altitudeKm >= 0) // Basic validation
             {
-                float orbitRadiusKm = earthRadiusKm + altitudeKm;
-                float orbitRadiusUnity = orbitRadiusKm * unityUnitsPerKm;
+                float altitudeUnity = altitudeKm * unityUnitsPerKm;
+                float orbitRadiusUnity = earthRadiusUnity + altitudeUnity;
                 
                 targetOrbit.orbitRadius = orbitRadiusUnity;
                 result.altitudeKm = altitudeKm;
                 anyUpdated = true;
                 
                 if (showDebugLogs)
-                    Debug.Log($"[OrbitController] Set altitude: {altitudeKm}km → orbit radius: {orbitRadiusUnity} Unity units");
+                    Debug.Log($"[OrbitController] Set altitude: {altitudeKm}km ({altitudeUnity:F3} Unity units) → orbit radius: {orbitRadiusUnity:F3} Unity units");
             }
         }
 
@@ -93,19 +124,34 @@ public class OrbitController : MonoBehaviour
         if (response.speed_kmps.HasValue)
         {
             float speedKmps = response.speed_kmps.Value;
+            
+            // Validate speed range
+            if (speedKmps < minSpeedKmps)
+            {
+                if (showDebugLogs)
+                    Debug.LogWarning($"[OrbitController] Speed {speedKmps}km/s is below minimum {minSpeedKmps}km/s. Clamping to minimum.");
+                speedKmps = minSpeedKmps;
+            }
+            else if (speedKmps > maxSpeedKmps)
+            {
+                if (showDebugLogs)
+                    Debug.LogWarning($"[OrbitController] Speed {speedKmps}km/s exceeds maximum {maxSpeedKmps}km/s. Clamping to maximum.");
+                speedKmps = maxSpeedKmps;
+            }
+            
             if (speedKmps > 0) // Basic validation
             {
                 // Convert linear speed to angular velocity
-                // Angular velocity = linear speed / radius
-                float currentRadiusKm = targetOrbit.orbitRadius / unityUnitsPerKm;
-                float angularVelocityRadPerSec = speedKmps / currentRadiusKm;
+                // Angular velocity (rad/s) = linear speed (Unity units/s) / radius (Unity units)
+                float speedUnityPerSec = speedKmps * unityUnitsPerKm;
+                float angularVelocityRadPerSec = speedUnityPerSec / targetOrbit.orbitRadius;
                 
                 targetOrbit.orbitSpeed = angularVelocityRadPerSec;
                 result.speedKmps = speedKmps;
                 anyUpdated = true;
                 
                 if (showDebugLogs)
-                    Debug.Log($"[OrbitController] Set speed: {speedKmps}km/s → angular velocity: {angularVelocityRadPerSec} rad/s");
+                    Debug.Log($"[OrbitController] Set speed: {speedKmps}km/s ({speedUnityPerSec:F6} Unity/s) → angular velocity: {angularVelocityRadPerSec:F6} rad/s");
             }
         }
 
@@ -115,11 +161,12 @@ public class OrbitController : MonoBehaviour
         {
             // Get current state for response
             if (!result.altitudeKm.HasValue)
-                result.altitudeKm = (targetOrbit.orbitRadius / unityUnitsPerKm) - earthRadiusKm;
+                result.altitudeKm = (targetOrbit.orbitRadius - earthRadiusUnity) / unityUnitsPerKm;
             if (!result.speedKmps.HasValue)
             {
-                float currentRadiusKm = targetOrbit.orbitRadius / unityUnitsPerKm;
-                result.speedKmps = targetOrbit.orbitSpeed * currentRadiusKm;
+                // Convert angular velocity back to linear speed in km/s
+                float speedUnityPerSec = targetOrbit.orbitSpeed * targetOrbit.orbitRadius;
+                result.speedKmps = speedUnityPerSec / unityUnitsPerKm;
             }
             
             result.updateReason = "Orbital parameters successfully updated";

@@ -129,15 +129,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: c92e619f6ee0142718632f0ffd9cc2ec, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c92e619f6ee0142718632f0ffd9cc2ec, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c92e619f6ee0142718632f0ffd9cc2ec, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c92e619f6ee0142718632f0ffd9cc2ec, type: 3}
       propertyPath: m_LocalPosition.x
@@ -744,7 +744,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 2.5, y: 1718, z: -3334}
-  m_LocalScale: {x: 3, y: 3, z: 3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1946719150}
@@ -763,8 +763,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   planet: {fileID: 1791823994}
-  orbitRadius: 3
-  orbitSpeed: 1
+  orbitRadius: 5.32
+  orbitSpeed: 0.00119
 --- !u!96 &1065534243
 TrailRenderer:
   serializedVersion: 3
@@ -1062,14 +1062,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1636097592}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.20312905, y: 0, z: 0, w: 0.979152}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1791823994}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 23.44, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1665952256
 GameObject:
   m_ObjectHideFlags: 0
@@ -1434,13 +1434,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1791823990}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0.20312905, y: 0, z: 0, w: 0.979152}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 3}
+  m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1636097593}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 23.44, y: 0, z: 0}
 --- !u!114 &1791823995
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1453,7 +1453,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffdb078dd9ec1473998778558edfaa89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 3
+  rotationSpeed: 0.00417
 --- !u!4 &1946719150 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c92e619f6ee0142718632f0ffd9cc2ec, type: 3}
@@ -1473,7 +1473,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetOrbit: {fileID: 1065534242}
   earthRadiusKm: 6371
-  unityUnitsPerKm: 0.001
+  earthRadiusUnity: 5
+  unityUnitsPerKm: 0.000785
+  minAltitudeKm: 160
+  maxAltitudeKm: 35786
+  minSpeedKmps: 1
+  maxSpeedKmps: 5000
   showDebugLogs: 1
 --- !u!1 &2020626093
 GameObject:
@@ -1771,8 +1776,8 @@ MonoBehaviour:
   zoomSpeed: 5
   minPitch: -80
   maxPitch: 80
-  minRadius: 5
-  maxRadius: 30
+  minRadius: 6
+  maxRadius: 50
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
