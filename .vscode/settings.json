@@ -14,13 +14,13 @@
   // Output directory
   "latex-workshop.latex.outDir": "%DIR%",
 
-  // Recipe for building (pdflatex + bibtex + pdflatex + pdflatex)
+  // Recipe for building (pdflatex + biber + pdflatex + pdflatex)
   "latex-workshop.latex.recipes": [
     {
-      "name": "pdfLaTeX + BibTeX + pdfLaTeX×2",
+      "name": "pdfLaTeX + Biber + pdfLaTeX×2",
       "tools": [
         "pdflatex",
-        "bibtex",
+        "biber",
         "pdflatex",
         "pdflatex"
       ]
@@ -47,8 +47,8 @@
       "env": {}
     },
     {
-      "name": "bibtex",
-      "command": "bibtex",
+      "name": "biber",
+      "command": "biber",
       "args": [
         "%DOCFILE%"
       ],
@@ -80,7 +80,6 @@
     "*.gls",
     "*.ist",
     "*.fls",
-    "*.log",
     "*.fdb_latexmk",
     "*.synctex.gz"
   ],
@@ -91,5 +90,25 @@
 
   // Linting
   "latex-workshop.linting.chktex.enabled": false,
-  "latex-workshop.linting.lacheck.enabled": false
+  "latex-workshop.linting.lacheck.enabled": false,
+
+  // Message filtering - suppress common harmless warnings
+  "latex-workshop.message.log.exclude": [
+    "Underfull \\hbox",
+    "Overfull \\hbox",
+    "Underfull \\vbox",
+    "Overfull \\vbox"
+  ],
+  "latex-workshop.message.information.show": false,
+  "latex-workshop.message.warning.show": true,
+  "latex-workshop.message.error.show": true,
+
+  // Only show errors in the problems panel, not warnings
+  "latex-workshop.message.latexlog.exclude": [
+    "Underfull",
+    "Overfull",
+    "specifier changed to",
+    "Token not allowed in a PDF string",
+    "destination with the same identifier"
+  ]
 }

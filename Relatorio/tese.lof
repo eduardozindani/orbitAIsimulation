@@ -1,0 +1,11 @@
+\babel@toc {english}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces End-to-end agentic workflow from Anthropic’s “Building Effective Agents.” The human issues a query through an \textit {interface}; the LLM asks clarifying questions until the task is precise, receives contextual files, iteratively writes and tests code against the environment, and finally returns results for display \blx@tocontentsinit {0}\cite {anthropic2023agents}.}}{23}{figure.caption.10}
+\addvspace {10\p@ }
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
