@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using Prompts; // << add this to access Prompts.SystemPrompt.Text and ResponsePrompt.Text
+using Prompts;
+using Agents.Tools;
+using Newtonsoft.Json.Linq;
 
 /// <summary>
 /// Minimal, robust bridge between a TMP input box and your OpenAI client.
@@ -47,7 +50,13 @@ public class PromptConsole : MonoBehaviour
     [Tooltip("Controller that will process AI commands and update orbit parameters.")]
     public OrbitController OrbitController;
 
+    [Header("Tool System")]
+    [Tooltip("If true, uses the new tool-based system (ToolRegistry + ToolExecutor). If false, uses legacy altitude/speed system.")]
+    public bool UseToolSystem = true;
+
     private OpenAIClient _client;
+    private ToolRegistry _toolRegistry;
+    private ToolExecutor _toolExecutor;
     private bool _busy;
     private CancellationTokenSource _cts;
 
@@ -65,6 +74,30 @@ public class PromptConsole : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("[PromptConsole] Failed to construct OpenAIClient: " + e.Message);
+        }
+
+        // Initialize tool system if enabled
+        if (UseToolSystem && OrbitController != null)
+        {
+            try
+            {
+                _toolRegistry = new ToolRegistry();
+                if (_toolRegistry.LoadSchemas())
+                {
+                    _toolExecutor = new ToolExecutor(_toolRegistry, OrbitController);
+                    Debug.Log("[PromptConsole] Tool system initialized successfully");
+                }
+                else
+                {
+                    Debug.LogError("[PromptConsole] Failed to load tool schemas");
+                    UseToolSystem = false;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[PromptConsole] Failed to initialize tool system: " + e.Message);
+                UseToolSystem = false;
+            }
         }
 
         _cts = new CancellationTokenSource();
@@ -165,21 +198,16 @@ public class PromptConsole : MonoBehaviour
 
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
 
-            // >>> STAGE 1: Extract parameters using system prompt
-            string systemInstructions = UseSystemPrompt ? SystemPrompt.Text : null;
-            string extractionResponse = await _client.CompleteAsync(prompt, systemInstructions, linked.Token);
-
-            // >>> STAGE 2: Process orbit update and get status
-            OrbitController.OrbitUpdateResult updateResult = null;
-            if (OrbitController != null)
+            if (UseToolSystem && _toolExecutor != null)
             {
-                updateResult = OrbitController.ProcessAICommand(extractionResponse);
+                // NEW TOOL-BASED WORKFLOW
+                await SubmitWithToolSystemAsync(prompt, linked.Token);
             }
-
-            // >>> STAGE 3: Generate conversational response
-            string conversationalResponse = await GenerateConversationalResponse(prompt, updateResult, linked.Token);
-            
-            SafeSetOutput(conversationalResponse);
+            else
+            {
+                // LEGACY WORKFLOW (altitude/speed system)
+                await SubmitWithLegacySystemAsync(prompt, linked.Token);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -264,8 +292,155 @@ public class PromptConsole : MonoBehaviour
         InputField.caretPosition = InputField.stringPosition;
     }
 
+    // ---------------- Tool System Workflow ----------------
+
     /// <summary>
-    /// Generates a conversational response based on what the orbit system actually did
+    /// Parse AI response into a ToolCall object
+    /// </summary>
+    private ToolCall ParseToolCall(string jsonResponse)
+    {
+        if (string.IsNullOrWhiteSpace(jsonResponse))
+            return null;
+
+        try
+        {
+            var root = JObject.Parse(jsonResponse);
+
+            var toolCall = new ToolCall
+            {
+                intent = (string)root["intent"],
+                tool = (string)root["tool"]
+            };
+
+            // Parse parameters dictionary
+            var parametersObj = root["parameters"] as JObject;
+            if (parametersObj != null)
+            {
+                foreach (var prop in parametersObj.Properties())
+                {
+                    toolCall.parameters[prop.Name] = prop.Value.ToObject<object>();
+                }
+            }
+
+            return toolCall;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[PromptConsole] Failed to parse tool call JSON: {ex.Message}");
+            return null;
+        }
+    }
+
+    private async Task SubmitWithToolSystemAsync(string prompt, CancellationToken ct)
+    {
+        // >>> STAGE 1: Extract tool call using ToolSelectionPrompt
+        string toolSelectionResponse = await _client.CompleteAsync(prompt, ToolSelectionPrompt.Text, ct);
+
+        // >>> STAGE 2: Parse tool call JSON
+        ToolCall toolCall = ParseToolCall(toolSelectionResponse);
+
+        if (toolCall == null || toolCall.intent != "execute_tool")
+        {
+            // Generate conversational response for non-commands (greetings, questions, etc.)
+            string response = await GenerateNonToolResponseAsync(prompt, ct);
+            SafeSetOutput(response);
+            return;
+        }
+
+        // >>> STAGE 3: Execute tool via ToolExecutor
+        ToolExecutionResult executionResult;
+        bool success = _toolExecutor.ExecuteTool(toolCall.tool, toolCall.parameters, out executionResult);
+
+        if (!success)
+        {
+            string errorMsg = executionResult.errorMessage ?? "Unknown error";
+            SafeSetOutput($"I couldn't execute that command: {errorMsg}");
+            return;
+        }
+
+        // >>> STAGE 4: Generate conversational response
+        string conversationalResponse = await GenerateToolResponseAsync(prompt, executionResult, ct);
+        SafeSetOutput(conversationalResponse);
+    }
+
+    private async Task SubmitWithLegacySystemAsync(string prompt, CancellationToken ct)
+    {
+        // >>> STAGE 1: Extract parameters using system prompt
+        string systemInstructions = UseSystemPrompt ? SystemPrompt.Text : null;
+        string extractionResponse = await _client.CompleteAsync(prompt, systemInstructions, ct);
+
+        // >>> STAGE 2: Process orbit update and get status
+        OrbitController.OrbitUpdateResult updateResult = null;
+        if (OrbitController != null)
+        {
+            updateResult = OrbitController.ProcessAICommand(extractionResponse);
+        }
+
+        // >>> STAGE 3: Generate conversational response
+        string conversationalResponse = await GenerateConversationalResponse(prompt, updateResult, ct);
+        SafeSetOutput(conversationalResponse);
+    }
+
+    // ---------------- Response Generation ----------------
+
+    /// <summary>
+    /// Generates a conversational response when no tool was executed (greetings, questions, vague requests)
+    /// </summary>
+    private async Task<string> GenerateNonToolResponseAsync(string userCommand, CancellationToken ct)
+    {
+        string contextPrompt = $@"The user said: ""{userCommand}""
+
+This was NOT a command to create an orbit. Respond naturally and helpfully:
+- If it's a greeting, greet them back as Mission Control CAPCOM
+- If it's a question about capabilities, explain you can create circular and elliptical orbits
+- If it's a vague request without numbers, politely ask for specific altitude/periapsis/apoapsis values
+- If they're checking on the system, confirm everything is operational
+
+Be conversational, professional, and helpful. Keep responses under 2 sentences.";
+
+        try
+        {
+            return await _client.CompleteAsync(contextPrompt, ResponsePrompt.Text, ct);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"[PromptConsole] Failed to generate non-tool response: {ex.Message}");
+            return "I'm ready to help you design orbits. Please specify the orbit parameters you'd like to create.";
+        }
+    }
+
+    /// <summary>
+    /// Generates a conversational response for tool-based execution
+    /// </summary>
+    private async Task<string> GenerateToolResponseAsync(string userCommand, ToolExecutionResult executionResult, CancellationToken ct)
+    {
+        if (executionResult == null || !executionResult.success)
+        {
+            return "I'm sorry, there was an issue executing that command.";
+        }
+
+        // Build context for response generation
+        string contextPrompt = $@"user_command: {userCommand}
+tool_executed: {executionResult.toolId}
+success: {executionResult.success}
+result_message: {executionResult.message}
+output_data: {string.Join(", ", executionResult.outputData)}
+
+Generate a conversational response:";
+
+        try
+        {
+            return await _client.CompleteAsync(contextPrompt, ResponsePrompt.Text, ct);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"[PromptConsole] Failed to generate tool response: {ex.Message}");
+            return executionResult.message ?? "Orbit parameters updated successfully.";
+        }
+    }
+
+    /// <summary>
+    /// Generates a conversational response based on what the orbit system actually did (legacy)
     /// </summary>
     private async Task<string> GenerateConversationalResponse(string userCommand, OrbitController.OrbitUpdateResult updateResult, CancellationToken ct)
     {
@@ -304,5 +479,17 @@ Generate a conversational response:";
                 return $"I couldn't process that command. {updateResult.updateReason}. Please specify altitude (in km) or speed (in km/s) with numeric values.";
             }
         }
+    }
+
+    // ---------------- Helper Classes ----------------
+
+    /// <summary>
+    /// Represents a parsed tool call from the AI
+    /// </summary>
+    private class ToolCall
+    {
+        public string intent;
+        public string tool;
+        public Dictionary<string, object> parameters = new Dictionary<string, object>();
     }
 }

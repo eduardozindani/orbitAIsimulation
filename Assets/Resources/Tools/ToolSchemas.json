@@ -1,0 +1,94 @@
+{
+  "tools": [
+    {
+      "id": "create_circular_orbit",
+      "name": "Circular Orbit Design",
+      "description": "Creates a perfectly circular orbit at specified altitude and inclination. Used for standard orbital configurations like ISS, GPS, and geostationary satellites.",
+      "parameters": {
+        "altitude_km": {
+          "type": "number",
+          "description": "Altitude above Earth's surface in kilometers (height of the orbit)",
+          "min": 160,
+          "max": 35786,
+          "required": true
+        },
+        "inclination_deg": {
+          "type": "number",
+          "description": "Orbital inclination in degrees (0 = equatorial, 90 = polar)",
+          "min": 0,
+          "max": 180,
+          "required": false,
+          "default": 0
+        }
+      },
+      "specialist_persona": "circular_orbit_engineer",
+      "specialist_team": "Circular Orbit Design Team",
+      "unity_function": "CreateCircularOrbit"
+    },
+    {
+      "id": "create_elliptical_orbit",
+      "name": "Elliptical Orbit Design",
+      "description": "Creates an elliptical orbit with specified periapsis (lowest point) and apoapsis (highest point). Used for specialized orbits like Molniya, Hohmann transfers, or highly eccentric communication satellites.",
+      "parameters": {
+        "periapsis_km": {
+          "type": "number",
+          "description": "Lowest altitude above Earth's surface in kilometers",
+          "min": 160,
+          "max": 35786,
+          "required": true
+        },
+        "apoapsis_km": {
+          "type": "number",
+          "description": "Highest altitude above Earth's surface in kilometers",
+          "min": 160,
+          "max": 100000,
+          "required": true
+        },
+        "inclination_deg": {
+          "type": "number",
+          "description": "Orbital inclination in degrees (0 = equatorial, 90 = polar)",
+          "min": 0,
+          "max": 180,
+          "required": false,
+          "default": 0
+        }
+      },
+      "specialist_persona": "elliptical_orbit_analyst",
+      "specialist_team": "Elliptical Orbit Design Team",
+      "unity_function": "CreateEllipticalOrbit"
+    }
+  ],
+  "common_orbits": {
+    "ISS": {
+      "tool": "create_circular_orbit",
+      "altitude_km": 420,
+      "inclination_deg": 51.6,
+      "description": "International Space Station orbit"
+    },
+    "GPS": {
+      "tool": "create_circular_orbit",
+      "altitude_km": 20200,
+      "inclination_deg": 55,
+      "description": "GPS satellite constellation orbit"
+    },
+    "GEO": {
+      "tool": "create_circular_orbit",
+      "altitude_km": 35786,
+      "inclination_deg": 0,
+      "description": "Geostationary orbit (stays above same point on equator)"
+    },
+    "Molniya": {
+      "tool": "create_elliptical_orbit",
+      "periapsis_km": 500,
+      "apoapsis_km": 40000,
+      "inclination_deg": 63.4,
+      "description": "Russian communication satellite orbit (8-hour dwell over northern hemisphere)"
+    },
+    "Polar": {
+      "tool": "create_circular_orbit",
+      "altitude_km": 600,
+      "inclination_deg": 90,
+      "description": "Polar orbit for Earth observation (covers entire planet)"
+    }
+  }
+}

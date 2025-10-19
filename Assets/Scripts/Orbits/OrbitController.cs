@@ -208,4 +208,135 @@ public class OrbitController : MonoBehaviour
         if (targetOrbit == null)
             targetOrbit = GetComponent<Orbit>();
     }
+
+    // ====================================================================================
+    // NEW METHODS FOR MISSION CONTROL INTEGRATION
+    // ====================================================================================
+
+    /// <summary>
+    /// Creates a circular orbit with specified altitude and inclination.
+    /// This is called by the new ToolExecutor system.
+    /// </summary>
+    /// <param name="altitude_km">Altitude above Earth surface in kilometers</param>
+    /// <param name="inclination_deg">Orbital inclination in degrees (0=equatorial, 90=polar)</param>
+    /// <returns>Result containing orbital parameters</returns>
+    public OrbitUpdateResult CreateCircularOrbit(float altitude_km, float inclination_deg = 0f)
+    {
+        var result = new OrbitUpdateResult();
+
+        if (targetOrbit == null)
+        {
+            Debug.LogError("[OrbitController] No target orbit assigned!");
+            result.updateReason = "Orbit system not properly configured";
+            return result;
+        }
+
+        // Validate altitude
+        altitude_km = Mathf.Clamp(altitude_km, minAltitudeKm, maxAltitudeKm);
+
+        // Convert altitude to Unity orbit radius
+        float altitudeUnity = altitude_km * unityUnitsPerKm;
+        float orbitRadiusUnity = earthRadiusUnity + altitudeUnity;
+
+        // Set orbit parameters
+        targetOrbit.orbitRadius = orbitRadiusUnity;
+
+        // For circular orbit, calculate orbital speed based on altitude
+        // Using simplified vis-viva equation: v = sqrt(GM/r)
+        // For Earth: v ≈ sqrt(398600 / r_km) km/s
+        const float GM_earth = 398600f; // km³/s²
+        float r_km = earthRadiusKm + altitude_km;
+        float orbitalVelocity_kmps = Mathf.Sqrt(GM_earth / r_km);
+
+        // Convert to angular velocity (rad/s)
+        float speedUnityPerSec = orbitalVelocity_kmps * unityUnitsPerKm;
+        float angularVelocityRadPerSec = speedUnityPerSec / orbitRadiusUnity;
+        targetOrbit.orbitSpeed = angularVelocityRadPerSec;
+
+        // Store inclination for future use (Orbit.cs will need to support this)
+        // For now, log it
+        if (showDebugLogs)
+        {
+            Debug.Log($"[OrbitController] Created CIRCULAR orbit:");
+            Debug.Log($"  Altitude: {altitude_km:F1} km");
+            Debug.Log($"  Inclination: {inclination_deg:F1}°");
+            Debug.Log($"  Orbital velocity: {orbitalVelocity_kmps:F2} km/s");
+            Debug.Log($"  Orbit radius: {orbitRadiusUnity:F3} Unity units");
+            Debug.Log($"  Angular velocity: {angularVelocityRadPerSec:F6} rad/s");
+        }
+
+        result.parametersUpdated = true;
+        result.altitudeKm = altitude_km;
+        result.speedKmps = orbitalVelocity_kmps;
+        result.updateReason = $"Circular orbit created at {altitude_km:F0}km altitude, {inclination_deg:F1}° inclination";
+
+        return result;
+    }
+
+    /// <summary>
+    /// Creates an elliptical orbit with specified periapsis and apoapsis.
+    /// This is called by the new ToolExecutor system.
+    /// </summary>
+    /// <param name="periapsis_km">Lowest altitude in kilometers</param>
+    /// <param name="apoapsis_km">Highest altitude in kilometers</param>
+    /// <param name="inclination_deg">Orbital inclination in degrees</param>
+    /// <returns>Result containing orbital parameters</returns>
+    public OrbitUpdateResult CreateEllipticalOrbit(float periapsis_km, float apoapsis_km, float inclination_deg = 0f)
+    {
+        var result = new OrbitUpdateResult();
+
+        if (targetOrbit == null)
+        {
+            Debug.LogError("[OrbitController] No target orbit assigned!");
+            result.updateReason = "Orbit system not properly configured";
+            return result;
+        }
+
+        // Validate altitudes
+        periapsis_km = Mathf.Clamp(periapsis_km, minAltitudeKm, maxAltitudeKm);
+        apoapsis_km = Mathf.Clamp(apoapsis_km, periapsis_km + 1f, 100000f); // Ensure apoapsis > periapsis
+
+        // Calculate semi-major axis (average of periapsis and apoapsis radii)
+        float rp_km = earthRadiusKm + periapsis_km;  // Periapsis radius from Earth center
+        float ra_km = earthRadiusKm + apoapsis_km;   // Apoapsis radius from Earth center
+        float semiMajorAxis_km = (rp_km + ra_km) / 2f;
+
+        // Calculate eccentricity
+        float eccentricity = (ra_km - rp_km) / (ra_km + rp_km);
+
+        // For visualization, use semi-major axis as orbit radius
+        // (Orbit.cs will need updating to properly render ellipses)
+        float semiMajorAxis_unity = (semiMajorAxis_km - earthRadiusKm) * unityUnitsPerKm;
+        float orbitRadiusUnity = earthRadiusUnity + semiMajorAxis_unity;
+
+        targetOrbit.orbitRadius = orbitRadiusUnity;
+
+        // Calculate orbital speed at periapsis using vis-viva equation
+        // v = sqrt(GM * (2/r - 1/a))
+        const float GM_earth = 398600f; // km³/s²
+        float speedAtPeriapsis_kmps = Mathf.Sqrt(GM_earth * (2f / rp_km - 1f / semiMajorAxis_km));
+
+        // Convert to angular velocity
+        float speedUnityPerSec = speedAtPeriapsis_kmps * unityUnitsPerKm;
+        float angularVelocityRadPerSec = speedUnityPerSec / orbitRadiusUnity;
+        targetOrbit.orbitSpeed = angularVelocityRadPerSec;
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"[OrbitController] Created ELLIPTICAL orbit:");
+            Debug.Log($"  Periapsis: {periapsis_km:F1} km");
+            Debug.Log($"  Apoapsis: {apoapsis_km:F1} km");
+            Debug.Log($"  Semi-major axis: {semiMajorAxis_km:F1} km");
+            Debug.Log($"  Eccentricity: {eccentricity:F3}");
+            Debug.Log($"  Inclination: {inclination_deg:F1}°");
+            Debug.Log($"  Speed at periapsis: {speedAtPeriapsis_kmps:F2} km/s");
+        }
+
+        result.parametersUpdated = true;
+        result.altitudeKm = (periapsis_km + apoapsis_km) / 2f; // Average altitude
+        result.speedKmps = speedAtPeriapsis_kmps;
+        result.updateReason = $"Elliptical orbit created: {periapsis_km:F0}km × {apoapsis_km:F0}km, {inclination_deg:F1}° inclination";
+
+        return result;
+    }
 }
