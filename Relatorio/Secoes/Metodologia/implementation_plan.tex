@@ -1,0 +1,1168 @@
+\section{Implementation Plan: Sprint-Based Development}
+\label{sec:implementation_plan}
+
+This section presents a detailed, sprint-based implementation plan for developing the interactive, agent-guided orbit simulation platform. Replacing the original chronogram, this plan reflects an iterative, prototype-driven methodology that prioritizes core functionality, modularity, and incremental complexity. The development is structured across five distinct sprints, each building upon the foundation laid by the previous phase.
+
+The plan is informed by the principles outlined in Section \ref{sec:design_philosophy}: prototype-driven development, iterative refinement, and modular architecture. Each sprint targets a specific component of the system while maintaining integration with the broader ecosystem. This approach enables continuous testing, early validation of design decisions, and flexible adaptation to technical challenges encountered during implementation.
+
+\subsection{Overview of Sprint Structure}
+
+The implementation follows a logical progression from the system's cognitive core (the agent) to its immersive manifestations (simulation, voice, VR, and AR), culminating in a polished, production-ready experience. The six sprints are:
+
+\begin{enumerate}
+    \item \textbf{Sprint 1: Agent Intelligence Core} --- Establishing the generative agent as the system's "brain," capable of reasoning, memory, tool use, and educational guidance.
+    \item \textbf{Sprint 2: Enhanced Simulation Physics} --- Upgrading from simplified circular orbits to physically accurate orbital mechanics based on classical astrodynamics.
+    \item \textbf{Sprint 3: Voice Integration} --- Enabling natural spoken interaction through speech-to-text input and text-to-speech feedback.
+    \item \textbf{Sprint 4: VR Deployment and Integration} --- Deploying the complete simulation to Meta Quest 3 in fully immersive Virtual Reality mode.
+    \item \textbf{Sprint 5: AR Passthrough and Globe Visualization} --- Implementing Augmented Reality mode where orbital visualizations overlay the physical globe in the real environment.
+    \item \textbf{Sprint 6: Polish and User Experience Refinement} --- Finalizing visual aesthetics, performance optimization, and conducting user testing.
+\end{enumerate}
+
+Each sprint is designed to produce a functional, testable prototype increment that can be independently evaluated and integrated into the broader system. This modularity ensures that delays or challenges in one sprint do not block progress in parallel development tracks.
+
+
+%==============================================================================
+\subsection{Sprint 1: Agent Intelligence Core}
+\label{subsec:sprint1}
+%==============================================================================
+
+\subsubsection*{Objectives}
+
+Sprint 1 establishes the conversational agent as the system's intelligent core, enabling users to create and explore orbital visualizations through natural language dialogue. The sprint implements a "Mission Control Theater" architecture where a coordinating agent (CAPCOM) routes user requests to specialist teams, executes simulation functions, and provides educational context. This approach creates the illusion of interacting with a NASA Mission Control team while maintaining a simple, scalable technical implementation.
+
+The primary goal is to deliver a \textit{minimal magical experience}: users speak naturally, receive instant feedback, see orbits appear, and learn why those orbits matter—all within seconds. This sprint prioritizes simplicity and responsiveness over feature breadth, establishing a robust foundation that future sprints can extend without architectural changes.
+
+\subsubsection*{Key Deliverables}
+
+\begin{enumerate}
+    \item \textbf{Tool Registry System}
+    \begin{itemize}
+        \item Implement a JSON-based tool schema registry that defines available simulation functions, their parameters, and constraints.
+        \item Design a dynamic loading system where tools are registered at runtime from schema files, enabling future expansion without code changes.
+        \item Map each tool schema to a corresponding C\# method in Unity's \texttt{OrbitController}.
+        \item Provide clear separation between tool definitions (JSON) and tool implementations (C\#), ensuring modularity.
+    \end{itemize}
+
+    \item \textbf{Two Core Orbital Creation Tools}
+    \begin{itemize}
+        \item \textbf{Circular Orbit Tool:} Creates perfectly circular orbits specified by altitude (160--35,786 km) and inclination (0--180°). Used for standard orbital configurations like ISS, GPS, and geostationary satellites.
+        \item \textbf{Elliptical Orbit Tool:} Creates elliptical orbits specified by periapsis altitude, apoapsis altitude, and inclination. Used for specialized orbits like Molniya (communication) or Hohmann transfer trajectories.
+        \item Both tools validate parameters against physical constraints (minimum altitude for atmospheric stability, maximum altitude for simulation bounds) and return orbital characteristics (period, velocity, eccentricity).
+    \end{itemize}
+
+    \item \textbf{CAPCOM Orchestrator}
+    \begin{itemize}
+        \item Develop the central coordination agent ("CAPCOM") responsible for three functions:
+        \begin{itemize}
+            \item \textit{Instant acknowledgment:} Provide immediate feedback ($<$0.5s) to user input via pattern-matched responses, eliminating perceived latency.
+            \item \textit{Request routing:} Analyze user intent, extract parameters, and route to the appropriate specialist team (Circular or Elliptical Orbit Design).
+            \item \textit{Educational context:} After tool execution, provide a conversational explanation of what the user sees, why it matters, and relevant orbital mechanics principles.
+        \end{itemize}
+        \item Implement sequential processing for multi-step requests: handle one tool invocation at a time, returning control to CAPCOM between steps.
+    \end{itemize}
+
+    \item \textbf{Specialist Response System}
+    \begin{itemize}
+        \item Create two specialist team personas that confirm tool execution:
+        \begin{itemize}
+            \item \textbf{Circular Orbit Specialist:} Young, enthusiastic engineer. Confirms circular orbit creation with brief technical notes. Example: ``Circular orbit at 420km established! That's right in the LEO sweet spot.''
+            \item \textbf{Elliptical Orbit Specialist:} Experienced, analytical engineer. Confirms elliptical orbit creation with precision. Example: ``Elliptical team reporting. Molniya orbit established: 500km periapsis, 40,000km apogee.''
+        \end{itemize}
+        \item Specialists operate via distinct prompt templates, creating personality differentiation while using a single underlying LLM.
+    \end{itemize}
+
+    \item \textbf{Minimal Context Manager}
+    \begin{itemize}
+        \item Track only essential state information to enable coherent dialogue without over-complicating the system:
+        \begin{itemize}
+            \item \textit{Current simulation state:} List of active orbits with their parameters (altitude, inclination, eccentricity).
+            \item \textit{Recent conversation history:} Last 2--3 user-agent exchanges to enable contextual references (``as we just discussed...'').
+            \item \textit{Available tools:} Dynamically loaded tool schemas passed to CAPCOM for routing decisions.
+        \end{itemize}
+        \item Deliberately avoid long-term memory, user profiling, or complex state machines to maintain predictability and reduce hallucination risk.
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection*{Technical Implementation Details}
+
+\paragraph{Agent Architecture}
+The system is structured as three modular layers:
+\begin{itemize}
+    \item \textbf{Core Layer:}
+    \begin{itemize}
+        \item \texttt{AgentOrchestrator.cs} --- Coordinates the five-stage interaction workflow, managing transitions between instant acknowledgment, routing, execution, specialist response, and educational context.
+        \item \texttt{PatternMatcher.cs} --- Provides instant acknowledgment via local pattern matching (regex-based) for common requests, eliminating API latency for initial feedback.
+        \item \texttt{ContextManager.cs} --- Maintains minimal state: active orbits, last 2--3 conversation turns, current tool schemas.
+    \end{itemize}
+    \item \textbf{Tool Layer:}
+    \begin{itemize}
+        \item \texttt{ToolRegistry.cs} --- Loads tool schemas from JSON files, registers them with the orchestrator, and validates tool invocations.
+        \item \texttt{ToolExecutor.cs} --- Invokes Unity C\# methods corresponding to tool calls, handles parameter validation and error cases.
+        \item \texttt{ToolSchemas.json} --- Defines available tools in a declarative format (tool name, parameters, constraints, specialist persona).
+    \end{itemize}
+    \item \textbf{Prompt Layer:}
+    \begin{itemize}
+        \item \texttt{PromptBuilder.cs} --- Constructs prompts for CAPCOM and specialist roles, injecting context and tool schemas.
+        \item \texttt{Prompts/CAPCOMRouter.txt} --- System prompt for request analysis and routing.
+        \item \texttt{Prompts/CAPCOMEducational.txt} --- System prompt for post-execution educational explanations.
+        \item \texttt{Prompts/Specialists/CircularOrbit.txt} --- Persona prompt for circular orbit specialist.
+        \item \texttt{Prompts/Specialists/EllipticalOrbit.txt} --- Persona prompt for elliptical orbit specialist.
+    \end{itemize}
+\end{itemize}
+
+\paragraph{Five-Stage Sequential Workflow}
+\begin{enumerate}
+    \item \textbf{Stage 1 --- Instant Acknowledgment} ($<$0.5s, local processing):
+    \begin{itemize}
+        \item User input captured via text field (voice in Sprint 3).
+        \item \texttt{PatternMatcher} detects common patterns (``show orbit,'' ``create,'' ``explain'').
+        \item Returns immediate canned response: ``Roger, analyzing orbital request...''
+        \item Displayed instantly while subsequent stages process asynchronously.
+    \end{itemize}
+
+    \item \textbf{Stage 2 --- CAPCOM Routing} ($\sim$2s, OpenAI API call):
+    \begin{itemize}
+        \item \texttt{PromptBuilder} constructs prompt with: user input, available tools (from JSON), current simulation state, recent conversation.
+        \item OpenAI API returns structured output: tool identifier, extracted parameters, routing message.
+        \item CAPCOM announces routing: ``Routing to Circular Orbit Design team for ISS parameters.''
+    \end{itemize}
+
+    \item \textbf{Stage 3 --- Tool Execution} ($<$0.1s, Unity local):
+    \begin{itemize}
+        \item \texttt{ToolExecutor} validates parameters (altitude $\geq$ 160km, inclination $\in$ [0°, 180°]).
+        \item Invokes corresponding C\# method: \texttt{OrbitController.CreateCircularOrbit(420, 51.6)}.
+        \item Orbital visualization renders immediately on screen.
+    \end{itemize}
+
+    \item \textbf{Stage 4 --- Specialist Confirmation} ($\sim$2s, OpenAI API call):
+    \begin{itemize}
+        \item \texttt{PromptBuilder} uses specialist persona template.
+        \item Specialist confirms execution with brief technical note.
+        \item Example: ``Circular orbit at 420km, 51.6° inclination established! ISS orbit is live.''
+    \end{itemize}
+
+    \item \textbf{Stage 5 --- CAPCOM Educational Context} ($\sim$2s, OpenAI API call):
+    \begin{itemize}
+        \item CAPCOM provides educational explanation referencing what user now sees.
+        \item Example: ``There's your ISS orbit. Notice the 51.6° tilt? That allows launches from both US and Russian sites. The station completes an orbit every 90 minutes at 7.6 km/s.''
+        \item Interaction logged in \texttt{ContextManager} for future reference.
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Total perceived latency:} $\sim$5 seconds for simple requests, but user experiences continuous feedback throughout.
+
+\paragraph{Tool Schema Example}
+\begin{verbatim}
+{
+  "id": "create_circular_orbit",
+  "name": "Circular Orbit Design",
+  "description": "Creates circular orbit at altitude and inclination",
+  "parameters": {
+    "altitude_km": {"type": "number", "min": 160, "max": 35786},
+    "inclination_deg": {"type": "number", "min": 0, "max": 180}
+  },
+  "specialist_persona": "circular_orbit_engineer",
+  "unity_function": "OrbitController.CreateCircularOrbit"
+}
+\end{verbatim}
+
+\paragraph{Prompt Engineering Strategy}
+CAPCOM and specialist personas are carefully designed to create distinct voices while maintaining consistency:
+\begin{itemize}
+    \item \textbf{CAPCOM (Houston veteran):} Calm, wise, educational. Uses NASA terminology naturally (``Roger,'' ``Copy that''). Explains \textit{why} things matter, not just \textit{what} they are.
+    \item \textbf{Circular Specialist (young engineer):} Enthusiastic, quick. Uses exclamations (``Perfect!'' ``Right in the sweet spot!''). Keeps confirmations under 2 sentences.
+    \item \textbf{Elliptical Specialist (experienced analyst):} Analytical, precise. Uses technical terms appropriately. Provides key insights in 2--3 sentences.
+\end{itemize}
+
+All personas avoid jargon overload, maintain encouraging tone, and never say ``I don't know'' (CAPCOM says ``Let me check with the team on that'' instead).
+
+\paragraph{Example Interaction Scenarios}
+
+\textbf{Scenario 1: Simple Request (ISS Orbit)}
+\begin{quote}
+\textit{User:} ``Show me the ISS orbit.''\\[0.3em]
+\textit{[Stage 1, 0.3s]} CAPCOM: ``Roger, routing to Orbital Design for ISS parameters.''\\[0.3em]
+\textit{[Stage 3, instant]} [Blue circular orbit appears tilted at 51.6°]\\[0.3em]
+\textit{[Stage 4, 2s]} Circular Specialist: ``Circular orbit at 420km, 51.6° inclination established! ISS orbit is live.''\\[0.3em]
+\textit{[Stage 5, 2s]} CAPCOM: ``There's your ISS orbit. Notice the 51.6-degree tilt? That's not random---it allows launches from both Kennedy Space Center and Baikonur Cosmodrome. The station orbits Earth every 90 minutes at 7.6 kilometers per second.''\\[0.3em]
+\textit{Total time: $\sim$5 seconds with continuous feedback.}
+\end{quote}
+
+\textbf{Scenario 2: Ambiguous Request (Requires Clarification)}
+\begin{quote}
+\textit{User:} ``Create an orbit at 600 kilometers.''\\[0.3em]
+\textit{[Stage 1, 0.3s]} CAPCOM: ``Roger, 600km altitude noted. Just to confirm---would you like a circular orbit, or an elliptical orbit reaching 600km?''\\[0.3em]
+\textit{User:} ``Circular.''\\[0.3em]
+\textit{[Stage 1, 0.3s]} CAPCOM: ``Copy that, routing to Circular Orbit team.''\\[0.3em]
+\textit{[Stage 3, instant]} [Green circular orbit appears]\\[0.3em]
+\textit{[Stage 4, 2s]} Circular Specialist: ``Circular orbit at 600 kilometers, equatorial inclination. Orbit established!''\\[0.3em]
+\textit{[Stage 5, 2s]} CAPCOM: ``Your 600km circular orbit is active. Satellites at this altitude complete an orbit every 96 minutes. This is a popular altitude for Earth observation satellites---high enough to avoid atmospheric drag, low enough for detailed imaging.''
+\end{quote}
+
+\textbf{Scenario 3: Error Handling (Impossible Parameters)}
+\begin{quote}
+\textit{User:} ``Put a satellite at 50 kilometers.''\\[0.3em]
+\textit{[Stage 2, 2s]} CAPCOM: ``Houston here. 50 kilometers is inside Earth's atmosphere---satellites can't maintain stable orbits below about 160km due to atmospheric drag. Would you like to try a low Earth orbit at 200km instead?''\\[0.3em]
+\textit{User:} ``Yes.''\\[0.3em]
+\textit{[Proceeds normally with 200km orbit]}
+\end{quote}
+
+\textbf{Scenario 4: Multi-Step Request (Sequential Processing)}
+\begin{quote}
+\textit{User:} ``Show me a polar orbit and then a Molniya orbit.''\\[0.3em]
+\textit{[Stage 1, 0.3s]} CAPCOM: ``Roger. Two orbits requested. First, routing to Circular Team for polar orbit.''\\[0.3em]
+\textit{[Stage 3, instant]} [Blue circular orbit appears vertically]\\[0.3em]
+\textit{[Stage 4, 2s]} Circular Specialist: ``Polar orbit at 600km established! 90-degree inclination---passes over both poles every orbit.''\\[0.3em]
+\textit{[Stage 2, 2s]} CAPCOM: ``Polar orbit confirmed. Now routing to Elliptical Team for Molniya.''\\[0.3em]
+\textit{[Stage 3, instant]} [Red elliptical orbit appears, highly elongated]\\[0.3em]
+\textit{[Stage 4, 2s]} Elliptical Specialist: ``Elliptical team reporting. Molniya orbit established: 500km periapsis, 40,000km apogee, 63.4° inclination.''\\[0.3em]
+\textit{[Stage 5, 2s]} CAPCOM: ``Both orbits active. Notice the dramatic difference? The polar orbit stays at constant altitude, while Molniya swoops close to Earth then climbs to 40,000km---spending most of its 12-hour period over the northern hemisphere. Russia uses these for communications because the satellite 'hovers' over Siberia for 8 hours per orbit.''\\[0.3em]
+\textit{Total time: $\sim$10 seconds for two-orbit sequence.}
+\end{quote}
+
+\subsubsection*{Success Criteria}
+
+Sprint 1 is considered complete when the following criteria are met:
+
+\paragraph{Technical Performance}
+\begin{itemize}
+    \item \textbf{Tool Selection Accuracy:} CAPCOM correctly identifies the appropriate tool (circular vs. elliptical) for $>$95\% of test commands.
+    \item \textbf{Parameter Extraction Accuracy:} Numerical parameters (altitude, inclination) extracted correctly within $\pm$5\% tolerance for $>$90\% of natural language inputs.
+    \item \textbf{Response Latency:} Total time from user input to final educational response averages $<$5 seconds for single-orbit requests.
+    \item \textbf{System Reliability:} Zero crashes or unhandled exceptions for valid orbital parameters within defined ranges.
+\end{itemize}
+
+\paragraph{Experiential Quality}
+\begin{itemize}
+    \item \textbf{Perceived Responsiveness:} Users report ``instant feedback'' in post-interaction surveys (instant acknowledgment eliminates perceived dead air).
+    \item \textbf{Conversational Naturalness:} Users describe interaction as ``talking to an expert'' rather than ``using software'' in 4 out of 5 test sessions.
+    \item \textbf{Educational Value:} Users report learning at least one new orbital mechanics concept during 10-minute exploration sessions.
+    \item \textbf{Engagement:} Users naturally ask follow-up questions or request additional orbits without prompting.
+\end{itemize}
+
+\paragraph{Scalability and Extensibility}
+\begin{itemize}
+    \item \textbf{Tool Addition Time:} Adding a third tool (e.g., Hohmann transfer) requires $<$2 hours: write JSON schema, implement C\# function, create specialist prompt.
+    \item \textbf{Persona Modification Time:} Changing specialist personality (e.g., making Circular Specialist more formal) requires $<$30 minutes of prompt file editing.
+    \item \textbf{No Architectural Changes:} System accommodates 2 tools or 10 tools without modifying core orchestration logic.
+\end{itemize}
+
+\subsubsection*{Timeline and Dependencies}
+
+\textbf{Estimated Duration:} 4--5 weeks
+
+\textbf{Development Breakdown:}
+\begin{itemize}
+    \item \textbf{Week 1--2:} Core five-stage workflow implementation
+    \begin{itemize}
+        \item Implement \texttt{AgentOrchestrator}, \texttt{PatternMatcher}, \texttt{ContextManager}
+        \item Develop basic CAPCOM routing and specialist confirmation flows
+        \item Integrate with existing \texttt{OpenAIClient.cs}
+        \item Create two Unity functions: \texttt{CreateCircularOrbit()}, \texttt{CreateEllipticalOrbit()}
+    \end{itemize}
+    \item \textbf{Week 3:} Tool registry system and JSON schemas
+    \begin{itemize}
+        \item Implement \texttt{ToolRegistry}, \texttt{ToolExecutor}
+        \item Design and test JSON tool schema format
+        \item Decouple tool definitions from orchestration logic
+        \item Validate dynamic tool loading
+    \end{itemize}
+    \item \textbf{Week 4:} Prompt engineering and persona refinement
+    \begin{itemize}
+        \item Craft CAPCOM Router and Educational prompts
+        \item Design Circular and Elliptical specialist personas
+        \item Test against edge cases (ambiguous inputs, impossible parameters)
+        \item Iterate on tone, clarity, and educational effectiveness
+    \end{itemize}
+    \item \textbf{Week 5:} Testing, iteration, and validation
+    \begin{itemize}
+        \item Conduct internal testing with 20+ test scenarios
+        \item Measure technical metrics (accuracy, latency, reliability)
+        \item Gather qualitative feedback on conversational naturalness
+        \item Refine prompts and error handling based on findings
+    \end{itemize}
+\end{itemize}
+
+\textbf{Dependencies:}
+\begin{itemize}
+    \item Requires existing \texttt{OpenAIClient.cs} (already implemented).
+    \item Requires \texttt{OrbitController.cs} with basic circular orbit rendering (already exists).
+    \item No external hardware dependencies, enabling desktop-based development.
+    \item No dependencies on subsequent sprints (can begin immediately).
+\end{itemize}
+
+\textbf{Risks and Mitigation:}
+\begin{itemize}
+    \item \textit{Risk:} OpenAI API latency exceeds 5s, degrading experience.
+    \item \textit{Mitigation:} Instant acknowledgment masks latency; caching common queries; testing with smaller/faster models if necessary.
+\end{itemize}
+
+
+%==============================================================================
+\subsection{Sprint 2: Enhanced Simulation Physics}
+\label{subsec:sprint2}
+%==============================================================================
+
+\subsubsection*{Objectives}
+
+The second sprint upgrades the orbital simulation from simplified circular motion to physically accurate trajectories based on the classical two-body problem and Keplerian orbital elements. This ensures the simulation is not only visually compelling but also scientifically rigorous, enabling realistic orbital maneuvers and educational scenarios grounded in astrodynamics principles \cite{Curtis2020}.
+
+\subsubsection*{Key Deliverables}
+
+\begin{enumerate}
+    \item \textbf{Keplerian Orbital Elements Implementation}
+    \begin{itemize}
+        \item Replace the current radius/speed model with the six classical orbital elements:
+        \begin{itemize}
+            \item Semi-major axis ($a$) --- defines orbit size and energy
+            \item Eccentricity ($e$) --- defines orbit shape (circular, elliptical, parabolic, hyperbolic)
+            \item Inclination ($i$) --- tilt relative to Earth's equator
+            \item Right ascension of ascending node ($\Omega$) --- orientation of orbital plane
+            \item Argument of periapsis ($\omega$) --- orientation of ellipse within plane
+            \item True anomaly ($\nu$) --- position along the orbit
+        \end{itemize}
+        \item Develop conversion functions between Cartesian state vectors (position, velocity) and Keplerian elements.
+    \end{itemize}
+
+    \item \textbf{Two-Body Problem Solver}
+    \begin{itemize}
+        \item Implement Kepler's equation solver to compute satellite position at any time $t$.
+        \item Calculate velocity vectors corresponding to orbital positions.
+        \item Support all conic section types: circular, elliptical, parabolic (escape), and hyperbolic (interplanetary).
+        \item Enable real-time propagation of orbits with configurable time steps.
+    \end{itemize}
+
+    \item \textbf{Orbital Maneuver Calculations}
+    \begin{itemize}
+        \item \textbf{Hohmann Transfer:} Compute optimal two-burn transfer between circular orbits at different altitudes.
+        \item \textbf{Bi-Elliptic Transfer:} Calculate more fuel-efficient transfers for large altitude changes.
+        \item \textbf{Inclination Change:} Determine delta-V required for orbital plane changes.
+        \item \textbf{Combined Maneuvers:} Optimize maneuvers that change both altitude and inclination simultaneously.
+        \item \textbf{Delta-V Budgeting:} Track cumulative velocity changes for mission planning.
+    \end{itemize}
+
+    \item \textbf{Trajectory Prediction and Visualization}
+    \begin{itemize}
+        \item Implement orbit propagation to predict future satellite positions over hours or days.
+        \item Render orbital paths as 3D curves in Unity, with visual distinction between current orbit and predicted trajectories.
+        \item Support time-lapse animation to visualize long-term orbital evolution.
+        \item Display orbital parameters numerically alongside visual representation.
+    \end{itemize}
+
+    \item \textbf{Orbit Comparison and Analysis Tools}
+    \begin{itemize}
+        \item Develop functions to compare two orbits quantitatively (differences in altitude, inclination, period, etc.).
+        \item Visualize relative geometry between multiple satellites.
+        \item Calculate encounter conditions (closest approach, relative velocity).
+    \end{itemize}
+
+    \item \textbf{Parameter Validation and Physical Constraints}
+    \begin{itemize}
+        \item Enforce realistic constraints: sub-orbital detection, escape velocity limits, atmospheric drag thresholds.
+        \item Warn users when requested orbits violate physical laws or practical considerations.
+        \item Implement safety checks for extreme eccentricities or unstable configurations.
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection*{Technical Implementation Details}
+
+\paragraph{Mathematical Foundation}
+The simulation will implement the analytical solution to the two-body problem as described in \cite{Curtis2020}:
+\begin{itemize}
+    \item \textbf{Orbital Period:} $T = 2\pi\sqrt{\frac{a^3}{\mu}}$ where $\mu = GM$ is Earth's gravitational parameter.
+    \item \textbf{Orbital Velocity:} $v = \sqrt{\mu\left(\frac{2}{r} - \frac{1}{a}\right)}$ (vis-viva equation).
+    \item \textbf{Kepler's Equation:} $M = E - e\sin E$ (solved iteratively via Newton-Raphson).
+\end{itemize}
+
+\paragraph{Code Structure}
+\begin{itemize}
+    \item \texttt{OrbitalElements.cs} --- Data structure for storing Keplerian elements.
+    \item \texttt{OrbitPropagator.cs} --- Computes satellite state at time $t$ given initial elements.
+    \item \texttt{ManeuverCalculator.cs} --- Implements Hohmann, bi-elliptic, and inclination change algorithms.
+    \item \texttt{TrajectoryRenderer.cs} --- Visualizes orbital paths using Unity LineRenderer.
+    \item \texttt{OrbitComparator.cs} --- Analyzes differences between orbits.
+\end{itemize}
+
+\paragraph{Integration with Agent}
+The enhanced simulation exposes new tools to the agent:
+\begin{itemize}
+    \item \texttt{CreateOrbitFromElements(a, e, i, Omega, omega, nu)}
+    \item \texttt{PropagateOrbit(orbit, duration)}
+    \item \texttt{PlanHohmannTransfer(currentOrbit, targetAltitude)}
+    \item \texttt{CalculateDeltaV(maneuver)}
+    \item \texttt{ShowGroundTrack(orbit, duration)}
+\end{itemize}
+
+The agent can now reason about complex maneuvers and explain the underlying physics to users.
+
+\subsubsection*{Success Criteria}
+
+Sprint 2 is considered complete when:
+\begin{itemize}
+    \item The simulation accurately models elliptical orbits with eccentricities $0 \leq e < 1$.
+    \item Hohmann transfer calculations match analytical solutions within 0.1\% error.
+    \item Trajectory prediction remains stable over at least 100 orbital periods.
+    \item The agent can successfully plan and execute multi-step maneuvers (e.g., altitude change followed by inclination adjustment).
+    \item All orbital calculations are validated against reference cases from \cite{Curtis2020}.
+\end{itemize}
+
+\subsubsection*{Timeline and Dependencies}
+
+\textbf{Estimated Duration:} 3--4 weeks
+
+\textbf{Dependencies:} Requires completion of Sprint 1's tool registry system. Can be developed in parallel with Sprint 3 (voice integration).
+
+
+%==============================================================================
+\subsection{Sprint 3: Voice Integration}
+\label{subsec:sprint3}
+%==============================================================================
+
+\subsubsection*{Objectives}
+
+Sprint 3 introduces natural spoken interaction, replacing text-based input with speech-to-text recognition and synthesizing agent responses through realistic voice output. This creates a more intuitive, hands-free user experience and moves the interface closer to the conversational paradigm envisioned in the motivation (Section \ref{sec:motivation}).
+
+\subsubsection*{Key Deliverables}
+
+\begin{enumerate}
+    \item \textbf{Speech-to-Text (STT) Integration}
+    \begin{itemize}
+        \item Evaluate and integrate a speech recognition system. Options include:
+        \begin{itemize}
+            \item Unity's built-in \texttt{DictationRecognizer} (Windows/UWP support)
+            \item OpenAI Whisper API (cloud-based, high accuracy)
+            \item Meta's on-device speech recognition (Quest 3 native)
+        \end{itemize}
+        \item Implement continuous listening mode with voice activity detection (VAD).
+        \item Design wake-word or push-to-talk activation to prevent accidental triggering.
+        \item Handle ambient noise and filtering for optimal recognition accuracy.
+    \end{itemize}
+
+    \item \textbf{Text-to-Speech (TTS) Integration via ElevenLabs}
+    \begin{itemize}
+        \item Integrate ElevenLabs API for high-quality voice synthesis \cite{elevenlabs2024}.
+        \item Configure voice persona selection (professional mission control, enthusiastic educator, calm professor).
+        \item Optimize latency: stream audio playback as synthesis completes to minimize delay.
+        \item Implement SSML support for prosody control (emphasis, pauses, intonation).
+    \end{itemize}
+
+    \item \textbf{Conversational Flow Manager}
+    \begin{itemize}
+        \item Design state machine for managing turn-taking between user and agent.
+        \item Implement interruption handling: allow user to interrupt agent mid-response.
+        \item Add confirmation prompts for irreversible actions (e.g., ``This will consume 3.2 km/s of delta-V. Confirm?'').
+        \item Support multi-turn clarification dialogues (``Which orbit did you mean?'').
+    \end{itemize}
+
+    \item \textbf{Voice Command Grammar and Robustness}
+    \begin{itemize}
+        \item Define expected command patterns (imperatives, questions, exploratory statements).
+        \item Implement fallback handling for misrecognized speech (``Did you mean...?'').
+        \item Test with diverse accents and speaking styles to ensure accessibility.
+        \item Provide visual transcription feedback so users see what the system understood.
+    \end{itemize}
+
+    \item \textbf{Multimodal Feedback}
+    \begin{itemize}
+        \item Combine voice output with visual cues (orbital trajectories, highlighted parameters).
+        \item Use spatial audio (Quest 3's 3D audio) to enhance immersion (``voice from mission control'').
+        \item Display text captions alongside speech for accessibility and comprehension.
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection*{Technical Implementation Details}
+
+\paragraph{STT Processing Pipeline}
+\begin{enumerate}
+    \item User activates voice input (button press or wake word).
+    \item Audio captured via Quest 3 microphone.
+    \item Audio stream sent to STT service (Whisper API or native).
+    \item Transcribed text returned and displayed on-screen for confirmation.
+    \item Text forwarded to \texttt{AgentOrchestrator} for processing.
+\end{enumerate}
+
+\paragraph{TTS Processing Pipeline}
+\begin{enumerate}
+    \item Agent generates textual response.
+    \item Text sent to ElevenLabs API with voice ID and settings.
+    \item Audio stream received and buffered.
+    \item Audio playback begins as soon as first chunk arrives (streaming mode).
+    \item Visual indicators (animated waveform, subtitle text) accompany audio.
+\end{enumerate}
+
+\paragraph{Code Structure}
+\begin{itemize}
+    \item \texttt{VoiceInputManager.cs} --- Handles STT recording and transcription.
+    \item \texttt{VoiceOutputManager.cs} --- Manages TTS synthesis and playback.
+    \item \texttt{ConversationFlowController.cs} --- State machine for dialogue turn-taking.
+    \item \texttt{ElevenLabsClient.cs} --- HTTP client for ElevenLabs API.
+\end{itemize}
+
+\paragraph{Example Voice Interaction}
+\begin{quote}
+\textit{[User presses voice button]}\\
+\textit{User:} ``Show me a polar orbit.''\\
+\textit{[System displays transcript: ``Show me a polar orbit'']}\\
+\textit{Agent (voice):} ``Certainly. A polar orbit has an inclination of 90 degrees, passing over both poles. I'll create one for you now. [Creates orbit] Notice how the satellite covers the entire planet as Earth rotates beneath it.''\\
+\textit{[Orbital path animates on screen]}
+\end{quote}
+
+\subsubsection*{Success Criteria}
+
+Sprint 3 is considered complete when:
+\begin{itemize}
+    \item STT achieves $>$90\% word accuracy on a test set of 50 orbital mechanics commands.
+    \item TTS latency (text submission to audio start) is $<$2 seconds.
+    \item Users can complete a full mission scenario using only voice input (no manual text entry).
+    \item Interruption handling works reliably (agent stops speaking when user begins).
+    \item At least two distinct voice personas are available and sound natural.
+\end{itemize}
+
+\subsubsection*{Timeline and Dependencies}
+
+\textbf{Estimated Duration:} 2--3 weeks
+
+\textbf{Dependencies:} Requires Sprint 1's agent orchestrator. Can be developed in parallel with Sprint 2 (physics). Requires API access to ElevenLabs and Whisper (or equivalent STT service).
+
+
+%==============================================================================
+\subsection{Sprint 4: VR Deployment and Integration}
+\label{subsec:sprint4}
+%==============================================================================
+
+\subsubsection*{Objectives}
+
+Sprint 4 focuses on deploying the complete simulation to the Meta Quest 3 headset in fully immersive Virtual Reality mode. This sprint transforms the desktop-based prototype into a three-dimensional, interactive space environment where users are surrounded by orbiting satellites and can manipulate the simulation through natural head movements, controller input, and voice commands. The goal is to create a seamless VR experience that leverages spatial presence to enhance understanding of orbital mechanics.
+
+\subsubsection*{Key Deliverables}
+
+\begin{enumerate}
+    \item \textbf{Meta Quest 3 Build Configuration}
+    \begin{itemize}
+        \item Configure Unity project for Android-based Quest 3 deployment.
+        \item Install and configure Meta XR SDK and OpenXR plugin.
+        \item Set up build pipeline for APK generation and sideloading via Meta Quest Developer Hub.
+        \item Optimize project settings for mobile VR performance (texture compression, shader variants, lighting baking).
+    \end{itemize}
+
+    \item \textbf{VR Camera and Tracking Setup}
+    \begin{itemize}
+        \item Replace desktop camera with XR rig supporting 6-DOF (six degrees of freedom) head tracking.
+        \item Configure stereo rendering for proper depth perception.
+        \item Implement comfort settings: adjustable movement speed, snap turning, teleportation.
+        \item Set up guardian boundary integration to prevent collisions with real-world objects.
+    \end{itemize}
+
+    \item \textbf{Controller-Based Interaction}
+    \begin{itemize}
+        \item Map Quest 3 Touch Pro controllers to simulation functions:
+        \begin{itemize}
+            \item Trigger: Select satellites or UI elements via ray-casting
+            \item Grip: Grab and rotate the virtual Earth
+            \item Thumbstick: Navigate through space (fly closer/farther)
+            \item Buttons: Time control (pause, speed up, slow down, reset)
+        \end{itemize}
+        \item Implement visual ray indicators showing controller pointing direction.
+        \item Provide haptic feedback for interaction events (selection, confirmation, warnings).
+    \end{itemize}
+
+    \item \textbf{Spatial UI Design}
+    \begin{itemize}
+        \item Redesign flat UI panels for 3D space:
+        \begin{itemize}
+            \item Floating orbital parameter displays anchored to satellites
+            \item Radial menus attached to controllers for quick access
+            \item Head-locked HUD showing mission objectives and delta-V budget
+            \item World-locked panels for detailed information (remain fixed in space)
+        \end{itemize}
+        \item Ensure text readability at typical VR viewing distances (1--3 meters).
+        \item Implement gaze-based interaction as fallback (look at button for 2 seconds to activate).
+    \end{itemize}
+
+    \item \textbf{Immersive Environment Design}
+    \begin{itemize}
+        \item Create photorealistic space skybox with high-resolution starfield (using existing 8K Milky Way texture).
+        \item Scale Earth and orbital distances appropriately for VR comfort (compressed scale to fit within comfortable viewing volume).
+        \item Add ambient space audio (subtle background hum, satellite thruster sounds during maneuvers).
+        \item Implement dynamic lighting: sunlight casting shadows on Earth, lens flare effects.
+    \end{itemize}
+
+    \item \textbf{Performance Optimization for Mobile VR}
+    \begin{itemize}
+        \item Profile application to achieve stable 72 Hz frame rate (Quest 3 minimum) or 90 Hz (target).
+        \item Implement aggressive level-of-detail (LOD) systems for distant objects.
+        \item Use instanced rendering for satellite constellations.
+        \item Optimize agent API calls to avoid frame drops during LLM queries (asynchronous processing with loading indicators).
+        \item Reduce draw calls through texture atlasing and mesh batching.
+    \end{itemize}
+
+    \item \textbf{Voice Integration in VR Context}
+    \begin{itemize}
+        \item Adapt Sprint 3's voice system for VR: use Quest 3's built-in microphone array.
+        \item Implement push-to-talk on controller button (e.g., left grip hold + speak).
+        \item Display voice transcription in spatial UI (floating text panel).
+        \item Synchronize agent voice output with spatial audio (appears to come from a fixed ``mission control'' location).
+    \end{itemize}
+
+    \item \textbf{Locomotion and Scale Management}
+    \begin{itemize}
+        \item Implement teleportation system for comfortable movement (arc-based targeting).
+        \item Add ``scale modes'':
+        \begin{itemize}
+            \item \textbf{Overview mode:} View entire orbital system from distance
+            \item \textbf{Satellite mode:} Stand ``on'' a satellite and see Earth below
+            \item \textbf{Earth surface mode:} Experience orbit from ground perspective
+        \end{itemize}
+        \item Enable smooth transitions between scale modes (animated zoom with fade).
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection*{Technical Implementation Details}
+
+\paragraph{Unity XR Configuration}
+\begin{itemize}
+    \item \textbf{XR Plugin Management:} Enable OpenXR with Meta Quest feature set.
+    \item \textbf{Render Pipeline:} Universal Render Pipeline (URP) optimized for mobile.
+    \item \textbf{Target Platform:} Android API level 29+, ARM64 architecture.
+    \item \textbf{Texture Settings:} ASTC compression, mipmaps enabled, max resolution 2048x2048.
+\end{itemize}
+
+\paragraph{Code Structure}
+\begin{itemize}
+    \item \texttt{VRInputManager.cs} --- Handles controller input and mapping to simulation actions.
+    \item \texttt{VRUIManager.cs} --- Manages spatial UI layout and interaction.
+    \item \texttt{VRLocomotion.cs} --- Implements teleportation and scale transitions.
+    \item \texttt{VRPerformanceMonitor.cs} --- Tracks frame rate and issues performance warnings.
+    \item \texttt{SpatialAudioManager.cs} --- Positions 3D audio sources in scene.
+\end{itemize}
+
+\paragraph{Interaction Flow Example}
+\begin{enumerate}
+    \item User puts on Quest 3 headset, launches application.
+    \item Scene loads: user is floating in space, Earth in front, starfield surrounding.
+    \item User holds left grip button and speaks: ``Show me the ISS orbit.''
+    \item Transcript appears floating above left hand, agent responds via spatial audio.
+    \item ISS orbit materializes around Earth with glowing trail.
+    \item User points right controller at ISS icon, pulls trigger to select it.
+    \item Orbital parameters (altitude, speed, inclination) appear in floating panel attached to satellite.
+    \item User uses thumbstick to fly closer to ISS, experiencing its motion firsthand.
+\end{enumerate}
+
+\subsubsection*{Success Criteria}
+
+Sprint 4 is considered complete when:
+\begin{itemize}
+    \item Application builds successfully and runs on Meta Quest 3 without crashes.
+    \item Frame rate remains $\geq$72 Hz for $>$95\% of runtime under normal usage.
+    \item All agent functions from Sprints 1--3 are accessible via VR controllers and voice.
+    \item Users can complete a full mission scenario (e.g., Hohmann transfer) entirely in VR.
+    \item No motion sickness reported by at least 5 test users during 15-minute sessions.
+    \item Controller interactions feel responsive (latency $<$50ms from input to visual feedback).
+\end{itemize}
+
+\subsubsection*{Timeline and Dependencies}
+
+\textbf{Estimated Duration:} 3--4 weeks
+
+\textbf{Dependencies:} Requires completion of Sprints 1--3 (agent, physics, voice). Requires Meta Quest 3 hardware and Meta Quest Developer Hub for deployment. Can proceed independently of Sprint 5 (AR mode).
+
+
+%==============================================================================
+\subsection{Sprint 5: AR Passthrough and Globe Visualization}
+\label{subsec:sprint5}
+%==============================================================================
+
+\subsubsection*{Objectives}
+
+Sprint 5 implements Augmented Reality mode, where the simulation overlays the user's real-world environment using Quest 3's high-resolution color passthrough. The key innovation in this sprint is anchoring the orbital visualization to a physical globe in the real world, creating a mixed reality experience where virtual satellites orbit around a tangible Earth. This bridges the digital and physical, enabling users to interact with orbital mechanics while remaining grounded in their physical space.
+
+\subsubsection*{Key Deliverables}
+
+\begin{enumerate}
+    \item \textbf{AR Passthrough Activation and Configuration}
+    \begin{itemize}
+        \item Enable Quest 3's high-resolution color passthrough mode.
+        \item Configure passthrough layer ordering: real environment as background, virtual content overlaid.
+        \item Tune passthrough opacity and color correction for natural blending of real and virtual elements.
+        \item Implement scene understanding to detect surfaces (tables, floors) for optional UI placement.
+    \end{itemize}
+
+    \item \textbf{Physical Globe Detection and Tracking}
+    \begin{itemize}
+        \item Implement globe localization strategies:
+        \begin{itemize}
+            \item \textbf{Method 1 --- Marker-Based:} Place a visual marker (QR code, ArUco tag, or custom image target) on or near the physical globe for precise tracking.
+            \item \textbf{Method 2 --- Object Recognition:} Use Quest 3's scene understanding to detect spherical objects and infer globe position.
+            \item \textbf{Method 3 --- Manual Placement:} Allow user to manually position virtual anchor by pointing controller at globe center.
+        \end{itemize}
+        \item Select optimal method based on reliability and ease of setup (likely marker-based for precision).
+        \item Continuously track globe position and orientation relative to user's viewpoint.
+    \end{itemize}
+
+    \item \textbf{Spatial Anchoring and Persistence}
+    \begin{itemize}
+        \item Use Meta Spatial Anchors API to create a persistent anchor at the globe's location.
+        \item Save anchor to device storage so orbital visualization remains correctly positioned across sessions.
+        \item Implement anchor relocalization: when app restarts, automatically detect and reattach to saved anchor.
+        \item Provide visual confirmation when anchor is successfully locked (brief highlight or checkmark).
+    \end{itemize}
+
+    \item \textbf{Scale-Aware Orbital Rendering}
+    \begin{itemize}
+        \item Synchronize virtual orbital paths with the physical globe's size and position.
+        \item Implement adaptive scaling: if globe is small (e.g., 20 cm diameter), render satellites proportionally close; if large (e.g., inflatable globe), extend orbital radii.
+        \item Ensure orbital geometry remains physically accurate while being visually comprehensible at real-world scale.
+        \item Allow user to adjust virtual scale factor (``zoom in/out'' on orbital distances) without moving the globe anchor.
+    \end{itemize}
+
+    \item \textbf{AR-Specific Interaction Design}
+    \begin{itemize}
+        \item Adapt VR interaction model for AR context:
+        \begin{itemize}
+            \item User physically walks around the globe to view orbits from different angles.
+            \item Controller ray-casting remains primary selection method.
+            \item Voice commands adapted for AR (``Show orbit from this angle'').
+        \end{itemize}
+        \item Implement hand tracking for natural gesture interaction (optional enhancement):
+        \begin{itemize}
+            \item Pinch satellite icons to select them.
+            \item Two-handed pinch-and-spread to adjust time scale.
+        \end{itemize}
+        \item Provide haptic and audio feedback when interacting with virtual elements in AR space.
+    \end{itemize}
+
+    \item \textbf{Mixed Reality Visual Design}
+    \begin{itemize}
+        \item Design orbital trails to contrast with both the physical globe and background environment:
+        \begin{itemize}
+            \item Use bright, emissive colors (cyan, magenta, yellow) for visibility.
+            \item Add subtle glow/bloom effects to make trails pop against real-world lighting.
+            \item Implement adaptive brightness: dim trails in bright environments, brighten in dark rooms.
+        \end{itemize}
+        \item Render satellites as semi-transparent holographic models to distinguish them from physical objects.
+        \item Display floating data labels (altitude, speed) that remain readable against varying backgrounds (use contrasting outlines or background panels).
+    \end{itemize}
+
+    \item \textbf{Occlusion and Depth Management}
+    \begin{itemize}
+        \item Implement depth occlusion: virtual satellites should pass behind the physical globe when geometrically appropriate.
+        \item Use Quest 3's depth API (if available) or approximate occlusion based on globe anchor geometry.
+        \item Ensure UI panels don't clip through real-world objects (use scene mesh for collision avoidance).
+    \end{itemize}
+
+    \item \textbf{Mode Switching Between VR and AR}
+    \begin{itemize}
+        \item Provide seamless toggle between VR mode (Sprint 4) and AR mode (Sprint 5) within the same application.
+        \item Implement transition logic:
+        \begin{itemize}
+            \item VR $\rightarrow$ AR: Fade in passthrough, shrink space environment to globe-scale, activate spatial anchor.
+            \item AR $\rightarrow$ VR: Fade out passthrough, expand globe to immersive scale, disable anchor constraints.
+        \end{itemize}
+        \item Allow user to choose default mode on startup or switch via in-app menu.
+    \end{itemize}
+
+    \item \textbf{Calibration and Setup Workflow}
+    \begin{itemize}
+        \item Design intuitive first-time setup:
+        \begin{enumerate}
+            \item User places physical globe on table.
+            \item App prompts: ``Point your controller at the center of the globe and press A.''
+            \item System creates spatial anchor at indicated position.
+            \item App prompts: ``What is the globe's diameter?'' (user selects from presets: 15cm, 20cm, 30cm, or measures manually).
+            \item Orbital visualization scales accordingly and locks to globe.
+            \item Confirmation: ``Anchor saved! Orbits will appear here every time you launch the app.''
+        \end{enumerate}
+        \item Provide recalibration option if globe is moved or replaced.
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection*{Technical Implementation Details}
+
+\paragraph{AR Passthrough Configuration}
+\begin{itemize}
+    \item Enable passthrough via \texttt{OVRManager.instance.isInsightPassthroughEnabled = true}.
+    \item Configure passthrough layer: \texttt{OVRPassthroughLayer} with color mapping and opacity control.
+    \item Use \texttt{OVRSceneManager} for scene understanding and surface detection.
+\end{itemize}
+
+\paragraph{Spatial Anchor Workflow}
+\begin{itemize}
+    \item Create anchor: \texttt{OVRSpatialAnchor.CreateSpatialAnchor(transform, (anchor, success) => ...)}
+    \item Save anchor: \texttt{anchor.Save((anchor, success) => ...)}
+    \item Load anchor on app restart: \texttt{OVRSpatialAnchor.LoadUnboundAnchors(...)}
+    \item Localize and bind anchor to world position.
+\end{itemize}
+
+\paragraph{Marker Tracking (if using markers)}
+\begin{itemize}
+    \item Integrate Vuforia or OpenCV for Unity for QR/ArUco marker detection.
+    \item Detect marker in camera feed, extract 3D pose (position + rotation).
+    \item Create spatial anchor at marker location for persistent tracking.
+\end{itemize}
+
+\paragraph{Code Structure}
+\begin{itemize}
+    \item \texttt{ARModeManager.cs} --- Manages AR passthrough activation and mode switching.
+    \item \texttt{GlobeAnchorController.cs} --- Handles spatial anchor creation, saving, and loading.
+    \item \texttt{MarkerTracker.cs} (optional) --- Detects and tracks visual markers.
+    \item \texttt{ARVisualizer.cs} --- Adapts orbital rendering for AR context (brightness, occlusion).
+    \item \texttt{DepthOcclusionManager.cs} --- Implements depth-based occlusion for realism.
+\end{itemize}
+
+\paragraph{AR Interaction Flow Example}
+\begin{enumerate}
+    \item User launches app in AR mode, puts on Quest 3.
+    \item Passthrough activates, user sees their real room through headset.
+    \item If no saved anchor exists, app prompts: ``Point at your globe's center and press A.''
+    \item User points controller at physical globe, presses A.
+    \item Spatial anchor created, orbital visualization appears around globe.
+    \item User walks around table, viewing ISS orbit from different angles.
+    \item User says: ``Show me a polar orbit.''
+    \item Agent creates polar orbit, glowing cyan trail appears perpendicular to equator.
+    \item User physically rotates globe (if on turntable) or walks to opposite side to see orbit's ground track.
+\end{enumerate}
+
+\subsubsection*{Success Criteria}
+
+Sprint 5 is considered complete when:
+\begin{itemize}
+    \item AR passthrough mode activates successfully with clear, high-quality real-world view.
+    \item Spatial anchor locks to physical globe with positional drift $<$2 cm over 10 minutes.
+    \item Orbital visualizations scale correctly relative to globe size (user-verified accuracy).
+    \item Anchor persists across app restarts (user does not need to recalibrate every session).
+    \item Users can walk 360° around the globe and view orbits from all angles without tracking loss.
+    \item Orbital trails remain visible and distinguishable against various background environments (bright/dark rooms).
+    \item Seamless mode switching between VR and AR without crashes or visual artifacts.
+    \item At least 3 beta testers successfully complete AR calibration on first attempt.
+\end{itemize}
+
+\subsubsection*{Timeline and Dependencies}
+
+\textbf{Estimated Duration:} 2--3 weeks
+
+\textbf{Dependencies:} Requires Sprint 4 (VR mode) as foundation. Benefits from but does not strictly require Sprints 1--3. Requires physical globe (any standard classroom/decorative globe, 15--30 cm diameter). Requires Meta Quest 3 hardware.
+
+
+%==============================================================================
+\subsection{Sprint 6: Polish and User Experience Refinement}
+\label{subsec:sprint6}
+%==============================================================================
+
+\subsubsection*{Objectives}
+
+The final sprint focuses on transforming the functional prototype into a polished, production-ready educational platform. This involves comprehensive user testing, visual and interaction refinement, performance optimization, accessibility enhancements, and preparation for formal evaluation as outlined in Section \ref{sec:evaluation_plan}. Sprint 6 ensures the system is not only technically sound but also intuitive, engaging, and pedagogically effective.
+
+\subsubsection*{Key Deliverables}
+
+\begin{enumerate}
+    \item \textbf{Visual Effects and Aesthetic Enhancements}
+    \begin{itemize}
+        \item Refine orbital trail rendering:
+        \begin{itemize}
+            \item Gradient fade from bright (recent path) to dim (historical path)
+            \item Color-coding by orbit type: LEO (blue), MEO (green), GEO (yellow), HEO (red), polar (cyan)
+            \item Animated particle effects along trajectory showing direction of satellite motion
+            \item Time-lapse mode with comet-like trails for accelerated playback
+        \end{itemize}
+        \item Upgrade satellite models from placeholder spheres to detailed 3D meshes (ISS, Hubble, GPS satellites).
+        \item Implement burn visualization: glowing thrust vector arrows during maneuvers with particle exhaust effects.
+        \item Add atmospheric glow around Earth's limb for realism.
+        \item Create dynamic day/night Earth textures with city lights on night side.
+    \end{itemize}
+
+    \item \textbf{Hand Tracking Integration (Optional Advanced Feature)}
+    \begin{itemize}
+        \item Integrate Quest 3's native hand tracking for controller-free interaction.
+        \item Implement intuitive gestures:
+        \begin{itemize}
+            \item Pinch: Select satellites or UI elements
+            \item Grab (fist): Rotate virtual Earth or camera viewpoint
+            \item Palm-up: Summon radial menu
+            \item Two-handed pinch-and-spread: Adjust time scale
+        \end{itemize}
+        \item Provide visual feedback (hand highlights, raycast indicators) for gesture recognition.
+        \item Ensure smooth fallback to controller input if hand tracking fails.
+    \end{itemize}
+
+    \item \textbf{User Interface and Information Design}
+    \begin{itemize}
+        \item Design clean, readable spatial UI:
+        \begin{itemize}
+            \item Floating data panels showing orbital parameters (altitude, speed, period, inclination, eccentricity)
+            \item Mission briefing screens with objectives, hints, and progress tracking
+            \item Radial menus for quick access to common functions (create orbit, time control, mode switch)
+            \item Head-up display (HUD) showing delta-V budget, time scale, current mission status
+        \end{itemize}
+        \item Ensure text readability: high-contrast fonts, adaptive sizing, background panels for legibility.
+        \item Implement context-sensitive tooltips that appear when user gazes at UI elements.
+        \item Add achievement notifications (``First Hohmann Transfer!'', ``Orbit Mastery Unlocked!'').
+    \end{itemize}
+
+    \item \textbf{Performance Optimization}
+    \begin{itemize}
+        \item Profile application using Unity Profiler and Quest 3 performance tools.
+        \item Achieve and maintain stable 90 Hz frame rate (Quest 3 optimal performance).
+        \item Optimize rendering:
+        \begin{itemize}
+            \item Implement level-of-detail (LOD) for satellite models and orbital trails
+            \item Use instanced rendering for satellite constellations
+            \item Reduce draw calls through mesh batching and texture atlasing
+            \item Optimize shader complexity (avoid expensive operations in fragment shaders)
+        \end{itemize}
+        \item Optimize agent API calls:
+        \begin{itemize}
+            \item Cache frequent queries (e.g., ``What is the ISS orbit?'')
+            \item Implement request queuing to avoid simultaneous API calls
+            \item Display loading indicators during LLM processing to manage user expectations
+        \end{itemize}
+        \item Reduce memory footprint: compress textures, unload unused assets, implement object pooling.
+    \end{itemize}
+
+    \item \textbf{Accessibility and Inclusivity Features}
+    \begin{itemize}
+        \item Provide text captions for all voice output (essential for hearing-impaired users).
+        \item Implement colorblind-friendly palettes with alternative trail visualization modes.
+        \item Support adjustable UI scale and contrast settings.
+        \item Enable seated vs. standing play modes with appropriate guardian configurations.
+        \item Provide audio descriptions of visual phenomena (``The satellite is now at apogee'').
+        \item Implement comfort options: vignette during locomotion, reduced particle effects, configurable movement speed.
+    \end{itemize}
+
+    \item \textbf{Educational Content Expansion}
+    \begin{itemize}
+        \item Expand mission library to at least 8--10 scenarios:
+        \begin{itemize}
+            \item Beginner: ISS Rendezvous, Geostationary Deployment, Polar Observation
+            \item Intermediate: Molniya Orbit Design, Constellation Planning, Orbital Phasing
+            \item Advanced: Lunar Transfer, Lagrange Point Navigation, Satellite Rescue
+        \end{itemize}
+        \item Refine Socratic tutoring behavior: test with real users and adjust hint/answer balance.
+        \item Add glossary of orbital mechanics terms accessible via voice (``Agent, what is eccentricity?'').
+        \item Integrate historical mission examples (Apollo, Voyager, ISS) with narrated context.
+    \end{itemize}
+
+    \item \textbf{Beta Testing and Iteration}
+    \begin{itemize}
+        \item Recruit 5--10 beta testers from target demographic (undergraduate aerospace students, educators).
+        \item Conduct structured testing sessions:
+        \begin{enumerate}
+            \item Onboarding flow (first-time setup, calibration)
+            \item Mission completion (one beginner, one intermediate scenario)
+            \item Free exploration (15 minutes of unguided interaction)
+            \item Feedback interview (semi-structured, 10--15 minutes)
+        \end{enumerate}
+        \item Collect qualitative feedback on usability, engagement, learning effectiveness.
+        \item Iterate on identified pain points: confusing UI, unclear instructions, performance issues, etc.
+    \end{itemize}
+
+    \item \textbf{Documentation and Onboarding}
+    \begin{itemize}
+        \item Create in-app tutorial guiding first-time users through:
+        \begin{itemize}
+            \item Basic controls (voice, controllers, hand tracking)
+            \item Requesting an orbit via agent
+            \item Understanding orbital parameters
+            \item Completing a simple Hohmann transfer
+        \end{itemize}
+        \item Develop user manual (digital PDF or web page) covering advanced features.
+        \item Record demonstration video showing key interactions for promotional and documentation purposes.
+    \end{itemize}
+
+    \item \textbf{Formal Evaluation Preparation}
+    \begin{itemize}
+        \item Implement data logging for evaluation metrics:
+        \begin{itemize}
+            \item Agent accuracy: log all user commands, agent interpretations, and tool calls
+            \item System latency: record timestamps for input $\rightarrow$ response pipeline
+            \item User actions: track mission completion times, retry counts, help requests
+        \end{itemize}
+        \item Prepare evaluation instruments:
+        \begin{itemize}
+            \item Pre-test questionnaire: assess prior knowledge of orbital mechanics
+            \item Post-test questionnaire: measure perceived learning, engagement, usability
+            \item Semi-structured interview script for qualitative insights
+        \end{itemize}
+        \item Conduct pilot evaluation with 1--2 users to validate instruments and refine protocol.
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection*{Technical Implementation Details}
+
+\paragraph{Visual Effects Pipeline}
+\begin{itemize}
+    \item Use Unity's Visual Effect Graph (VFG) for particle systems (thruster exhaust, orbital debris).
+    \item Implement custom shaders for orbital trails with gradient alpha and color blending.
+    \item Apply post-processing stack: bloom for glowing effects, ambient occlusion for depth, color grading for mood.
+\end{itemize}
+
+\paragraph{Performance Profiling Workflow}
+\begin{enumerate}
+    \item Run Unity Profiler during typical mission scenario.
+    \item Identify bottlenecks: CPU-bound (physics, agent logic) vs. GPU-bound (rendering, shaders).
+    \item Apply targeted optimizations: reduce physics update rate, simplify shaders, cull distant objects.
+    \item Re-profile and iterate until 90 Hz target achieved.
+\end{enumerate}
+
+\paragraph{Code Structure}
+\begin{itemize}
+    \item \texttt{VisualEffectsManager.cs} --- Coordinates orbital trail rendering, particle effects, and animations.
+    \item \texttt{HandTrackingController.cs} (optional) --- Maps hand poses to interaction events.
+    \item \texttt{AccessibilityManager.cs} --- Manages captions, colorblind modes, and comfort settings.
+    \item \texttt{EvaluationLogger.cs} --- Records interaction data for formal evaluation.
+    \item \texttt{TutorialManager.cs} --- Orchestrates first-time user onboarding sequence.
+\end{itemize}
+
+\paragraph{Beta Testing Protocol Example}
+\begin{enumerate}
+    \item Participant arrives, signs consent form, completes pre-test questionnaire.
+    \item Researcher fits Quest 3 headset, launches application.
+    \item Tutorial guides participant through basic interactions (5 minutes).
+    \item Participant attempts ``ISS Rendezvous'' mission (10 minutes).
+    \item Participant freely explores (15 minutes), encouraged to ask agent questions.
+    \item Participant removes headset, completes post-test questionnaire (5 minutes).
+    \item Semi-structured interview: ``What did you find intuitive? Confusing? Engaging?'' (10 minutes).
+    \item Researcher logs observations and feedback for iteration.
+\end{enumerate}
+
+\subsubsection*{Success Criteria}
+
+Sprint 6 is considered complete when:
+\begin{itemize}
+    \item Application achieves stable 90 Hz frame rate for $>$95\% of runtime.
+    \item At least 5 beta testers complete full mission scenarios without crashes or major bugs.
+    \item User study participants rate usability $>$4/5 on Likert scale (``easy to use'').
+    \item User study participants report increased understanding of orbital mechanics ($>$70\% agree).
+    \item All accessibility features (captions, colorblind mode, comfort settings) function correctly.
+    \item Agent accuracy on validation dataset $>$95\% (correct tool calls for standard commands).
+    \item Documentation (tutorial, manual, demo video) is complete and reviewed.
+    \item Evaluation instruments are validated and ready for formal user study.
+\end{itemize}
+
+\subsubsection*{Timeline and Dependencies}
+
+\textbf{Estimated Duration:} 3--4 weeks
+
+\textbf{Dependencies:} Requires completion of all previous sprints (1--5). Beta testing requires access to target users. Formal evaluation (per Section \ref{sec:evaluation_plan}) occurs after Sprint 6 completion.
+
+
+%==============================================================================
+\subsection{Development Timeline Overview}
+\label{subsec:timeline_overview}
+%==============================================================================
+
+Table \ref{tab:sprint_timeline} summarizes the estimated timeline for the six-sprint development plan. The total development window is approximately 16--23 weeks, with some sprints executable in parallel.
+
+\begin{table}[h]
+\centering
+\caption{Sprint-based development timeline overview.}
+\label{tab:sprint_timeline}
+\begin{tabular}{@{}llc@{}}
+\toprule
+\textbf{Sprint} & \textbf{Focus Area} & \textbf{Duration (weeks)} \\
+\midrule
+Sprint 1 & Agent Intelligence Core & 4--5 \\
+Sprint 2 & Enhanced Simulation Physics & 3--4 \\
+Sprint 3 & Voice Integration & 2--3 \\
+Sprint 4 & VR Deployment \& Integration & 3--4 \\
+Sprint 5 & AR Passthrough \& Globe Visualization & 2--3 \\
+Sprint 6 & Polish \& UX Refinement & 3--4 \\
+\midrule
+\textbf{Total} & \textbf{(with parallelization)} & \textbf{16--23} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Parallelization Strategy}
+To optimize the timeline:
+\begin{itemize}
+    \item Sprint 1 must be completed first (foundation for all other components).
+    \item Sprints 2 (physics) and 3 (voice) can proceed in parallel after Sprint 1.
+    \item Sprint 4 (VR deployment) requires Sprints 1--3 but can begin as soon as Sprint 3 completes.
+    \item Sprint 5 (AR mode) can be developed concurrently with Sprint 4 since both are independent rendering modes.
+    \item Sprint 6 (polish) requires all previous sprints and should begin when Sprints 4 and 5 reach beta quality.
+\end{itemize}
+
+With efficient parallelization and overlapping work, the realistic timeline collapses to approximately \textbf{14--18 weeks} of active development.
+
+
+%==============================================================================
+\subsection{Risk Mitigation and Contingency Planning}
+\label{subsec:risk_mitigation}
+%==============================================================================
+
+\subsubsection*{Identified Risks and Mitigation Strategies}
+
+\begin{enumerate}
+    \item \textbf{Risk: LLM Hallucination or Incorrect Tool Calls}
+    \begin{itemize}
+        \item \textit{Mitigation:} Implement strict validation of agent outputs. Require confirmation for irreversible actions. Provide ``undo'' functionality. Test extensively with edge cases and adversarial prompts.
+    \end{itemize}
+
+    \item \textbf{Risk: Voice Recognition Accuracy Below Threshold}
+    \begin{itemize}
+        \item \textit{Mitigation:} Maintain text input as fallback. Implement confirmation dialogues (``Did you mean...?''). Test with diverse accents and background noise levels. Provide visual transcription feedback.
+    \end{itemize}
+
+    \item \textbf{Risk: API Latency Degrading User Experience}
+    \begin{itemize}
+        \item \textit{Mitigation:} Cache frequent queries (e.g., common orbit requests). Implement local processing for deterministic calculations. Display loading indicators and progress feedback during API calls. Consider edge caching or local LLM fallback for critical functions.
+    \end{itemize}
+
+    \item \textbf{Risk: Quest 3 Performance Below 72 Hz (Motion Sickness)}
+    \begin{itemize}
+        \item \textit{Mitigation:} Profile early and optimize continuously. Implement aggressive LOD systems. Reduce visual complexity if necessary. Use Unity Profiler and Quest performance overlay to identify bottlenecks. Target 90 Hz but ensure 72 Hz minimum.
+    \end{itemize}
+
+    \item \textbf{Risk: AR Spatial Anchor Drift or Instability}
+    \begin{itemize}
+        \item \textit{Mitigation:} Use Quest 3's Scene API for robust environment understanding. Provide manual recalibration option accessible via voice command. Implement visual drift warning (``Anchor stability low - recalibrate?''). Consider marker-based tracking as fallback.
+    \end{itemize}
+
+    \item \textbf{Risk: User Confusion with Complex Interface}
+    \begin{itemize}
+        \item \textit{Mitigation:} Design intuitive onboarding tutorial. Implement progressive disclosure (show advanced features only after basics mastered). Conduct early beta testing to identify pain points. Provide in-app help accessible via ``Agent, help me with...''.
+    \end{itemize}
+
+    \item \textbf{Risk: Quest 3 Hardware Unavailability or Failure}
+    \begin{itemize}
+        \item \textit{Mitigation:} Maintain desktop VR fallback (SteamVR compatible). Design system to function in ``desktop mode'' with keyboard/mouse for development without headset access. Ensure project portability to other VR platforms (PCVR, Quest 2).
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection*{Contingency Plans}
+
+If schedule constraints arise:
+\begin{itemize}
+    \item \textbf{Priority 1 (Essential):} Sprints 1 and 2 (agent and physics) --- these form the core educational value and can function as standalone desktop application.
+    \item \textbf{Priority 2 (High Value):} Sprints 3 and 4 (voice and VR) --- significantly enhance user experience and demonstrate immersive potential.
+    \item \textbf{Priority 3 (Desirable):} Sprints 5 and 6 (AR mode and polish) --- can be deferred to post-thesis continuation if necessary. VR-only deployment still fulfills thesis objectives.
+\end{itemize}
+
+Alternative minimum viable product (MVP):
+\begin{itemize}
+    \item If VR deployment proves challenging, the system can function effectively as a desktop application with agent, physics, and voice integration (Sprints 1--3).
+    \item If voice integration encounters API limitations, text-based input remains fully functional for all agent interactions.
+    \item If AR mode timeline is constrained, VR-only deployment (Sprint 4) still delivers an immersive, novel educational platform.
+\end{itemize}
+
+The modular architecture ensures that even a partially implemented system delivers meaningful educational utility and can serve as a proof-of-concept for the full vision, with clear pathways for incremental enhancement in future work.
+
+
+%==============================================================================
+\subsection{Alignment with Thesis Objectives}
+\label{subsec:alignment_objectives}
+%==============================================================================
+
+This implementation plan directly addresses all specific objectives outlined in Section \ref{sec:objetivos}:
+
+\begin{enumerate}
+    \item \textbf{Physically accurate simulation:} Sprint 2 implements the two-body problem with Keplerian orbital elements, enabling realistic trajectory modeling and maneuver calculations.
+    \item \textbf{Generative agent integration:} Sprint 1 builds the natural language agent with tool use, memory, educational guidance, and Socratic tutoring capabilities.
+    \item \textbf{Physical interface (embodied interaction):} Sprint 5 anchors virtual orbital visualizations to a physical globe in augmented reality, creating a tangible reference point for spatial understanding.
+    \item \textbf{Multimodal interaction:} Sprints 3 (voice), 4 (VR controllers/hand tracking), and 5 (AR physical space) combine spoken dialogue, gestural input, and spatial manipulation for seamless interaction.
+    \item \textbf{Coherent real-time system:} All sprints integrate into a unified platform with continuous agent-simulation-user feedback loops operating at VR-appropriate frame rates.
+    \item \textbf{Modular and extensible architecture:} Each sprint produces standalone modules with clear interfaces, enabling independent testing and future expansion to other celestial bodies or educational domains.
+    \item \textbf{Evaluation as educational tool:} Sprint 6 includes comprehensive beta testing, user study preparation, and formal evaluation instruments (detailed in Section \ref{sec:evaluation_plan}).
+\end{enumerate}
+
+By following this sprint-based plan, the project systematically constructs a novel educational platform that leverages cutting-edge generative AI, immersive VR/AR visualization, and spatial interaction to make orbital mechanics accessible, engaging, and pedagogically effective.
