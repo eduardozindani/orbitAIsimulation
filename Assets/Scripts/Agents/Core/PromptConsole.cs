@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using Prompts;
 using Agents.Tools;
+using Agents.Core;
 using Newtonsoft.Json.Linq;
 
 /// <summary>
@@ -57,6 +58,7 @@ public class PromptConsole : MonoBehaviour
     private OpenAIClient _client;
     private ToolRegistry _toolRegistry;
     private ToolExecutor _toolExecutor;
+    private ConversationHistory _conversationHistory;
     private bool _busy;
     private CancellationTokenSource _cts;
 
@@ -99,6 +101,14 @@ public class PromptConsole : MonoBehaviour
                 UseToolSystem = false;
             }
         }
+
+        // Initialize conversation history
+        _conversationHistory = new ConversationHistory
+        {
+            maxHistorySize = 15,
+            currentLocation = "Hub" // Starting in Mission Control Hub
+        };
+        Debug.Log("[PromptConsole] Conversation history initialized");
 
         _cts = new CancellationTokenSource();
     }
@@ -333,8 +343,9 @@ public class PromptConsole : MonoBehaviour
 
     private async Task SubmitWithToolSystemAsync(string prompt, CancellationToken ct)
     {
-        // >>> STAGE 1: Extract tool call using ToolSelectionPrompt
-        string toolSelectionResponse = await _client.CompleteAsync(prompt, ToolSelectionPrompt.Text, ct);
+        // >>> STAGE 1: Extract tool call using ToolSelectionPrompt (with context)
+        string contextualPrompt = BuildContextualPrompt(prompt);
+        string toolSelectionResponse = await _client.CompleteAsync(contextualPrompt, ToolSelectionPrompt.Text, ct);
 
         // >>> STAGE 2: Parse tool call JSON
         ToolCall toolCall = ParseToolCall(toolSelectionResponse);
@@ -344,6 +355,9 @@ public class PromptConsole : MonoBehaviour
             // Generate conversational response for non-commands (greetings, questions, etc.)
             string response = await GenerateNonToolResponseAsync(prompt, ct);
             SafeSetOutput(response);
+
+            // Add to history (no tool executed)
+            _conversationHistory.AddExchange(prompt, response, null);
             return;
         }
 
@@ -354,13 +368,20 @@ public class PromptConsole : MonoBehaviour
         if (!success)
         {
             string errorMsg = executionResult.errorMessage ?? "Unknown error";
-            SafeSetOutput($"I couldn't execute that command: {errorMsg}");
+            string failureResponse = $"I couldn't execute that command: {errorMsg}";
+            SafeSetOutput(failureResponse);
+
+            // Add to history (tool execution failed)
+            _conversationHistory.AddExchange(prompt, failureResponse, $"{toolCall.tool} (failed)");
             return;
         }
 
         // >>> STAGE 4: Generate conversational response
         string conversationalResponse = await GenerateToolResponseAsync(prompt, executionResult, ct);
         SafeSetOutput(conversationalResponse);
+
+        // Add to history (successful tool execution)
+        _conversationHistory.AddExchange(prompt, conversationalResponse, toolCall.tool);
     }
 
     private async Task SubmitWithLegacySystemAsync(string prompt, CancellationToken ct)
@@ -381,6 +402,24 @@ public class PromptConsole : MonoBehaviour
         SafeSetOutput(conversationalResponse);
     }
 
+    // ---------------- Context Building ----------------
+
+    /// <summary>
+    /// Builds contextual prompt with conversation history
+    /// </summary>
+    private string BuildContextualPrompt(string userMessage)
+    {
+        if (_conversationHistory.GetExchangeCount() == 0)
+        {
+            // First message, no context needed
+            return userMessage;
+        }
+
+        // Include brief context from recent conversation
+        string context = _conversationHistory.GetContextSummary(3);
+        return $"{context}\nCurrent user message: {userMessage}";
+    }
+
     // ---------------- Response Generation ----------------
 
     /// <summary>
@@ -388,15 +427,29 @@ public class PromptConsole : MonoBehaviour
     /// </summary>
     private async Task<string> GenerateNonToolResponseAsync(string userCommand, CancellationToken ct)
     {
-        string contextPrompt = $@"The user said: ""{userCommand}""
+        // Check if user has been asking vague questions - might benefit from Mission Space visit
+        bool suggestMissionSpace = _conversationHistory.HasRecentVagueQuestions(3);
+        string missionSpaceHint = suggestMissionSpace
+            ? "\n- If they seem unsure about parameters, suggest they could visit Mission Specialists who can show real examples (Phase 2 feature - mention coming soon)"
+            : "";
+
+        // Include conversation history for context
+        string conversationContext = _conversationHistory.GetExchangeCount() > 0
+            ? $"\n\nRecent conversation:\n{_conversationHistory.GetFormattedHistory(5)}\n"
+            : "";
+
+        string contextPrompt = $@"You are Mission Control CAPCOM. {conversationContext}
+
+The user just said: ""{userCommand}""
 
 This was NOT a command to create an orbit. Respond naturally and helpfully:
 - If it's a greeting, greet them back as Mission Control CAPCOM
-- If it's a question about capabilities, explain you can create circular and elliptical orbits
+- If it's a question about capabilities, explain you can create circular and elliptical orbits, and clear the workspace
 - If it's a vague request without numbers, politely ask for specific altitude/periapsis/apoapsis values
-- If they're checking on the system, confirm everything is operational
+- If they're asking about previous messages, refer to the conversation history above
+- If they're checking on the system, confirm everything is operational{missionSpaceHint}
 
-Be conversational, professional, and helpful. Keep responses under 2 sentences.";
+Be conversational, professional, and helpful. Keep responses under 3 sentences.";
 
         try
         {
@@ -419,14 +472,21 @@ Be conversational, professional, and helpful. Keep responses under 2 sentences."
             return "I'm sorry, there was an issue executing that command.";
         }
 
+        // Include conversation history for context
+        string conversationContext = _conversationHistory.GetExchangeCount() > 0
+            ? $"\n\nRecent conversation:\n{_conversationHistory.GetFormattedHistory(5)}\n"
+            : "";
+
         // Build context for response generation
-        string contextPrompt = $@"user_command: {userCommand}
+        string contextPrompt = $@"You are Mission Control CAPCOM. {conversationContext}
+
+user_command: {userCommand}
 tool_executed: {executionResult.toolId}
 success: {executionResult.success}
 result_message: {executionResult.message}
 output_data: {string.Join(", ", executionResult.outputData)}
 
-Generate a conversational response:";
+Generate a conversational response acknowledging what was done:";
 
         try
         {
@@ -466,6 +526,7 @@ Generate a conversational response:";
         catch (Exception ex)
         {
             // Fallback to a basic response if AI fails
+            Debug.LogWarning($"[PromptConsole] Failed to generate conversational response: {ex.Message}");
             if (updateResult.parametersUpdated)
             {
                 string altText = updateResult.altitudeKm.HasValue ? $"altitude to {updateResult.altitudeKm:F1} km" : "";

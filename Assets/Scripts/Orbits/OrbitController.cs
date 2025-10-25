@@ -10,7 +10,13 @@ public class OrbitController : MonoBehaviour
     [Header("References")]
     [Tooltip("The Orbit component to control")]
     public Orbit targetOrbit;
-    
+
+    [Tooltip("The OrbitVisualizer component to display trajectory")]
+    public OrbitVisualizer orbitVisualizer;
+
+    [Tooltip("The planet/Earth transform (center of orbit)")]
+    public Transform planetTransform;
+
     [Header("Earth Properties")]
     [Tooltip("Earth radius in kilometers (real Earth ≈ 6371 km)")]
     public float earthRadiusKm = 6371f;
@@ -255,6 +261,13 @@ public class OrbitController : MonoBehaviour
 
         // Store inclination for future use (Orbit.cs will need to support this)
         // For now, log it
+        // Update visualization
+        if (orbitVisualizer != null)
+        {
+            orbitVisualizer.SetCircularOrbit(orbitRadiusUnity, inclination_deg);
+            orbitVisualizer.Show();
+        }
+
         if (showDebugLogs)
         {
             Debug.Log($"[OrbitController] Created CIRCULAR orbit:");
@@ -321,6 +334,13 @@ public class OrbitController : MonoBehaviour
         float angularVelocityRadPerSec = speedUnityPerSec / orbitRadiusUnity;
         targetOrbit.orbitSpeed = angularVelocityRadPerSec;
 
+        // Update visualization with elliptical orbit
+        if (orbitVisualizer != null)
+        {
+            orbitVisualizer.SetEllipticalOrbit(orbitRadiusUnity, eccentricity, inclination_deg, 0f);
+            orbitVisualizer.Show();
+        }
+
         if (showDebugLogs)
         {
             Debug.Log($"[OrbitController] Created ELLIPTICAL orbit:");
@@ -336,6 +356,40 @@ public class OrbitController : MonoBehaviour
         result.altitudeKm = (periapsis_km + apoapsis_km) / 2f; // Average altitude
         result.speedKmps = speedAtPeriapsis_kmps;
         result.updateReason = $"Elliptical orbit created: {periapsis_km:F0}km × {apoapsis_km:F0}km, {inclination_deg:F1}° inclination";
+
+        return result;
+    }
+
+    /// <summary>
+    /// Clears the current orbit visualization and resets the satellite.
+    /// This implements the "single-orbit workspace" concept from Phase 1.
+    /// </summary>
+    /// <returns>Result containing status information</returns>
+    public OrbitUpdateResult ClearOrbit()
+    {
+        var result = new OrbitUpdateResult();
+
+        // Clear visualization
+        if (orbitVisualizer != null)
+        {
+            orbitVisualizer.ClearOrbit();
+        }
+
+        // Stop orbit motion by setting speed to zero
+        if (targetOrbit != null)
+        {
+            targetOrbit.orbitSpeed = 0f;
+        }
+
+        if (showDebugLogs)
+        {
+            Debug.Log("[OrbitController] Orbit cleared - workspace reset");
+        }
+
+        result.parametersUpdated = true;
+        result.altitudeKm = null;
+        result.speedKmps = null;
+        result.updateReason = "Orbit cleared successfully. Workspace is ready for a new orbital configuration.";
 
         return result;
     }

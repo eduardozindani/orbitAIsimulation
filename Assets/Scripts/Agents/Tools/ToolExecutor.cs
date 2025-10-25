@@ -60,6 +60,9 @@ namespace Agents.Tools
                     case "create_elliptical_orbit":
                         return ExecuteCreateEllipticalOrbit(parameters, ref result);
 
+                    case "clear_orbit":
+                        return ExecuteClearOrbit(parameters, ref result);
+
                     default:
                         result.success = false;
                         result.errorMessage = $"Tool {toolId} is defined but not implemented in ToolExecutor";
@@ -154,6 +157,24 @@ namespace Agents.Tools
                 Debug.LogWarning($"[ToolExecutor] Failed to convert parameter '{key}' to double, using default {defaultValue}");
                 return defaultValue;
             }
+        }
+
+        private bool ExecuteClearOrbit(Dictionary<string, object> parameters, ref ToolExecutionResult result)
+        {
+            // Clear orbit has no parameters - just execute
+            OrbitController.OrbitUpdateResult orbitResult = _orbitController.ClearOrbit();
+
+            result.success = orbitResult.parametersUpdated;
+            result.outputData = new Dictionary<string, object>
+            {
+                ["workspace_status"] = "cleared",
+                ["ready_for_new_orbit"] = true
+            };
+            result.message = orbitResult.updateReason;
+
+            Debug.Log($"[ToolExecutor] {result.message}");
+
+            return result.success;
         }
 
         /// <summary>

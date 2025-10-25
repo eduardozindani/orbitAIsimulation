@@ -56,6 +56,15 @@
       "specialist_persona": "elliptical_orbit_analyst",
       "specialist_team": "Elliptical Orbit Design Team",
       "unity_function": "CreateEllipticalOrbit"
+    },
+    {
+      "id": "clear_orbit",
+      "name": "Clear Workspace",
+      "description": "Clears the current orbital trajectory from the visualization, providing a clean workspace for designing a new orbit. Implements the single-orbit-at-a-time philosophy.",
+      "parameters": {},
+      "specialist_persona": "mission_control",
+      "specialist_team": "Mission Control Hub",
+      "unity_function": "ClearOrbit"
     }
   ],
   "common_orbits": {
