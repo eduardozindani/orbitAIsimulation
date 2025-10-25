@@ -819,7 +819,7 @@ Sprint 5 implements Augmented Reality mode, where the simulation overlays the us
     \item User walks around table, viewing ISS orbit from different angles.
     \item User says: ``Show me a polar orbit.''
     \item Agent creates polar orbit, glowing cyan trail appears perpendicular to equator.
-    \item User physically rotates globe (if on turntable) or walks to opposite side to see orbit's ground track.
+    \item User walks to opposite side to see orbit's ground track from a different perspective.
 \end{enumerate}
 
 \subsubsection*{Success Criteria}
@@ -1158,8 +1158,8 @@ This implementation plan directly addresses all specific objectives outlined in 
 \begin{enumerate}
     \item \textbf{Physically accurate simulation:} Sprint 2 implements the two-body problem with Keplerian orbital elements, enabling realistic trajectory modeling and maneuver calculations.
     \item \textbf{Generative agent integration:} Sprint 1 builds the natural language agent with tool use, memory, educational guidance, and Socratic tutoring capabilities.
-    \item \textbf{Physical interface (embodied interaction):} Sprint 5 anchors virtual orbital visualizations to a physical globe in augmented reality, creating a tangible reference point for spatial understanding.
-    \item \textbf{Multimodal interaction:} Sprints 3 (voice), 4 (VR controllers/hand tracking), and 5 (AR physical space) combine spoken dialogue, gestural input, and spatial manipulation for seamless interaction.
+    \item \textbf{Augmented reality visualization:} Sprint 5 anchors virtual orbital visualizations in the user's physical environment using AR, creating an immersive spatial reference for understanding orbital mechanics.
+    \item \textbf{Multimodal interaction:} Sprints 3 (voice), 4 (VR controllers/hand tracking), and 5 (AR spatial movement) combine spoken dialogue, gestural input, and physical movement through space for seamless interaction.
     \item \textbf{Coherent real-time system:} All sprints integrate into a unified platform with continuous agent-simulation-user feedback loops operating at VR-appropriate frame rates.
     \item \textbf{Modular and extensible architecture:} Each sprint produces standalone modules with clear interfaces, enabling independent testing and future expansion to other celestial bodies or educational domains.
     \item \textbf{Evaluation as educational tool:} Sprint 6 includes comprehensive beta testing, user study preparation, and formal evaluation instruments (detailed in Section \ref{sec:evaluation_plan}).
