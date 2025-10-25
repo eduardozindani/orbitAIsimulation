@@ -74,6 +74,12 @@ namespace Agents.Tools
                     case "reset_simulation_time":
                         return ExecuteResetSimulationTime(parameters, ref result);
 
+                    case "route_to_mission":
+                        return ExecuteRouteToMission(parameters, ref result);
+
+                    case "return_to_hub":
+                        return ExecuteReturnToHub(parameters, ref result);
+
                     default:
                         result.success = false;
                         result.errorMessage = $"Tool {toolId} is defined but not implemented in ToolExecutor";
@@ -299,6 +305,111 @@ namespace Agents.Tools
             Debug.Log($"[ToolExecutor] {result.message}");
 
             return true;
+        }
+
+        private bool ExecuteRouteToMission(Dictionary<string, object> parameters, ref ToolExecutionResult result)
+        {
+            // Extract parameters
+            string mission = GetStringParameter(parameters, "mission", "");
+            string context = GetStringParameter(parameters, "context_for_specialist", "");
+
+            if (string.IsNullOrEmpty(mission))
+            {
+                result.success = false;
+                result.errorMessage = "Mission name not specified";
+                Debug.LogWarning($"[ToolExecutor] {result.errorMessage}");
+                return false;
+            }
+
+            // Validate mission name
+            if (mission != "ISS" && mission != "GPS" && mission != "Voyager" && mission != "Hubble")
+            {
+                result.success = false;
+                result.errorMessage = $"Unknown mission: {mission}. Valid missions: ISS, GPS, Voyager, Hubble";
+                Debug.LogWarning($"[ToolExecutor] {result.errorMessage}");
+                return false;
+            }
+
+            // Store routing context in MissionContext singleton
+            if (MissionContext.Instance != null)
+            {
+                MissionContext.Instance.SetRoutingContext(mission, context);
+            }
+            else
+            {
+                Debug.LogWarning("[ToolExecutor] MissionContext.Instance is null - context will not be preserved");
+            }
+
+            // Trigger scene transition via SceneTransitionManager
+            if (SceneTransitionManager.Instance != null)
+            {
+                SceneTransitionManager.Instance.TransitionToMission(mission);
+            }
+            else
+            {
+                result.success = false;
+                result.errorMessage = "SceneTransitionManager not found - cannot transition to mission";
+                Debug.LogError($"[ToolExecutor] {result.errorMessage}");
+                return false;
+            }
+
+            result.success = true;
+            result.outputData = new Dictionary<string, object>
+            {
+                ["mission"] = mission,
+                ["context"] = context
+            };
+            result.message = $"Routing to {mission} Mission Space...";
+
+            Debug.Log($"[ToolExecutor] {result.message}");
+
+            return true;
+        }
+
+        private bool ExecuteReturnToHub(Dictionary<string, object> parameters, ref ToolExecutionResult result)
+        {
+            // Store context in MissionContext
+            if (MissionContext.Instance != null)
+            {
+                string currentLocation = MissionContext.Instance.currentLocation;
+                MissionContext.Instance.SetRoutingContext("Hub", $"Returning from {currentLocation}");
+            }
+            else
+            {
+                Debug.LogWarning("[ToolExecutor] MissionContext.Instance is null");
+            }
+
+            // Trigger scene transition back to Hub
+            if (SceneTransitionManager.Instance != null)
+            {
+                SceneTransitionManager.Instance.TransitionToHub();
+            }
+            else
+            {
+                result.success = false;
+                result.errorMessage = "SceneTransitionManager not found - cannot return to Hub";
+                Debug.LogError($"[ToolExecutor] {result.errorMessage}");
+                return false;
+            }
+
+            result.success = true;
+            result.message = "Returning to Mission Control Hub...";
+
+            Debug.Log($"[ToolExecutor] {result.message}");
+
+            return true;
+        }
+
+        /// <summary>
+        /// Helper to safely extract string parameter with default fallback
+        /// </summary>
+        private string GetStringParameter(Dictionary<string, object> parameters, string key, string defaultValue)
+        {
+            if (parameters == null || !parameters.ContainsKey(key))
+                return defaultValue;
+
+            object value = parameters[key];
+            return value?.ToString() ?? defaultValue;
         }
 
         /// <summary>

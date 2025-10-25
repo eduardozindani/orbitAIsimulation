@@ -106,6 +106,36 @@
       "specialist_persona": "simulation_controller",
       "specialist_team": "Simulation Control",
       "unity_function": "ResetSimulationTime"
+    },
+    {
+      "id": "route_to_mission",
+      "name": "Route to Mission Specialist",
+      "description": "Route user to a Mission Space to explore historical missions and learn from real-world examples. Use when: (1) user explicitly asks about ISS, GPS, Voyager, or Hubble missions, (2) user asks vague questions that need concrete examples (e.g., 'what's a good altitude?'), (3) user is exploring and would benefit from seeing actual mission configurations, (4) user seems stuck on design choices and needs inspiration. Mission Spaces show pre-built orbits that cannot be modified - they are for learning and understanding only.",
+      "parameters": {
+        "mission": {
+          "type": "string",
+          "description": "Which mission specialist to connect with: ISS (LEO observation), GPS (MEO constellation), Voyager (interplanetary escape), Hubble (LEO telescope)",
+          "enum": ["ISS", "GPS", "Voyager", "Hubble"],
+          "required": true
+        },
+        "context_for_specialist": {
+          "type": "string",
+          "description": "Brief context (1-2 sentences) explaining WHY user is being routed. This helps the specialist tailor their introduction and guidance. Examples: 'wants to understand LEO observation altitudes', 'struggling with inclination choices', 'curious about GPS constellation design', 'exploring interplanetary trajectories'",
+          "required": true
+        }
+      },
+      "specialist_persona": "mission_control_router",
+      "specialist_team": "Mission Control Navigation",
+      "unity_function": "RouteToMission"
+    },
+    {
+      "id": "return_to_hub",
+      "name": "Return to Mission Control Hub",
+      "description": "Return user to Mission Control Hub from a Mission Space. Use when user expresses desire to leave the current mission, go back to hub, return to mission control, or is done exploring the current mission. The Hub is where users can create custom orbits and access all simulation controls.",
+      "parameters": {},
+      "specialist_persona": "mission_specialist",
+      "specialist_team": "Mission Space Navigation",
+      "unity_function": "ReturnToHub"
     }
   ],
   "common_orbits": {
