@@ -7,6 +7,7 @@ using UnityEngine;
 using Prompts;
 using Agents.Tools;
 using Agents.Core;
+using Agents.Services;
 using Newtonsoft.Json.Linq;
 
 /// <summary>
@@ -59,10 +60,16 @@ public class PromptConsole : MonoBehaviour
     [Tooltip("If true, uses the new tool-based system (ToolRegistry + ToolExecutor). If false, uses legacy altitude/speed system.")]
     public bool UseToolSystem = true;
 
+    [Header("Audio Response")]
+    [Tooltip("ElevenLabs settings for text-to-speech audio responses")]
+    public ElevenLabsSettings elevenLabsSettings;
+
     private OpenAIClient _client;
     private ToolRegistry _toolRegistry;
     private ToolExecutor _toolExecutor;
     private ConversationHistory _conversationHistory;
+    private ElevenLabsClient _elevenLabsClient;
+    private AudioSource _responseAudioSource;
     private bool _busy;
     private CancellationTokenSource _cts;
 
@@ -128,6 +135,23 @@ public class PromptConsole : MonoBehaviour
             currentLocation = "Hub" // Starting in Mission Control Hub
         };
         Debug.Log("[PromptConsole] Conversation history initialized");
+
+        // Initialize ElevenLabs client
+        if (elevenLabsSettings != null)
+        {
+            _elevenLabsClient = new ElevenLabsClient(elevenLabsSettings);
+            Debug.Log("[PromptConsole] ElevenLabs client initialized");
+        }
+        else
+        {
+            Debug.LogWarning("[PromptConsole] ElevenLabsSettings not assigned - responses will be text only");
+        }
+
+        // Create audio source for responses
+        _responseAudioSource = gameObject.AddComponent<AudioSource>();
+        _responseAudioSource.playOnAwake = false;
+        _responseAudioSource.loop = false;
+        _responseAudioSource.volume = 1f;
 
         _cts = new CancellationTokenSource();
     }
@@ -362,6 +386,15 @@ public class PromptConsole : MonoBehaviour
 
     private async Task SubmitWithToolSystemAsync(string prompt, CancellationToken ct)
     {
+        // Stop any currently playing audio
+        if (_responseAudioSource != null && _responseAudioSource.isPlaying)
+        {
+            _responseAudioSource.Stop();
+        }
+
+        // Show loading message
+        SafeSetOutput("Mission Control is responding...");
+
         // >>> STAGE 1: Extract tool call using ToolSelectionPrompt (with context)
         string contextualPrompt = BuildContextualPrompt(prompt);
         string toolSelectionResponse = await _client.CompleteAsync(contextualPrompt, ToolSelectionPrompt.Text, ct);
@@ -373,7 +406,9 @@ public class PromptConsole : MonoBehaviour
         {
             // Generate conversational response for non-commands (greetings, questions, etc.)
             string response = await GenerateNonToolResponseAsync(prompt, ct);
-            SafeSetOutput(response);
+
+            // Convert to audio and play
+            await PlayResponseAsAudioAsync(response, ct);
 
             // Add to history (no tool executed)
             _conversationHistory.AddExchange(prompt, response, null);
@@ -388,7 +423,9 @@ public class PromptConsole : MonoBehaviour
         {
             string errorMsg = executionResult.errorMessage ?? "Unknown error";
             string failureResponse = $"I couldn't execute that command: {errorMsg}";
-            SafeSetOutput(failureResponse);
+
+            // Convert to audio and play
+            await PlayResponseAsAudioAsync(failureResponse, ct);
 
             // Add to history (tool execution failed)
             _conversationHistory.AddExchange(prompt, failureResponse, $"{toolCall.tool} (failed)");
@@ -397,7 +434,9 @@ public class PromptConsole : MonoBehaviour
 
         // >>> STAGE 4: Generate conversational response
         string conversationalResponse = await GenerateToolResponseAsync(prompt, executionResult, ct);
-        SafeSetOutput(conversationalResponse);
+
+        // Convert to audio and play
+        await PlayResponseAsAudioAsync(conversationalResponse, ct);
 
         // Add to history (successful tool execution)
         _conversationHistory.AddExchange(prompt, conversationalResponse, toolCall.tool);
@@ -558,6 +597,46 @@ Generate a conversational response:";
             {
                 return $"I couldn't process that command. {updateResult.updateReason}. Please specify altitude (in km) or speed (in km/s) with numeric values.";
             }
+        }
+    }
+
+    // ---------------- Audio Response ----------------
+
+    /// <summary>
+    /// Convert text response to audio and play it.
+    /// If audio generation fails, show error message.
+    /// </summary>
+    private async Task PlayResponseAsAudioAsync(string responseText, CancellationToken ct)
+    {
+        if (_elevenLabsClient == null || _responseAudioSource == null)
+        {
+            // Fallback: No audio system available, show text
+            SafeSetOutput(responseText);
+            return;
+        }
+
+        try
+        {
+            // Generate audio from text
+            AudioClip audioClip = await _elevenLabsClient.TextToSpeechAsync(responseText, ct);
+
+            if (audioClip != null)
+            {
+                // Play audio, clear text output (audio only!)
+                _responseAudioSource.clip = audioClip;
+                _responseAudioSource.Play();
+                SafeSetOutput(""); // Clear text - audio only
+            }
+            else
+            {
+                // Audio generation failed
+                SafeSetOutput("Error: Could not generate audio");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[PromptConsole] Audio generation failed: {ex.Message}");
+            SafeSetOutput("Error: Could not generate audio");
         }
     }
 
