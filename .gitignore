@@ -1,2 +1,5 @@
 Logs/
 Library/
+
+# Large audio files
+Assets/Audio/background.mp3

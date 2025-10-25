@@ -37,11 +37,22 @@ namespace Core
         [Tooltip("Starting camera distance for intro (deep space)")]
         public float introCameraStartRadius = 50f;
 
-        [Tooltip("Camera zoom duration in seconds")]
-        public float cameraZoomDuration = 15f;
+        [Tooltip("Camera zoom duration in seconds (synced with audio narration)")]
+        public float cameraZoomDuration = 29f;
 
         [Tooltip("Animation curve for smooth zoom (EaseInOut for cinematic feel)")]
         public AnimationCurve cameraZoomCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+        [Header("Audio")]
+        [Tooltip("Voice narration for intro (29 seconds)")]
+        public AudioClip introNarration;
+
+        [Tooltip("Background music (loops continuously)")]
+        public AudioClip backgroundMusic;
+
+        [Tooltip("Background music volume (0-1)")]
+        [Range(0f, 1f)]
+        public float musicVolume = 0.4f;
 
         [Header("References")]
         [Tooltip("The satellite orbit controller (will be disabled during intro)")]
@@ -57,8 +68,23 @@ namespace Core
         public CameraSphereController cameraController;
 
         private bool _introCompleted = false;
+        private AudioSource _narrationSource;
+        private AudioSource _musicSource;
 
         // ---------------- Lifecycle ----------------
+
+        void Awake()
+        {
+            // Create audio sources
+            _narrationSource = gameObject.AddComponent<AudioSource>();
+            _narrationSource.playOnAwake = false;
+            _narrationSource.loop = false;
+
+            _musicSource = gameObject.AddComponent<AudioSource>();
+            _musicSource.playOnAwake = false;
+            _musicSource.loop = true; // Loop forever!
+            _musicSource.volume = musicVolume;
+        }
 
         void Start()
         {
@@ -103,10 +129,25 @@ namespace Core
                 promptConsole.DisableConsole();
             }
 
-            // Show intro UI
+            // Hide intro UI (audio replaces text)
             if (introUI != null)
             {
-                introUI.ShowIntro();
+                introUI.HideIntro();
+            }
+
+            // Start audio
+            if (_narrationSource != null && introNarration != null)
+            {
+                _narrationSource.clip = introNarration;
+                _narrationSource.Play();
+                Debug.Log("[ExperienceManager] Playing intro narration");
+            }
+
+            if (_musicSource != null && backgroundMusic != null)
+            {
+                _musicSource.clip = backgroundMusic;
+                _musicSource.Play();
+                Debug.Log($"[ExperienceManager] Playing background music at {musicVolume * 100}% volume");
             }
 
             // Start intro sequence
@@ -140,7 +181,15 @@ namespace Core
                 promptConsole.EnableConsole();
             }
 
-            // Hide intro UI
+            // Stop narration (but keep background music playing!)
+            if (_narrationSource != null && _narrationSource.isPlaying)
+            {
+                _narrationSource.Stop();
+                Debug.Log("[ExperienceManager] Intro narration stopped");
+            }
+            // Background music continues playing...
+
+            // Hide intro UI (already hidden, but ensure)
             if (introUI != null)
             {
                 introUI.HideIntro();
