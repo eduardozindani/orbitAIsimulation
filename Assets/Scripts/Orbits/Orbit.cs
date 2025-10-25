@@ -72,4 +72,23 @@ public class Orbit : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Enable or disable orbital motion.
+    /// When disabled, satellite stops moving and trail is cleared.
+    /// Used by ExperienceManager to disable orbit during intro cutscene.
+    /// </summary>
+    public void SetOrbitActive(bool active)
+    {
+        enabled = active; // Disables/enables the Update() loop
+
+        if (!active)
+        {
+            // Clear trail when disabling orbit
+            if (trailRenderer != null)
+            {
+                trailRenderer.Clear();
+            }
+        }
+    }
+
 }

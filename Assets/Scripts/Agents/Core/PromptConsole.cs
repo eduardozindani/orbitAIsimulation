@@ -561,6 +561,48 @@ Generate a conversational response:";
         }
     }
 
+    // ---------------- Experience Manager Integration ----------------
+
+    /// <summary>
+    /// Disable the console UI (called by ExperienceManager during intro)
+    /// </summary>
+    public void DisableConsole()
+    {
+        if (InputField != null)
+        {
+            InputField.gameObject.SetActive(false);
+        }
+
+        if (OutputText != null)
+        {
+            OutputText.gameObject.SetActive(false);
+        }
+
+        Debug.Log("[PromptConsole] Console disabled for intro");
+    }
+
+    /// <summary>
+    /// Enable the console UI (called by ExperienceManager when transitioning to Hub)
+    /// </summary>
+    public void EnableConsole()
+    {
+        if (InputField != null)
+        {
+            InputField.gameObject.SetActive(true);
+        }
+
+        if (OutputText != null)
+        {
+            OutputText.gameObject.SetActive(true);
+            OutputText.text = "Mission Control: Ready for your commands.";
+        }
+
+        // Give input field focus
+        ActivateInputSafely();
+
+        Debug.Log("[PromptConsole] Console enabled - Hub is active");
+    }
+
     // ---------------- Helper Classes ----------------
 
     /// <summary>

@@ -33,6 +33,9 @@ public class CameraSphereController : MonoBehaviour
     float pitch;
     float radius;
 
+    [HideInInspector]
+    public bool allowExternalRadiusControl = false;
+
     void Start()
     {
         if (cam == null)
@@ -41,28 +44,38 @@ public class CameraSphereController : MonoBehaviour
         // set initial orientation and distance
         yaw    = initialYaw;
         pitch  = Mathf.Clamp(initialPitch, minPitch, maxPitch);
-        radius = Mathf.Clamp(startRadius, minRadius, maxRadius);
+
+        // Only set initial radius if not being controlled externally (for intro)
+        if (!allowExternalRadiusControl)
+        {
+            radius = Mathf.Clamp(startRadius, minRadius, maxRadius);
+        }
 
         UpdateCamera();
     }
 
     void Update()
     {
-        // input
-        float h = Input.GetKey(KeyCode.RightArrow) ?  1f :
-                  Input.GetKey(KeyCode.LeftArrow)  ? -1f : 0f;
-        float v = Input.GetKey(KeyCode.UpArrow)    ?  1f :
-                  Input.GetKey(KeyCode.DownArrow)  ? -1f : 0f;
+        // Only handle user input if not being controlled externally
+        if (!allowExternalRadiusControl)
+        {
+            // input
+            float h = Input.GetKey(KeyCode.RightArrow) ?  1f :
+                      Input.GetKey(KeyCode.LeftArrow)  ? -1f : 0f;
+            float v = Input.GetKey(KeyCode.UpArrow)    ?  1f :
+                      Input.GetKey(KeyCode.DownArrow)  ? -1f : 0f;
 
-        // Use unscaledDeltaTime so camera controls are NOT affected by Time.timeScale
-        yaw   += h * yawSpeed   * Time.unscaledDeltaTime;
-        pitch += v * pitchSpeed * Time.unscaledDeltaTime;
-        pitch  = Mathf.Clamp(pitch, minPitch, maxPitch);
+            // Use unscaledDeltaTime so camera controls are NOT affected by Time.timeScale
+            yaw   += h * yawSpeed   * Time.unscaledDeltaTime;
+            pitch += v * pitchSpeed * Time.unscaledDeltaTime;
+            pitch  = Mathf.Clamp(pitch, minPitch, maxPitch);
 
-        // zoom
-        float scroll = Input.mouseScrollDelta.y;
-        radius = Mathf.Clamp(radius - scroll * zoomSpeed, minRadius, maxRadius);
+            // zoom
+            float scroll = Input.mouseScrollDelta.y;
+            radius = Mathf.Clamp(radius - scroll * zoomSpeed, minRadius, maxRadius);
+        }
 
+        // Always update camera position (even during external control)
         UpdateCamera();
     }
 
@@ -72,5 +85,23 @@ public class CameraSphereController : MonoBehaviour
         Vector3 pos = transform.position + rot * Vector3.back * radius;
         cam.position = pos;
         cam.LookAt(transform.position, Vector3.up);
+    }
+
+    // ---------------- External Control (for intro cutscene) ----------------
+
+    /// <summary>
+    /// Set camera radius externally (used by ExperienceManager during intro)
+    /// </summary>
+    public void SetRadius(float newRadius)
+    {
+        radius = newRadius;
+    }
+
+    /// <summary>
+    /// Get the target "normal" viewing distance
+    /// </summary>
+    public float GetTargetRadius()
+    {
+        return startRadius;
     }
 }
