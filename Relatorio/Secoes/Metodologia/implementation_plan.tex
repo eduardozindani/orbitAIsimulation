@@ -1,469 +1,223 @@
 \section{Implementation Plan}
 \label{sec:implementation_plan}
 
-This section outlines the implementation plan for the agent-guided orbital mechanics simulation platform. The development is structured in four focused phases, progressing from core conversational AI to immersive VR deployment. This approach prioritizes fundamental functionality over feature breadth, ensuring each phase delivers a testable, working system that builds toward the complete educational experience.
+This section outlines the implementation strategy for the agent-guided orbital mechanics simulation platform. The development is structured in four focused phases that build from conversational intelligence to immersive virtual reality experience. The approach prioritizes fundamental educational capabilities over feature complexity, ensuring each phase delivers clear value and builds toward a complete learning platform.
 
-The plan reflects the principles established in Section \ref{sec:design_philosophy}: prototype-driven development, iterative refinement, and modular architecture. Each phase produces an independently functional component that integrates with the broader system.
+The plan reflects the principles established in Section \ref{sec:design_philosophy}: prototype-driven development, iterative refinement, and modular architecture. Each phase produces a testable, working system that integrates with subsequent work without requiring architectural changes.
 
 \subsection{System Architecture Overview}
 \label{subsec:system_overview}
 
-The platform consists of two primary user experiences:
+The platform provides two complementary learning experiences:
 
-\textbf{The Hub (Mission Control):} A central workspace where users interact with Mission Control to create custom orbits, control simulation parameters, and receive guidance. The Hub presents Earth in space with the ability to visualize a single orbital trajectory at a time. Mission Control, embodied with a visionary persona, coordinates all activities and routes users to specialized learning environments when appropriate.
+\paragraph{The Hub (Mission Control)}
+The Hub serves as the primary workspace where users create and explore custom orbital trajectories. Users interact with Mission Control—a conversational guide with a visionary, encouraging personality—to build circular or elliptical orbits around Earth. The Hub emphasizes focused, hands-on learning by displaying a single orbit at a time, allowing users to understand each configuration deeply before moving to the next.
 
-\textbf{Mission Showcase Spaces:} Separate educational environments dedicated to historical space missions. Each space features a mission specialist who greets users, displays the mission's orbit, and answers questions about mission-specific physics and engineering. These spaces serve as interactive tutorials where users learn orbital mechanics principles through real-world examples.
+The decision to support only circular and elliptical orbits is deliberate: these two orbit types are sufficient for understanding fundamental orbital mechanics principles while keeping the system accessible and manageable. Users learn altitude-velocity relationships, inclination effects, and the distinction between circular motion and elliptical trajectories without encountering the complexity of hyperbolic escapes or parabolic paths that would extend beyond the educational scope.
 
-Users navigate between the Hub and Mission Spaces through natural dialogue. The system maintains context across transitions, ensuring specialists understand why the user was routed to them and can provide relevant educational content.
+\paragraph{Mission Showcase Spaces}
+Mission Spaces are dedicated educational environments that display historical space missions with their actual orbital configurations. Each space features a specialist who introduces the mission, explains its orbital characteristics, and answers questions about the underlying physics.
 
-\subsection{Phase 1: Core Agent System and Hub Experience}
+These spaces serve a critical pedagogical purpose: users often struggle to create orbits from scratch without understanding what realistic configurations look like. By exploring ISS, GPS, Voyager, Hubble, and optionally Apollo missions, users see concrete examples of how different orbit types serve different purposes. This experiential learning through real-world cases provides the context needed to successfully create custom orbits in the Hub.
+
+The missions were chosen to represent diverse orbital regimes: Low Earth Orbit (ISS, Hubble), Medium Earth Orbit (GPS), and interplanetary trajectories (Voyager). Each demonstrates different physics principles—inclination requirements, altitude selection rationale, and mission-specific constraints.
+
+\paragraph{Navigation Between Spaces}
+Users move fluidly between the Hub and Mission Spaces through natural conversation. Mission Control can suggest visiting a specialist when a user's question would benefit from seeing a real example. Users return to the Hub whenever ready to apply what they learned. The system maintains conversational context across transitions, ensuring specialists understand why the user arrived and can provide relevant guidance.
+
+\subsection{Phase 1: Core Conversational Agent and Hub Experience}
 \label{subsec:phase1_agent}
 
 \subsubsection*{Objectives}
 
-Phase 1 establishes the conversational AI foundation and primary user workspace. The goal is to create Mission Control as an intelligent coordinator capable of guiding orbit creation, managing simulation state, and routing users to educational resources. This phase delivers the fundamental interaction model that all subsequent phases build upon.
+Phase 1 establishes the conversational AI foundation that powers all user interactions. The goal is to create Mission Control as an intelligent, patient guide capable of helping users build orbits through natural dialogue, whether the user provides precise specifications or needs extensive scaffolding.
 
-\subsubsection*{Key Components}
+\subsubsection*{Core Capabilities}
 
-\paragraph{Mission Control Character}
+\paragraph{Orbit Creation Through Dialogue}
 
-Mission Control serves as the primary conversational interface with a visionary, encouraging personality. Its core responsibilities include:
+The system guides users in creating orbital trajectories via multi-turn conversation. Mission Control first determines whether the user wants a circular or elliptical orbit, then collects the necessary parameters through adaptive questioning.
 
-\begin{itemize}
-    \item Guiding users through orbit creation via structured dialogue
-    \item Validating orbital parameters against physical constraints
-    \item Executing simulation control commands (time manipulation, orbit clearing)
-    \item Routing users to mission specialists when educational context would be valuable
-    \item Answering general questions about orbital mechanics
-\end{itemize}
+For users who know exactly what they want, Mission Control accepts complete specifications directly and executes immediately. For users exploring or learning, Mission Control asks clarifying questions, provides context about parameter choices, and suggests reasonable values based on the user's stated purpose.
 
-The character's prompt engineering emphasizes educational scaffolding—helping users who are uncertain while accepting precise commands from knowledgeable users without unnecessary questioning.
+The dialogue system validates all parameters against physical constraints—ensuring altitudes remain above the atmosphere and within simulation bounds, and confirming inclinations fall within valid ranges. When users request impossible configurations, Mission Control explains why and suggests alternatives.
 
-\paragraph{Orbit Creation Workflow}
+\paragraph{Single-Orbit Workspace}
 
-The system guides users through creating circular or elliptical orbits via natural conversation. The workflow adapts to user knowledge level:
+The Hub displays only one orbital trajectory at a time. This intentional limitation focuses attention on understanding each configuration thoroughly rather than managing multiple overlapping paths. Users can clear the current orbit at any time to start fresh, encouraging experimentation without visual clutter.
 
-\begin{description}
-    \item[Precise Users:] Accept complete specifications directly. Example: "Create a 400km circular orbit at 51.6 degrees" immediately generates the orbit.
-    \item[Guided Users:] Ask clarifying questions to gather parameters. Example: User says "I want to observe Earth" → Mission Control suggests polar orbit → guides through altitude selection → creates orbit.
-\end{description}
+\paragraph{Routing to Educational Resources}
 
-The dialog system must determine orbit type (circular vs. elliptical) and collect required parameters:
-\begin{itemize}
-    \item Circular orbits: altitude, inclination
-    \item Elliptical orbits: periapsis altitude, apoapsis altitude, inclination
-\end{itemize}
+Mission Control recognizes when users would benefit from seeing real-world examples and can suggest visiting Mission Spaces. For instance, if a user asks "what's a good altitude for Earth observation?", Mission Control might respond "The ISS specialist can show you how altitude affects observation capabilities—would you like to speak with them?"
 
-Parameter validation ensures physical realism (minimum altitude above atmosphere, maximum within simulation bounds). The system displays only one orbit at a time, emphasizing focused exploration over complex multi-satellite scenarios.
+\subsubsection*{Technical Foundation}
 
-\paragraph{Tool Registry and Execution}
+The conversational system integrates OpenAI's language models to interpret natural language, reason about user intent, and generate educational explanations. A tool registry defines the available simulation functions—creating circular orbits, creating elliptical orbits, and clearing the workspace. The agent selects appropriate tools based on conversation context and extracted parameters.
 
-Building on the existing tool system architecture, Phase 1 implements:
-
-\begin{itemize}
-    \item \texttt{create\_circular\_orbit(altitude\_km, inclination\_deg)} — Generates circular orbital trajectory
-    \item \texttt{create\_elliptical\_orbit(periapsis\_km, apoapsis\_km, inclination\_deg)} — Generates elliptical trajectory
-    \item \texttt{clear\_orbit()} — Removes current orbit visualization, returns to empty workspace
-\end{itemize}
-
-Each tool validates parameters, calculates orbital velocity using the vis-viva equation, and renders the trajectory around Earth. Tool schemas define parameter constraints, enabling the agent to guide users toward valid configurations.
-
-\paragraph{Context Management}
-
-The system tracks minimal state information:
-\begin{itemize}
-    \item Current location (Hub or specific Mission Space)
-    \item Active character (Mission Control or mission specialist)
-    \item Current orbit parameters (if any orbit is displayed)
-    \item Recent conversation history (last 2-3 exchanges for contextual continuity)
-\end{itemize}
-
-This lightweight approach maintains coherent dialogue without introducing complexity that could lead to inconsistent behavior.
+The system tracks minimal state: current location (Hub or Mission Space), active orbit parameters if any exist, and recent conversation history to maintain contextual continuity across exchanges.
 
 \subsubsection*{Success Criteria}
 
-Phase 1 is complete when:
-\begin{itemize}
-    \item Users can create circular orbits through natural dialogue
-    \item Users can create elliptical orbits through natural dialogue
-    \item Mission Control adapts to both precise and vague user input appropriately
-    \item Parameter validation prevents physically impossible configurations
-    \item The clear orbit function resets the workspace correctly
-    \item Conversation remains coherent across multiple turns
-\end{itemize}
-
-\subsubsection*{Implementation Notes}
-
-Development occurs on desktop Unity first, using text-based interaction for rapid iteration. Voice integration comes in Phase 3. Focus remains on dialogue logic, tool execution correctness, and educational quality of Mission Control's responses.
+Phase 1 is complete when users can successfully create both circular and elliptical orbits through conversation, Mission Control adapts appropriately to different user knowledge levels, parameter validation prevents invalid configurations, and the dialogue remains coherent and educational across multiple turns.
 
 \subsection{Phase 2: Mission Showcase Spaces}
 \label{subsec:phase2_missions}
 
 \subsubsection*{Objectives}
 
-Phase 2 creates educational environments showcasing historical space missions. Each Mission Space features a specialist character who introduces their mission, displays its orbit, and answers questions. These spaces transform abstract physics into concrete examples, allowing users to learn by exploring real-world applications of orbital mechanics.
+Phase 2 creates immersive educational environments where users explore historical space missions and learn orbital mechanics through real-world examples. Each Mission Space demonstrates how theoretical principles manifest in actual spacecraft operations.
 
-\subsubsection*{Mission Definitions}
+\subsubsection*{Mission Selection Rationale}
 
-The system implements four to five mission showcases:
+The platform showcases four to five historically significant missions that collectively demonstrate diverse orbital configurations and mission design principles:
 
 \paragraph{ISS Mission Space}
-\begin{itemize}
-    \item Orbit: Circular, 420 km altitude, 51.6° inclination
-    \item Specialist: Professional astronaut/engineer persona
-    \item Educational focus: Low Earth Orbit characteristics, launch site constraints, international collaboration, orbital period calculation
-\end{itemize}
+The International Space Station exemplifies Low Earth Orbit at 420 km altitude with a 51.6° inclination. This mission teaches how launch site locations constrain inclination choices and how orbital period relates to altitude. The specialist explains why the station orbits at this specific configuration and what tradeoffs were considered.
 
 \paragraph{GPS Mission Space}
-\begin{itemize}
-    \item Orbit: Circular, 20,200 km altitude, 55° inclination
-    \item Specialist: Navigation engineer persona
-    \item Educational focus: Medium Earth Orbit, constellation design principles, global coverage geometry, atomic clock precision requirements
-\end{itemize}
+GPS satellites operate in Medium Earth Orbit at 20,200 km altitude with 55° inclination. This mission demonstrates constellation design principles—how multiple satellites at specific altitudes and inclinations provide global coverage. The specialist explains the relationship between orbital period (12 hours) and positioning system requirements.
 
 \paragraph{Voyager Mission Space}
-\begin{itemize}
-    \item Orbit: Escape trajectory (hyperbolic) or high elliptical approximation
-    \item Specialist: Wise scientist persona (Carl Sagan style)
-    \item Educational focus: Interplanetary trajectories, gravity assists, escape velocity, deep space navigation
-\end{itemize}
+Voyager's trajectory represents interplanetary travel and escape from Earth's gravity well. Whether modeled as a high elliptical approximation or hyperbolic escape, this mission introduces concepts beyond Earth orbit. The specialist (channeling Carl Sagan's communicative style) explains gravity assists, deep space navigation, and the physics of leaving Earth's sphere of influence.
 
 \paragraph{Hubble Mission Space}
-\begin{itemize}
-    \item Orbit: Circular, 540 km altitude, 28.5° inclination
-    \item Specialist: Astrophysicist persona
-    \item Educational focus: Low inclination benefits, orbital maintenance, atmospheric drag at altitude, telescope operations
-\end{itemize}
+The Hubble Space Telescope operates at 540 km altitude with a 28.5° inclination, demonstrating how mission requirements drive orbital choices. The low inclination enables launches from Kennedy Space Center while providing access to large portions of the sky. The specialist explains telescope operational constraints and orbital maintenance needs.
 
 \paragraph{Apollo 11 Mission Space (Optional)}
-\begin{itemize}
-    \item Orbit: Trans-lunar trajectory (if technically feasible within scope)
-    \item Specialist: Astronaut commander persona (Neil Armstrong style)
-    \item Educational focus: Lunar transfer orbits, escape from Earth, orbital insertion at Moon
-    \item Note: Implementation complexity may require deferring to future work
-\end{itemize}
+If development time permits, the Apollo lunar mission provides an example of trans-lunar trajectory design. The specialist (channeling Neil Armstrong's calm, precise communication) explains the transfer orbit from Earth to Moon. If implementation proves too complex relative to timeline, this mission can be deferred to future work.
 
-\subsubsection*{Specialist Character Behavior}
+\subsubsection*{Specialist Interaction Model}
 
-When a user arrives at a Mission Space:
+When users arrive at a Mission Space, the mission's orbital trajectory immediately appears in the visualization. The specialist greets them with a brief, engaging introduction that provides historical context and highlights the key orbital characteristics they're about to explore.
 
-\begin{enumerate}
-    \item The mission's orbit automatically displays
-    \item The specialist greets the user with a brief introduction (15-20 seconds)
-    \item The greeting includes mission history highlights and current visualization context
-    \item The specialist invites questions: "I'm here to explain anything about this mission"
-    \item The specialist answers questions using mission-specific knowledge
-    \item The specialist can route back to Hub when user says "go back" or similar
-\end{enumerate}
+The specialist then invites questions, responding with mission-specific knowledge and educational explanations. If Mission Control routed the user for a specific reason, the specialist acknowledges this context and addresses the relevant topic.
 
-Each specialist is prompt-engineered with deep knowledge of their specific mission, ensuring accurate answers to questions about orbital parameters, mission objectives, historical significance, and underlying physics.
+Users return to the Hub simply by expressing the desire to go back, at which point Mission Control resumes as the primary guide.
 
-\subsubsection*{Routing System}
+\subsubsection*{Educational Design}
 
-Mission Control intelligently routes users to specialists:
+These Mission Spaces address a fundamental learning challenge: users often don't know what parameters to choose when creating their first custom orbit. By exploring concrete examples first, they develop intuition about realistic configurations. They see that LEO satellites orbit around 400-600 km, that inclination around 50° enables launches from major spaceports, and that geostationary satellites must be much higher at specific altitudes.
 
-\begin{description}
-    \item[User requests specific mission:] "Show me the ISS" → Direct routing to ISS Space
-    \item[User asks question better answered by specialist:] "Why do polar orbits cover the whole Earth?" → Mission Control: "The GPS specialist can explain constellation coverage perfectly. Want me to connect you?"
-    \item[User explores blindly:] Mission Control can suggest: "Would you like to see how real missions use these principles? I can introduce you to specialists from ISS, GPS, Voyager, or Hubble."
-\end{description}
-
-The routing system passes context: when a specialist greets a user, they know why the user was sent and can reference that context ("Mission Control mentioned you were curious about polar orbits—let me show you how GPS uses that...").
-
-\subsubsection*{Mission Data Structure}
-
-Each mission is defined via configuration:
-
-\begin{verbatim}
-{
-  "mission_id": "iss",
-  "orbit_parameters": {
-    "type": "circular",
-    "altitude_km": 420,
-    "inclination_deg": 51.6
-  },
-  "specialist_persona": "professional_astronaut",
-  "brief_history": "Launched 1998, continuous operation...",
-  "key_educational_points": [
-    "Orbital period: 90 minutes",
-    "Inclination allows launches from multiple sites",
-    "Velocity: 7.6 km/s"
-  ]
-}
-\end{verbatim}
-
-This declarative structure allows adding new missions without code changes.
+This example-based learning provides the conceptual framework users need to make informed choices when returning to the Hub to create their own orbits.
 
 \subsubsection*{Success Criteria}
 
-Phase 2 is complete when:
-\begin{itemize}
-    \item All implemented mission spaces display correct orbits on arrival
-    \item Specialists deliver appropriate greeting messages
-    \item Users can ask questions and receive educationally sound answers
-    \item Routing from Hub to missions works seamlessly
-    \item Routing from missions back to Hub works seamlessly
-    \item Context is preserved across space transitions
-\end{itemize}
+Phase 2 is complete when all implemented Mission Spaces display correct orbital configurations, specialists deliver engaging introductions and answer domain-specific questions accurately, users can navigate smoothly between Hub and Mission Spaces, and conversational context is preserved across transitions.
 
 \subsection{Phase 3: Voice Integration}
 \label{subsec:phase3_voice}
 
 \subsubsection*{Objectives}
 
-Phase 3 transforms text-based interaction into natural spoken dialogue. All character responses are synthesized with distinct voices that match their personas, and users provide input via speech recognition. This phase also implements the opening cutscene that welcomes users to the simulation.
+Phase 3 transforms text-based interaction into natural spoken dialogue by synthesizing all character responses with distinct voices and enabling speech input from users. This phase also implements the opening experience that welcomes users to the platform.
 
-\subsubsection*{Text-to-Speech Implementation}
+\subsubsection*{Voice Synthesis Strategy}
 
-The system integrates ElevenLabs API for voice synthesis. Each character is assigned a voice profile:
+The platform leverages ElevenLabs for text-to-speech synthesis, creating distinct vocal personalities for each character. The conversational intelligence continues to come from OpenAI's language models—voice synthesis adds the auditory layer that brings characters to life.
 
-\begin{description}
-    \item[Mission Control:] Visionary leader voice (Elon Musk style) — authoritative yet encouraging
-    \item[ISS Specialist:] Professional engineer voice — clear, technical, friendly
-    \item[GPS Specialist:] Technical expert voice — precise, methodical
-    \item[Voyager Specialist:] Wise scientist voice (Carl Sagan style) — poetic, contemplative
-    \item[Hubble Specialist:] Scientific enthusiast voice — passionate about astronomy
-    \item[Apollo 11 Specialist:] Heroic astronaut voice (Neil Armstrong style) — calm, confident
-\end{description}
+Mission Control speaks with a visionary leader's voice, authoritative yet encouraging. The ISS specialist sounds like a professional engineer—clear, technical, friendly. The GPS specialist conveys technical expertise with precision. The Voyager specialist channels Carl Sagan's contemplative, poetic communication style. The Hubble specialist speaks with scientific enthusiasm. If implemented, the Apollo specialist echoes Neil Armstrong's calm, confident demeanor.
 
-Voice selection prioritizes naturalness and distinctiveness. Users should immediately recognize which character is speaking based on voice alone.
+Voice differentiation ensures users immediately recognize which character is speaking based on voice alone, reinforcing the distinct personalities and expertise areas.
 
-The TTS pipeline operates asynchronously: as the agent generates text, it's sent to ElevenLabs for synthesis, and audio playback begins as soon as the first chunk arrives, minimizing perceived latency.
+\subsubsection*{Speech Input}
 
-\subsubsection*{Speech-to-Text Implementation}
+Users provide input through speech recognition, enabling hands-free interaction that feels more natural than typing. The system displays transcribed text visually so users can verify what was understood before the agent processes the command.
 
-User input is captured via speech recognition. Implementation options include:
-\begin{itemize}
-    \item OpenAI Whisper API (cloud-based, high accuracy)
-    \item Meta Quest 3 native speech recognition (low-latency, on-device)
-    \item Unity platform-specific solutions
-\end{itemize}
+A push-to-talk interaction model—activated via controller button in VR—provides clear boundaries between listening and speaking states, preventing accidental triggering.
 
-Selection prioritizes accuracy and latency. A push-to-talk activation model (via controller button) prevents accidental triggering and provides clear interaction boundaries.
+\subsubsection*{Opening Experience}
 
-Visual transcription displays what the system understood, allowing users to verify correct recognition before the agent processes the command.
+The user's first interaction is a 40-second pre-scripted introduction delivered by Mission Control. This welcome sets the tone: physics is beautiful, exploration drives learning, the system is here to guide discovery rather than deliver lectures.
 
-\subsubsection*{Opening Cutscene}
-
-The first user experience is a 40-second pre-scripted introduction:
-
-\begin{itemize}
-    \item Delivered by Mission Control (Elon Musk voice)
-    \item Welcomes user to the orbital mechanics simulator
-    \item Explains the learning philosophy: exploration over instruction
-    \item Previews capabilities: create orbits, explore missions, ask questions
-    \item Motivational close emphasizing the beauty of physics and spaceflight
-\end{itemize}
-
-The cutscene script is pre-written, synthesized once via ElevenLabs, and stored as an audio asset. This ensures consistent quality and eliminates API latency for the critical first impression.
-
-After the cutscene completes, the user seamlessly transitions to the Hub where Mission Control awaits.
+The introduction script is pre-written and synthesized once, ensuring consistent quality and immediate playback without API latency. After the introduction completes, users seamlessly transition to the Hub where interactive exploration begins.
 
 \subsubsection*{Success Criteria}
 
-Phase 3 is complete when:
-\begin{itemize}
-    \item All character dialogue is spoken with appropriate voices
-    \item Voices are clearly distinguishable between characters
-    \item Speech recognition achieves >90\% accuracy on orbital mechanics vocabulary
-    \item Audio playback is smooth without noticeable lag
-    \item Opening cutscene plays on first launch and sounds professional
-    \item Users can complete full interactions using only voice (no text fallback required)
-\end{itemize}
+Phase 3 is complete when all characters speak with distinct, natural-sounding voices, users can reliably interact using voice input, the opening experience delivers an engaging first impression, and the audio-visual experience feels cohesive and immersive.
 
 \subsection{Phase 4: VR Deployment and Essential Controls}
 \label{subsec:phase4_vr}
 
 \subsubsection*{Objectives}
 
-Phase 4 deploys the complete system to Meta Quest 3, creating an immersive VR experience. Users don the headset, speak naturally to Mission Control, visualize orbits in three-dimensional space, and physically move through environments. This phase also implements essential simulation controls and performance optimization.
+Phase 4 deploys the complete platform to Meta Quest 3, creating an immersive virtual reality experience where users physically inhabit the simulation space. This phase also implements essential simulation controls that allow users to manipulate time and manage their workspace.
 
-\subsubsection*{VR Platform Configuration}
+\subsubsection*{VR Platform Integration}
 
-The Unity project is configured for Meta Quest 3 deployment:
-\begin{itemize}
-    \item Android build target with ARM64 architecture
-    \item Meta XR SDK integration via OpenXR
-    \item Universal Render Pipeline (URP) optimized for mobile VR
-    \item Texture compression (ASTC) and resolution management
-    \item Build pipeline via Meta Quest Developer Hub
-\end{itemize}
+The Unity project is configured for Meta Quest 3 deployment, enabling the application to run natively on the VR headset. Users don the headset, see Earth floating in space before them, and interact through natural head movements, controller gestures, and voice commands.
 
-The VR camera rig supports six degrees of freedom (6-DOF) head tracking, stereo rendering for depth perception, and guardian boundary integration for safety.
+The platform can be tested locally during development and deployed as needed for demonstrations or user studies. The modular architecture ensures the same conversational AI and orbital physics work identically whether running on desktop for testing or in VR for the full experience.
 
-\subsubsection*{Spatial User Interface}
+\subsubsection*{Spatial Interaction Design}
 
-Interface elements are redesigned for three-dimensional space:
-\begin{itemize}
-    \item Floating orbital parameter displays near satellite positions
-    \item Controller-attached radial menus for quick command access
-    \item World-locked panels for mission briefings that remain fixed in space
-    \item Visual transcription of speech input displayed in comfortable viewing position
-\end{itemize}
+In VR, interface elements exist in three-dimensional space rather than on flat screens. Orbital parameters float near their corresponding trajectories. Mission briefings appear as spatial panels that remain fixed in the environment. Controllers enable direct interaction through pointing and selection.
 
-Text is rendered at sizes readable from 1-3 meters away. High contrast and background panels ensure legibility against varying backgrounds (Earth, space, orbital trails).
+The design prioritizes readability and comfort—text appears at appropriate sizes for viewing from typical VR distances, colors ensure visibility against both space backgrounds and Earth, and interaction methods feel intuitive rather than requiring training.
 
-\subsubsection*{Controller Integration}
+\subsubsection*{Essential Simulation Controls}
 
-Quest 3 Touch Pro controllers enable direct interaction:
-\begin{itemize}
-    \item Grip button: Push-to-talk activation for voice input
-    \item Trigger: Ray-cast selection of UI elements
-    \item Thumbstick: Navigate through space (approach or retreat from Earth)
-    \item Face buttons: Quick access to time controls and menu
-\end{itemize}
+Users need basic control over the simulation timeline to observe orbital behavior effectively:
 
-Visual rays indicate controller pointing direction. Haptic feedback confirms selections and state changes.
+Time can be accelerated to watch multiple orbital periods quickly, allowing users to see how satellites traverse their paths over hours compressed into seconds. The simulation can be paused to examine specific configurations or answer questions without motion distraction. Users can return time flow to normal speed when ready.
 
-\subsubsection*{Simulation Control Tools}
+The workspace can be cleared to remove the current orbit, providing a fresh start for creating new configurations. This simple reset keeps the interface uncluttered and maintains the focus on one-orbit-at-a-time exploration.
 
-Essential control functions are implemented:
-
-\paragraph{Time Manipulation}
-\begin{itemize}
-    \item \texttt{pause\_simulation()} — Freeze orbital motion
-    \item \texttt{set\_time\_speed(multiplier)} — Accelerate time (2x, 5x, 10x, etc.)
-    \item \texttt{resume\_simulation()} — Return to normal speed
-\end{itemize}
-
-Time controls allow users to observe multiple orbital periods quickly or pause to examine specific configurations. Rewind functionality is considered optional; if implementation proves complex, it can be deferred.
-
-\paragraph{Workspace Management}
-\begin{itemize}
-    \item \texttt{clear\_orbit()} — Remove current orbit, return to empty Hub
-\end{itemize}
-
-This command provides a clean slate for new explorations without requiring complex multi-orbit management.
-
-All controls are accessible via voice commands or controller buttons, ensuring multiple interaction pathways.
-
-\subsubsection*{Performance Optimization}
-
-The application targets 72 Hz minimum frame rate (Quest 3 baseline) with 90 Hz as the optimization goal. Profiling and optimization focus on:
-
-\begin{itemize}
-    \item Level-of-detail (LOD) systems for orbital trails and satellite models
-    \item Asynchronous agent API calls with loading indicators to prevent frame drops
-    \item Texture atlasing and mesh batching to reduce draw calls
-    \item Shader complexity reduction (avoiding expensive fragment operations)
-    \item Memory management: object pooling, asset unloading
-\end{itemize}
-
-Unity Profiler and Quest 3 performance overlay identify bottlenecks for targeted optimization.
+These controls are accessible through both voice commands and controller buttons, providing flexibility in interaction methods.
 
 \subsubsection*{Immersive Environment}
 
-The VR environment creates presence:
-\begin{itemize}
-    \item High-resolution starfield skybox (8K Milky Way texture)
-    \item Photorealistic Earth model with day/night textures
-    \item Orbital trails rendered as glowing curves in 3D space
-    \item Ambient space audio (subtle background, thruster sounds during maneuvers)
-    \item Dynamic lighting from the Sun
-\end{itemize}
+The VR environment creates presence through visual and audio design. Users are surrounded by space—a high-resolution starfield fills the sky, Earth appears as a detailed sphere, and orbital trajectories glow as curves through the void. Ambient audio adds subtle spatial atmosphere.
 
-Earth and orbital distances use compressed scale for VR comfort—maintaining geometric accuracy while fitting within comfortable viewing volume (preventing extreme near/far clipping issues).
-
-\subsubsection*{Augmented Reality Mode (Optional)}
-
-If development timeline permits, AR passthrough mode is implemented:
-\begin{itemize}
-    \item Quest 3 color passthrough enables viewing real environment
-    \item Orbital visualizations can be anchored to a physical location (e.g., table-mounted globe)
-    \item Spatial anchors provide persistence across sessions
-    \item User can toggle between VR and AR modes seamlessly
-\end{itemize}
-
-This feature is considered a valuable enhancement but not essential for core functionality. VR-only deployment satisfies all thesis objectives.
+The scale is adjusted for comfortable VR viewing while maintaining the geometric relationships between Earth and orbits. This compressed scale keeps everything within the headset's optimal rendering volume without sacrificing physical accuracy of the relationships being demonstrated.
 
 \subsubsection*{Success Criteria}
 
-Phase 4 is complete when:
-\begin{itemize}
-    \item Application builds and runs on Meta Quest 3 without crashes
-    \item Frame rate maintains ≥72 Hz during normal usage
-    \item All agent features (orbit creation, mission spaces, voice) function in VR
-    \item Users can complete full workflows entirely in VR
-    \item Controller and voice inputs work reliably
-    \item Time controls (pause, speed, clear) execute correctly
-    \item No motion sickness reported by test users during 15-minute sessions
-\end{itemize}
+Phase 4 is complete when the application runs smoothly on Meta Quest 3, all conversational features function in VR, users can comfortably interact for extended sessions without discomfort, simulation controls work reliably through voice and controllers, and the immersive environment effectively conveys the three-dimensional nature of orbital mechanics.
 
 \subsection{Development Timeline}
 \label{subsec:timeline}
 
-Table \ref{tab:implementation_timeline} summarizes the estimated timeline for the four-phase development plan.
-
-\begin{table}[h]
-\centering
-\caption{Four-phase implementation timeline.}
-\label{tab:implementation_timeline}
-\begin{tabular}{@{}llc@{}}
-\toprule
-\textbf{Phase} & \textbf{Focus Area} & \textbf{Duration (weeks)} \\
-\midrule
-Phase 1 & Core Agent \& Hub & 3--4 \\
-Phase 2 & Mission Showcase Spaces & 2--3 \\
-Phase 3 & Voice Integration & 2--3 \\
-Phase 4 & VR Deployment \& Controls & 3--4 \\
-\midrule
-\textbf{Total} & & \textbf{10--14} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Development Strategy}
-
-Phases 1 and 2 can proceed sequentially on desktop Unity, establishing the conversational AI foundation before adding sensory modalities. Phase 3 (voice) builds on the completed dialogue system. Phase 4 (VR) integrates all previous work into the immersive platform.
-
-Some parallelization is possible: Mission Space content (Phase 2) can be developed concurrently with dialogue refinement (Phase 1), as they share the same technical foundation but operate in different contexts.
-
-The timeline assumes full-time development focus. Phases can be extended if integration challenges arise or compressed if components prove simpler than anticipated.
-
-\paragraph{Risk Mitigation}
+The four-phase structure enables systematic development with clear milestones:
 
 \begin{description}
-    \item[Agent Response Quality:] Extensive prompt engineering and testing with diverse user inputs ensures robust dialogue. Fallback responses handle edge cases gracefully.
-    \item[Voice Recognition Accuracy:] Visual transcription allows users to verify recognition. Text input remains available as backup.
-    \item[Performance on Quest 3:] Early profiling and aggressive optimization target 72 Hz minimum. Desktop fallback available if mobile optimization proves prohibitive.
-    \item[Apollo 11 Complexity:] Lunar trajectories may exceed scope. Feature is marked optional and can be deferred to future work without impacting core platform.
+    \item[Phase 1 (3-4 weeks):] Core conversational agent and Hub orbit creation functionality, tested on desktop with text interaction
+    \item[Phase 2 (2-3 weeks):] Mission Showcase Spaces with specialist characters and routing logic, integrated with Phase 1 foundation
+    \item[Phase 3 (2-3 weeks):] Voice synthesis for all characters and speech input, including opening cutscene creation
+    \item[Phase 4 (3-4 weeks):] VR deployment to Quest 3 with spatial interface and simulation controls
 \end{description}
+
+Total development timeline: 10-14 weeks, with phases building sequentially on previous work.
+
+Early phases focus on conversational quality and educational effectiveness through desktop testing, ensuring the core learning experience is solid before adding immersive layers. Voice and VR deployment enhance an already-working system rather than being dependencies for basic functionality.
 
 \subsection{Evaluation Approach}
 \label{subsec:evaluation_approach}
 
-The platform's success is measured through technical validation and educational assessment, as detailed in Section \ref{sec:evaluation_plan}. The implementation plan ensures all necessary evaluation capabilities:
+The platform's effectiveness is assessed through the technical validation and educational evaluation framework detailed in Section \ref{sec:evaluation_plan}. The implementation ensures all necessary evaluation capabilities are built in:
 
-\paragraph{Technical Metrics}
-\begin{itemize}
-    \item Agent accuracy: Tool selection correctness, parameter extraction precision
-    \item System latency: Voice-to-response pipeline timing
-    \item VR performance: Frame rate stability, motion sickness incidence
-    \item Routing reliability: Context preservation across space transitions
-\end{itemize}
+Conversational accuracy is measured by tracking how reliably the agent interprets user intent and executes correct simulation functions. Educational effectiveness is assessed through user studies comparing comprehension before and after using the platform versus traditional learning methods.
 
-\paragraph{Educational Effectiveness}
-\begin{itemize}
-    \item User comprehension: Pre/post questionnaires on orbital mechanics concepts
-    \item Engagement quality: Qualitative feedback on learning experience
-    \item Comparison: Effectiveness versus traditional textbook/diagram methods
-\end{itemize}
+The system logs all interactions—user commands, agent responses, orbit creations, mission visits—providing rich data for analyzing usage patterns and learning pathways.
 
-Data logging throughout the system captures user commands, agent responses, tool executions, and interaction patterns for post-session analysis.
+\subsection{Technology Stack}
+\label{subsec:tech_stack}
+
+The platform integrates several technologies, each selected for its specific strength:
+
+\begin{description}
+    \item[OpenAI:] Provides the conversational intelligence that interprets natural language, reasons about orbital mechanics, and generates educational explanations
+    \item[ElevenLabs:] Synthesizes natural-sounding speech for all character responses, creating distinct vocal personalities
+    \item[Unity:] Serves as the 3D simulation engine and VR framework, rendering orbital trajectories and managing the immersive environment
+    \item[Meta Quest 3:] Delivers the virtual reality experience through standalone wireless hardware
+\end{description}
+
+This technology combination enables sophisticated conversational AI, emotionally engaging voice interaction, and immersive spatial visualization within a single integrated platform.
 
 \subsection{Alignment with Project Objectives}
 \label{subsec:plan_alignment}
 
 This implementation plan directly realizes the objectives established in Section \ref{sec:objetivos}:
 
-\begin{enumerate}
-    \item \textbf{Physically accurate simulation:} Orbital calculations use vis-viva equation and validated astrodynamics. Mission showcases demonstrate real-world applications.
-    \item \textbf{Generative agent integration:} Multi-character AI system interprets natural language, executes simulation functions, and provides educational guidance.
-    \item \textbf{Augmented reality visualization:} Phase 4 deploys to Quest 3 with optional AR passthrough anchoring.
-    \item \textbf{Multimodal interaction:} Voice dialogue (Phase 3) combined with spatial movement and controller input (Phase 4) creates seamless experience.
-    \item \textbf{Coherent real-time system:} All components integrate into unified platform with continuous conversational loop.
-    \item \textbf{Modular architecture:} Each phase produces standalone functionality that extends previous work without requiring architectural changes.
-    \item \textbf{Educational evaluation:} Built-in logging and assessment tools enable formal evaluation per Section \ref{sec:evaluation_plan}.
-\end{enumerate}
+The platform delivers physically accurate orbital simulations using validated astrodynamics equations. The generative agent system interprets natural language and provides adaptive educational guidance. Virtual reality deployment creates immersive three-dimensional visualization. Voice dialogue combined with spatial interaction enables natural, multimodal engagement. The modular four-phase architecture ensures each component can be developed, tested, and refined independently while integrating into a coherent whole.
 
-The four-phase structure prioritizes delivering a complete, working educational platform over feature breadth. The focus remains on creating magical moments—users speaking naturally to Mission Control, exploring real missions with legendary scientists' voices, and understanding orbital mechanics through direct experience rather than abstraction.
+Most importantly, the design philosophy prioritizes creating magical educational moments over accumulating features. Users experience the wonder of speaking naturally with Mission Control, hearing Carl Sagan explain Voyager's journey, watching orbits materialize in space around them, and developing genuine understanding of orbital mechanics through exploration rather than instruction.

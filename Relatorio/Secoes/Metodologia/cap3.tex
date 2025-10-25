@@ -13,68 +13,95 @@ The approach is defined by three core principles:
 \section{System Architecture and Data Flow}
 \label{sec:system_architecture}
 
-This section outlines the high-level system architecture, describing the flow of information between the user, the software components, and the generative agent. This end-to-end process, or "fluxogram," illustrates how the various components work in concert to create a seamless, real-time interactive experience. The architecture is designed as a continuous "perceive-think-act" cycle, mirroring the agentic workflows described in the literature.
+This section describes the system's architecture and how information flows between the user, the conversational agent, and the visualization engine to create an integrated educational experience.
 
-The data flow for a single user interaction can be detailed in the following sequence:
-\begin{enumerate}
-    \item \textbf{User Input:} The interaction begins with the user issuing a voice command, such as speaking a request (e.g., "Show me an orbit with an inclination of 45 degrees"). The microphone on the AR/VR headset records the user's voice.
-    \item \textbf{The Agentic Core (Reasoning and Planning):} Within Unity, the core logic orchestrates the agent's reasoning process. The application sends the transcribed user query to the OpenAI API. The generative agent, guided by its engineered prompt, interprets the user's intent, formulates a plan, and identifies the appropriate "tool" to use---a predefined C\# function within the Unity simulation.
-    \item \textbf{Simulation and Visualisation:} The agent invokes the corresponding function in the simulation engine, passing the translated parameters (e.g., \(\textit{i} = 45^\circ\), \(\Omega = \text{calculated\_value}\)). The Unity engine calculates the orbital trajectory based on these parameters and renders the path as a 3D visualisation on the Meta Quest 3 in augmented reality, anchored to the user's physical environment.
-    
-    \item \textbf{Auditory Feedback Loop:} To complete the interaction, the agent generates a textual confirmation or explanation (e.g., "Certainly, here is the 45-degree inclination orbit you requested."). This text is sent to the ElevenLabs API, which synthesizes a natural-sounding voice response that is played back to the user through the headset, providing coherent, conversational feedback \cite{anthropic2023agents}.
-\end{enumerate}
+\paragraph{Architectural Philosophy}
+
+The system is designed around voice-first interaction because spoken dialogue is the most natural way humans seek and share knowledge. Rather than requiring users to learn complex interfaces or command syntax, the platform allows them to simply ask questions and request visualizations as they would when speaking with a knowledgeable instructor.
+
+The architecture separates conversational intelligence from spatial visualization, enabling each component to excel at its specific purpose. The agent interprets intent, reasons about orbital mechanics, and guides learning through dialogue. The simulation engine translates these conversations into visual demonstrations, rendering orbital trajectories in three-dimensional space where users can observe and explore them.
+
+\paragraph{Interaction Flow}
+
+User interactions follow a continuous conversational loop. The user speaks a request—perhaps asking to see a specific orbit or questioning why certain parameters produce particular behaviors. The agent, powered by OpenAI's language models, interprets this natural language input and determines the appropriate response, whether that means creating a visualization, explaining a concept, or routing the user to a relevant learning resource.
+
+When visualization is needed, the agent communicates with the Unity-based simulation engine to generate the requested orbital trajectory. The simulation calculates physically accurate paths using astrodynamics principles and renders them in the virtual reality environment. The user sees the orbit appear in space, anchored to their surroundings through the Meta Quest 3 headset.
+
+The agent then provides spoken feedback via ElevenLabs voice synthesis, confirming what was created and offering educational context. This completes one cycle of the interaction loop, with the user free to ask follow-up questions, request modifications, or explore new concepts.
+
+This architecture enables seamless integration between abstract physics concepts and tangible spatial representations, allowing users to learn through the natural combination of conversation and visual exploration.
 
 \section{Core Component Implementation}
 \label{sec:core_components}
 
-The architecture described above is realized through the implementation of two distinct, yet deeply integrated, core components. This section details the specific role, planned tools, and development process for each component, clarifying how they contribute to the project's objectives.
+The system architecture is realized through two distinct yet deeply integrated components. This separation enables each component to focus on its core responsibility while working together to create the complete educational experience.
 
 \subsection{The Generative Agent (The "Brain")}
 \label{subsec:agent}
 
-\begin{description}
-    \item[Role] The generative agent serves as the central intelligence of the system. Its primary role is to act as a natural language interface and reasoning engine, translating the user's high-level, often ambiguous, spoken intent into the precise, deterministic commands required by the simulation engine. It functions as an interactive, educational guide for the user.
-    
-    \item[Tools] The agent's capabilities will be powered by a suite of Application Programming Interfaces (APIs). The core reasoning and language understanding will be handled by the \textbf{OpenAI API}, leveraging a powerful Large Language Model (LLM) with function-calling capabilities. The agent's voice, providing auditory feedback, will be synthesized using the \textbf{ElevenLabs API}, chosen for its ability to generate high-quality, low-latency speech.
-    
-    \item[Process] The development will focus on prompt engineering to define the agent's persona and behaviour as an expert aerospace tutor. The agent will be provided with a schema of the available C\# functions within the Unity environment, effectively giving it a set of "tools" it can use. When a user issues a command, the agent will reason about the intent and select the appropriate function to call with the correct parameters. The challenge of LLM hallucination is acknowledged; mitigation strategies, such as providing contextually relevant information within the prompt and validating outputs, will be explored and refined during the iterative development cycles.
-\end{description}
+\paragraph{Purpose and Responsibility}
+
+The conversational agent serves as the educational intelligence of the platform. Its fundamental purpose is to bridge the gap between natural human communication and precise simulation commands, transforming vague or exploratory questions into specific orbital visualizations and educational explanations.
+
+This component must interpret ambiguous user intent—understanding whether "show me how satellites work" should produce a specific orbit example, route to a mission specialist, or provide a conceptual explanation. It maintains conversational context across multiple turns, remembers what has been discussed, and adapts its guidance to match the user's demonstrated knowledge level.
+
+The agent embodies different characters depending on context: Mission Control in the Hub, or mission specialists in the educational spaces. Each character has distinct personality and expertise, created through careful prompt design that defines their communication style, knowledge domain, and educational approach.
+
+\paragraph{Technical Foundation}
+
+The agent's reasoning capabilities are powered by OpenAI's language models, which provide natural language understanding and generation. Voice synthesis through ElevenLabs transforms text responses into spoken dialogue with character-specific voices, creating the auditory personality that makes each character feel distinct and engaging.
+
+The conversational intelligence operates by interpreting user requests, determining appropriate actions (creating orbits, explaining concepts, routing to specialists), and generating educational responses that contextualize what the user sees. This reasoning process must balance precision—ensuring orbital parameters are physically valid—with flexibility to handle the natural variability of spoken language.
 
 \subsection{The Simulation and AR Visualisation (The "World")}
 \label{subsec:simulation}
 
-\begin{description}
-    \item[Role] This component is responsible for creating a real-time, physically-grounded, and visually intuitive representation of the orbital environment. It must accurately simulate celestial motion and render the results in an interactive, three-dimensional space for the user.
-    
-    \item[Tools] The simulation and visualisation will be built using the \textbf{Unity} 3D development engine, chosen for its robust cross-platform capabilities and extensive support for XR development. The target hardware for deployment is the \textbf{Meta Quest 3}, selected for its high-resolution, full-colour passthrough, which is ideal for Augmented Reality (AR), and its powerful standalone processing capabilities.
-    
-    \item[Process] The simulation's physics will be implemented in Unity using C\# scripts. The core logic will be based on the principles of astrodynamics, primarily the two-body problem, to calculate orbital trajectories as described in the foundational literature\cite{Curtis2020}. The primary development goal is an AR experience, where the orbital visualisations are overlaid onto the user's real-world environment. The user can walk around their physical space to view the orbital simulations from different angles. The modular nature of the design, however, allows for the future extension to a fully immersive Virtual Reality (VR) mode within the same application.
-\end{description}
+\paragraph{Purpose and Responsibility}
+
+The simulation component translates abstract orbital mechanics into tangible visual experiences. Its fundamental purpose is to make invisible physics visible—showing users what a 400 km orbit actually looks like in space, how inclination affects ground coverage, and how different mission requirements manifest as specific trajectory shapes.
+
+This component must render physically accurate orbital paths while presenting them in ways that are visually comprehensible and educationally meaningful. The orbits must be mathematically correct according to astrodynamics principles, yet scaled and styled for effective learning rather than literal representation.
+
+The visualization creates the spatial context where learning happens. By anchoring orbital trajectories to the user's physical environment through augmented reality, or placing users inside immersive virtual space, the component transforms orbital mechanics from equations on paper into three-dimensional phenomena users can walk around, observe from multiple angles, and genuinely inhabit.
+
+\paragraph{Technical Foundation}
+
+The simulation is built using Unity, a 3D development engine that provides the tools for calculating orbital trajectories and rendering them in virtual and augmented reality. The physics implementation, written in C\#, applies fundamental astrodynamics equations—primarily the two-body problem—to compute satellite positions and velocities over time.
+
+Deployment targets the Meta Quest 3 headset, which enables both immersive VR experiences and AR visualizations through its passthrough camera system. This hardware choice provides standalone wireless operation and sufficient processing power for real-time orbital calculations and high-quality rendering, allowing users to engage with the simulation untethered and freely mobile.
 
 \section{Development and Version Control}
 \label{sec:version_control}
 
-To ensure a systematic and traceable development process, the project will be managed using modern software engineering practices. The primary tool for this purpose is \textbf{GitHub}, a distributed version control system. All source code, including the C\# scripts for the \textbf{Unity} application, will be stored in a centralized repository on GitHub. This approach provides a complete history of all changes, facilitates branching for experimental features without compromising the stability of the main project, and establishes a foundation for potential future collaboration. Regular commits will document the incremental progress, aligning with the iterative development philosophy outlined in Section \ref{sec:design_philosophy}.
+The project follows systematic development practices using GitHub for version control. All source code—including Unity C\# scripts, prompt templates, and configuration files—is tracked in a central repository, providing complete history of changes and enabling experimental work through branching without compromising the main project stability. This systematic approach aligns with the iterative development philosophy, where each development cycle's progress is documented and preserved.
 
 \section{Evaluation Plan}
 \label{sec:evaluation_plan}
 
-A critical component of this project is to measure its success, not only as a functional piece of software but also as a potentially effective educational tool. The evaluation plan is therefore designed to address two distinct aspects: the technical validation of the system and a qualitative assessment of its educational potential, directly addressing the final specific objective of this thesis \ref{sec:objetivos}.
+\paragraph{Dual Assessment Rationale}
+
+The platform's success must be measured along two dimensions: technical functionality and educational effectiveness. Technical validation alone cannot confirm whether the system actually helps users learn, while educational assessment without technical verification cannot determine if observed outcomes result from reliable, consistent system behavior or from chance. This dual approach ensures the platform is both technically sound and pedagogically valuable.
 
 \subsection{Technical Validation}
-The first phase of evaluation will focus on verifying that the system's components function correctly, reliably, and efficiently. This involves a series of tests to measure key performance indicators:
+
+Technical evaluation verifies that the system performs reliably and correctly. This validation establishes confidence that observed learning outcomes stem from consistent, accurate system behavior rather than from unpredictable or incorrect responses.
+
+Key validation areas include:
 \begin{itemize}
-    \item \textbf{Agent Accuracy:} Testing the generative agent's ability to correctly parse a range of spoken commands and accurately invoke the corresponding simulation functions with the correct parameters.
-    \item \textbf{Simulation Fidelity:} Verifying that the rendered orbital trajectories are mathematically correct according to the implemented physics models.
-    \item \textbf{System Latency:} Measuring the end-to-end latency, from user voice input to the corresponding visual and auditory feedback, to ensure the interaction feels responsive and seamless.
-    \item \textbf{AR Spatial Anchoring:} Assessing the stability and accuracy of the augmented reality orbital visualizations anchored in the user's physical environment.
+    \item \textbf{Conversational Accuracy:} The agent correctly interprets user intent and executes appropriate simulation functions across diverse natural language inputs
+    \item \textbf{Physics Fidelity:} Rendered orbital trajectories match validated astrodynamics calculations
+    \item \textbf{Interaction Responsiveness:} Voice input to visual and auditory feedback occurs quickly enough to maintain conversational flow
+    \item \textbf{Spatial Stability:} Augmented reality visualizations remain properly anchored in the user's physical environment
 \end{itemize}
 
-\subsection{Educational Potential Assessment}
-The second phase of evaluation aims to gather qualitative data on the platform's potential as a tool for facilitating conceptual understanding of orbital mechanics. This will be achieved through a small-scale, qualitative user study.
-\begin{description}
-    \item[Participants] A small group of target users (e.g., 3-5 undergraduate students in aerospace engineering or a related field) will be invited to participate.
-    \item[Procedure] Each participant will be given a brief introduction to the system's controls and features. They will then be asked to complete a series of exploratory tasks, such as creating a geostationary orbit, visualizing a polar orbit, or performing a Hohmann transfer between two altitudes.
-    \item[Data Collection] Following the interactive session, feedback will be collected through a semi-structured interview and a short questionnaire. Questions will focus on the user's experience regarding engagement, ease of use, and perceived value. Specifically, participants will be asked whether the platform helped them visualize or understand orbital concepts more intuitively compared to traditional learning methods like textbooks and diagrams.
-\end{description}
-The goal of this assessment is not to achieve statistical significance, but to gather rich, qualitative insights that can validate the educational premise of the project and inform future improvements.
+These technical metrics ensure the platform provides a stable foundation for learning rather than introducing confusion through inconsistent or incorrect behavior.
+
+\subsection{Educational Effectiveness Assessment}
+
+Educational evaluation investigates whether the platform achieves its fundamental purpose: helping users develop genuine understanding of orbital mechanics principles.
+
+This assessment employs a small-scale qualitative study with 3-5 undergraduate students from aerospace engineering or related fields. Participants engage with the platform through exploratory tasks—creating different orbit types, visiting mission showcases, asking questions about observed phenomena—then provide feedback through semi-structured interviews and questionnaires.
+
+The evaluation focuses on whether the platform makes orbital concepts more intuitive and comprehensible compared to traditional learning methods like textbooks and diagrams. Questions probe engagement, ease of use, and most critically, whether users feel they developed better mental models of how orbits work through the interactive, spatial experience.
+
+This qualitative approach prioritizes depth of insight over statistical significance. Rich feedback from a few users who thoughtfully engage with the system provides more actionable understanding of educational effectiveness than surface-level metrics from larger samples. The goal is to validate the core educational premise and identify opportunities for refinement.
