@@ -65,6 +65,47 @@
       "specialist_persona": "mission_control",
       "specialist_team": "Mission Control Hub",
       "unity_function": "ClearOrbit"
+    },
+    {
+      "id": "set_simulation_speed",
+      "name": "Set Simulation Time Speed",
+      "description": "Controls how fast TIME flows in the simulation (NOT orbital velocity). 1x = real-time, 10x = 10 simulation seconds per real second. Use when user explicitly mentions 'simulation', 'time acceleration', or uses multiplier format like '5x'.",
+      "parameters": {
+        "speed_multiplier": {
+          "type": "number",
+          "description": "Time multiplier: 1 = real-time, 10 = 10x faster time flow, 50 = 50x faster",
+          "min": 0.1,
+          "max": 100,
+          "required": true
+        }
+      },
+      "specialist_persona": "simulation_controller",
+      "specialist_team": "Simulation Control",
+      "unity_function": "SetSimulationSpeed"
+    },
+    {
+      "id": "pause_simulation",
+      "name": "Pause or Resume Simulation",
+      "description": "Pauses time (freeze everything) or resumes simulation. Use when user says 'pause', 'freeze', 'stop', 'resume', 'unpause', 'continue'.",
+      "parameters": {
+        "pause": {
+          "type": "boolean",
+          "description": "true to pause/freeze, false to resume/continue",
+          "required": true
+        }
+      },
+      "specialist_persona": "simulation_controller",
+      "specialist_team": "Simulation Control",
+      "unity_function": "PauseSimulation"
+    },
+    {
+      "id": "reset_simulation_time",
+      "name": "Reset Mission Clock",
+      "description": "Resets mission elapsed time to 00:00:00. Use when user wants to restart the timer.",
+      "parameters": {},
+      "specialist_persona": "simulation_controller",
+      "specialist_team": "Simulation Control",
+      "unity_function": "ResetSimulationTime"
     }
   ],
   "common_orbits": {

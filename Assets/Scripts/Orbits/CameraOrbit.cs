@@ -54,8 +54,9 @@ public class CameraSphereController : MonoBehaviour
         float v = Input.GetKey(KeyCode.UpArrow)    ?  1f :
                   Input.GetKey(KeyCode.DownArrow)  ? -1f : 0f;
 
-        yaw   += h * yawSpeed   * Time.deltaTime;
-        pitch += v * pitchSpeed * Time.deltaTime;
+        // Use unscaledDeltaTime so camera controls are NOT affected by Time.timeScale
+        yaw   += h * yawSpeed   * Time.unscaledDeltaTime;
+        pitch += v * pitchSpeed * Time.unscaledDeltaTime;
         pitch  = Mathf.Clamp(pitch, minPitch, maxPitch);
 
         // zoom

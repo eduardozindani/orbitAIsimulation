@@ -259,6 +259,9 @@ public class OrbitController : MonoBehaviour
         float angularVelocityRadPerSec = speedUnityPerSec / orbitRadiusUnity;
         targetOrbit.orbitSpeed = angularVelocityRadPerSec;
 
+        // Reset satellite position and clear trail when creating new orbit
+        targetOrbit.ResetPosition();
+
         // Store inclination for future use (Orbit.cs will need to support this)
         // For now, log it
         // Update visualization
@@ -334,6 +337,9 @@ public class OrbitController : MonoBehaviour
         float angularVelocityRadPerSec = speedUnityPerSec / orbitRadiusUnity;
         targetOrbit.orbitSpeed = angularVelocityRadPerSec;
 
+        // Reset satellite position and clear trail when creating new orbit
+        targetOrbit.ResetPosition();
+
         // Update visualization with elliptical orbit
         if (orbitVisualizer != null)
         {
@@ -375,10 +381,11 @@ public class OrbitController : MonoBehaviour
             orbitVisualizer.ClearOrbit();
         }
 
-        // Stop orbit motion by setting speed to zero
+        // Stop orbit motion and clear trail
         if (targetOrbit != null)
         {
             targetOrbit.orbitSpeed = 0f;
+            targetOrbit.ResetPosition(); // This also clears the trail
         }
 
         if (showDebugLogs)

@@ -51,6 +51,10 @@ public class PromptConsole : MonoBehaviour
     [Tooltip("Controller that will process AI commands and update orbit parameters.")]
     public OrbitController OrbitController;
 
+    [Header("Time Control Integration")]
+    [Tooltip("Controller for simulation time acceleration (optional - will be found automatically if not set).")]
+    public TimeController TimeController;
+
     [Header("Tool System")]
     [Tooltip("If true, uses the new tool-based system (ToolRegistry + ToolExecutor). If false, uses legacy altitude/speed system.")]
     public bool UseToolSystem = true;
@@ -83,11 +87,26 @@ public class PromptConsole : MonoBehaviour
         {
             try
             {
+                // Find TimeController if not manually assigned
+                if (TimeController == null)
+                {
+                    TimeController = FindFirstObjectByType<TimeController>();
+                    if (TimeController == null)
+                    {
+                        Debug.LogWarning("[PromptConsole] TimeController not found - time control tools will not be available");
+                    }
+                    else
+                    {
+                        Debug.Log("[PromptConsole] TimeController found automatically");
+                    }
+                }
+
                 _toolRegistry = new ToolRegistry();
                 if (_toolRegistry.LoadSchemas())
                 {
-                    _toolExecutor = new ToolExecutor(_toolRegistry, OrbitController);
-                    Debug.Log("[PromptConsole] Tool system initialized successfully");
+                    _toolExecutor = new ToolExecutor(_toolRegistry, OrbitController, TimeController);
+                    Debug.Log("[PromptConsole] Tool system initialized successfully" +
+                             (TimeController != null ? " (with time control)" : " (without time control)"));
                 }
                 else
                 {
