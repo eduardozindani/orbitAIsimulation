@@ -1069,6 +1069,22 @@ PrefabInstance:
       value: SceneTransitionManager
       objectReference: {fileID: 0}
     - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: gpsLogo
+      value: 
+      objectReference: {fileID: 21300000, guid: 1307c1bfb76804a71aa1ade8f8120dc6, type: 3}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: issLogo
+      value: 
+      objectReference: {fileID: 21300000, guid: fc8e228d1e85c44749d08e5f0e96668c, type: 3}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: hubbleLogo
+      value: 
+      objectReference: {fileID: 21300000, guid: 2cbe2105848c34281aef3ce8bea822fb, type: 3}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: voyagerLogo
+      value: 
+      objectReference: {fileID: 21300000, guid: ff2bf350d24f44d92a1af042a4746e57, type: 3}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
       propertyPath: fadeCanvasGroup
       value: 
       objectReference: {fileID: 904928280}
