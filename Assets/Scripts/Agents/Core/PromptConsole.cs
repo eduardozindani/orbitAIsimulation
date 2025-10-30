@@ -159,7 +159,11 @@ public class PromptConsole : MonoBehaviour
     private void OnEnable()
     {
         if (AutoWireTmpOnSubmit && InputField != null)
+        {
             InputField.onSubmit.AddListener(OnSubmit);
+            // Add click handler to ensure focus is restored when clicking the input field
+            InputField.onSelect.AddListener(OnInputFieldSelected);
+        }
     }
 
     private void Start()
@@ -171,7 +175,10 @@ public class PromptConsole : MonoBehaviour
     private void OnDisable()
     {
         if (InputField != null)
+        {
             InputField.onSubmit.RemoveListener(OnSubmit);
+            InputField.onSelect.RemoveListener(OnInputFieldSelected);
+        }
     }
 
     private void OnDestroy()
@@ -190,6 +197,16 @@ public class PromptConsole : MonoBehaviour
     {
         if (!SubmitOnEnter || InputField == null)
             return;
+
+        // Auto-refocus when user starts typing (any key) but field isn't focused
+        if (!InputField.isFocused && !_busy)
+        {
+            if (Input.anyKeyDown && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1))
+            {
+                // User is trying to type but field isn't focused - refocus it
+                ActivateInputSafely();
+            }
+        }
 
         if (!InputField.isFocused)
             return;
@@ -225,6 +242,19 @@ public class PromptConsole : MonoBehaviour
     {
         if (!_busy)
             _ = SubmitAsync();
+    }
+
+    /// <summary>
+    /// Called when the input field is selected/clicked.
+    /// Ensures the field properly gains focus for keyboard input.
+    /// </summary>
+    private void OnInputFieldSelected(string text)
+    {
+        // Force activation to ensure keyboard input works
+        if (InputField != null && !InputField.isFocused)
+        {
+            InputField.ActivateInputField();
+        }
     }
 
     // ---------------- Core Send Flow ----------------
@@ -440,6 +470,21 @@ public class PromptConsole : MonoBehaviour
 
         // Add to history (successful tool execution)
         _conversationHistory.AddExchange(prompt, conversationalResponse, toolCall.tool);
+
+        // >>> STAGE 5: If tool requires scene transition, trigger it AFTER audio finishes
+        if (executionResult.requiresSceneTransition && !string.IsNullOrEmpty(executionResult.targetMission))
+        {
+            Debug.Log($"[PromptConsole] Audio finished - now triggering scene transition to {executionResult.targetMission}");
+
+            if (executionResult.targetMission == "Hub")
+            {
+                SceneTransitionManager.Instance?.TransitionToHub();
+            }
+            else
+            {
+                SceneTransitionManager.Instance?.TransitionToMission(executionResult.targetMission);
+            }
+        }
     }
 
     private async Task SubmitWithLegacySystemAsync(string prompt, CancellationToken ct)
@@ -626,6 +671,20 @@ Generate a conversational response:";
                 _responseAudioSource.clip = audioClip;
                 _responseAudioSource.Play();
                 SafeSetOutput(""); // Clear text - audio only
+
+                // WAIT for audio to finish playing
+                float audioDuration = audioClip.length;
+                Debug.Log($"[PromptConsole] Playing audio ({audioDuration:F1}s) - waiting for completion...");
+
+                // Wait for the full duration of the audio clip
+                float elapsed = 0f;
+                while (elapsed < audioDuration && _responseAudioSource.isPlaying)
+                {
+                    await Task.Delay(100, ct); // Check every 100ms
+                    elapsed += 0.1f;
+                }
+
+                Debug.Log($"[PromptConsole] Audio playback complete");
             }
             else
             {

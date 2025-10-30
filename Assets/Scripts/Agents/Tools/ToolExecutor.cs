@@ -340,12 +340,8 @@ namespace Agents.Tools
                 Debug.LogWarning("[ToolExecutor] MissionContext.Instance is null - context will not be preserved");
             }
 
-            // Trigger scene transition via SceneTransitionManager
-            if (SceneTransitionManager.Instance != null)
-            {
-                SceneTransitionManager.Instance.TransitionToMission(mission);
-            }
-            else
+            // Verify SceneTransitionManager exists
+            if (SceneTransitionManager.Instance == null)
             {
                 result.success = false;
                 result.errorMessage = "SceneTransitionManager not found - cannot transition to mission";
@@ -353,7 +349,11 @@ namespace Agents.Tools
                 return false;
             }
 
+            // DO NOT trigger transition immediately - flag it for after audio finishes
             result.success = true;
+            result.requiresSceneTransition = true;
+            result.targetMission = mission;
+            result.targetScene = mission; // Scene name matches mission name
             result.outputData = new Dictionary<string, object>
             {
                 ["mission"] = mission,
@@ -361,7 +361,7 @@ namespace Agents.Tools
             };
             result.message = $"Routing to {mission} Mission Space...";
 
-            Debug.Log($"[ToolExecutor] {result.message}");
+            Debug.Log($"[ToolExecutor] {result.message} (transition will occur after CAPCOM finishes speaking)");
 
             return true;
         }
@@ -379,12 +379,8 @@ namespace Agents.Tools
                 Debug.LogWarning("[ToolExecutor] MissionContext.Instance is null");
             }
 
-            // Trigger scene transition back to Hub
-            if (SceneTransitionManager.Instance != null)
-            {
-                SceneTransitionManager.Instance.TransitionToHub();
-            }
-            else
+            // Verify SceneTransitionManager exists
+            if (SceneTransitionManager.Instance == null)
             {
                 result.success = false;
                 result.errorMessage = "SceneTransitionManager not found - cannot return to Hub";
@@ -392,10 +388,14 @@ namespace Agents.Tools
                 return false;
             }
 
+            // DO NOT trigger transition immediately - flag it for after audio finishes
             result.success = true;
+            result.requiresSceneTransition = true;
+            result.targetMission = "Hub";
+            result.targetScene = "Hub";
             result.message = "Returning to Mission Control Hub...";
 
-            Debug.Log($"[ToolExecutor] {result.message}");
+            Debug.Log($"[ToolExecutor] {result.message} (transition will occur after CAPCOM finishes speaking)");
 
             return true;
         }
@@ -452,5 +452,10 @@ namespace Agents.Tools
         public string errorMessage;
         public string message;
         public Dictionary<string, object> outputData = new Dictionary<string, object>();
+
+        // Scene transition fields (for route_to_mission tool)
+        public bool requiresSceneTransition = false;
+        public string targetScene = null;
+        public string targetMission = null;
     }
 }
