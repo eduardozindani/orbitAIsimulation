@@ -468,17 +468,6 @@ RectTransform:
   m_AnchoredPosition: {x: 100, y: -200}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &268816642 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4997700579210291043, guid: f088c757a77ad4e96b447273f3285662, type: 3}
-  m_PrefabInstance: {fileID: 7918440427205889789}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &577454093 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: c92e619f6ee0142718632f0ffd9cc2ec, type: 3}
@@ -1356,7 +1345,7 @@ PrefabInstance:
     - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
       propertyPath: missionLogoImage
       value: 
-      objectReference: {fileID: 268816642}
+      objectReference: {fileID: 1060256900}
     - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
       propertyPath: sceneLoadWaitTime
       value: 2
