@@ -871,7 +871,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentState: 0
   introDuration: 32
-  skipIntro: 0
+  skipIntro: 1
   introCameraStartRadius: 50
   cameraZoomDuration: 32
   cameraZoomCurve:
@@ -1346,6 +1346,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 21300000, guid: ff2bf350d24f44d92a1af042a4746e57, type: 3}
     - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: fadeDuration
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
       propertyPath: fadeCanvasGroup
       value: 
       objectReference: {fileID: 899731558}
@@ -1353,6 +1357,10 @@ PrefabInstance:
       propertyPath: missionLogoImage
       value: 
       objectReference: {fileID: 268816642}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: sceneLoadWaitTime
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

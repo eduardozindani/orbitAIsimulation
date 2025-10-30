@@ -15,9 +15,9 @@ public class SceneTransitionManager : MonoBehaviour
 
     [Header("Transition Timing")]
     [Tooltip("Duration of fade out/in animations (seconds)")]
-    public float fadeDuration = 1.5f;
+    public float fadeDuration = 2f;
 
-    [Tooltip("Total time for black screen with logo (seconds)")]
+    [Tooltip("Total time for logo animation: fade-in (2s) + hold (2s) = 4s total")]
     public float sceneLoadWaitTime = 4f;
 
     [Header("UI References")]
@@ -132,22 +132,40 @@ public class SceneTransitionManager : MonoBehaviour
         AsyncOperation loadOperation = SceneManager.LoadSceneAsync(sceneName);
         loadOperation.allowSceneActivation = false; // Don't activate until we're ready
 
-        // === PHASE 4: Wait Fixed Duration (Patient Loading) ===
-        // During this time:
-        // - Scene is loading in background
-        // - Logo is animating (fade in/out)
-        // - User experiences calm, beautiful transition
+        // === PHASE 4: Logo Fade-In Animation ===
+        // Smooth fade-in: 0% → 100% over 2 seconds
+        float fadeInDuration = 2f;
         float elapsed = 0f;
-        while (elapsed < sceneLoadWaitTime)
+
+        while (elapsed < fadeInDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / fadeInDuration);
+
+            if (missionLogoImage != null && missionLogoImage.gameObject.activeSelf)
+            {
+                Color logoColor = missionLogoImage.color;
+                logoColor.a = Mathf.Lerp(0f, 1f, t); // Fade in
+                missionLogoImage.color = logoColor;
+            }
+
+            yield return null;
+        }
+
+        // === PHASE 5: Hold Logo Visible (Scene Loading) ===
+        // Hold at 100% opacity while scene loads
+        float holdDuration = sceneLoadWaitTime - fadeInDuration;
+        elapsed = 0f;
+
+        while (elapsed < holdDuration)
         {
             elapsed += Time.unscaledDeltaTime;
 
-            // Animate logo (pulse fade in/out)
+            // Keep logo at full opacity
             if (missionLogoImage != null && missionLogoImage.gameObject.activeSelf)
             {
-                float logoAlpha = Mathf.PingPong(elapsed * 0.8f, 1f);
                 Color logoColor = missionLogoImage.color;
-                logoColor.a = logoAlpha;
+                logoColor.a = 1f; // Stay at 100%
                 missionLogoImage.color = logoColor;
             }
 
@@ -164,12 +182,9 @@ public class SceneTransitionManager : MonoBehaviour
             yield return null;
         }
 
-        // === PHASE 6: Hide Logo ===
-        HideMissionLogo();
-
-        // === PHASE 7: Fade In from Black ===
-        Debug.Log($"[SceneTransitionManager] Phase 7: Fading in from black ({fadeDuration}s)");
-        yield return FadeIn(fadeDuration);
+        // === PHASE 6 & 7: Fade In from Black (with logo fading out simultaneously) ===
+        Debug.Log($"[SceneTransitionManager] Phase 6/7: Fading in from black with logo fade-out ({fadeDuration}s)");
+        yield return FadeInWithLogo(fadeDuration);
 
         isTransitioning = false;
         Debug.Log($"[SceneTransitionManager] Transition to {destination} complete");
@@ -221,6 +236,55 @@ public class SceneTransitionManager : MonoBehaviour
         }
 
         fadeCanvasGroup.alpha = 0f; // Ensure fully transparent
+    }
+
+    /// <summary>
+    /// Fade from black to transparent while simultaneously fading out the logo
+    /// This creates a smooth transition where both black screen and logo disappear together
+    /// </summary>
+    private IEnumerator FadeInWithLogo(float duration)
+    {
+        if (fadeCanvasGroup == null)
+        {
+            Debug.LogWarning("[SceneTransitionManager] FadeCanvasGroup not assigned!");
+            yield break;
+        }
+
+        // Get the logo's current alpha (should be from the pulse animation)
+        float logoStartAlpha = 1f;
+        if (missionLogoImage != null && missionLogoImage.gameObject.activeSelf)
+        {
+            logoStartAlpha = missionLogoImage.color.a;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+
+            // Fade out black screen
+            fadeCanvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
+
+            // Fade out logo at the same time
+            if (missionLogoImage != null && missionLogoImage.gameObject.activeSelf)
+            {
+                Color logoColor = missionLogoImage.color;
+                logoColor.a = Mathf.Lerp(logoStartAlpha, 0f, t);
+                missionLogoImage.color = logoColor;
+            }
+
+            yield return null;
+        }
+
+        // Ensure fully transparent
+        fadeCanvasGroup.alpha = 0f;
+
+        // Hide logo completely
+        if (missionLogoImage != null)
+        {
+            missionLogoImage.gameObject.SetActive(false);
+        }
     }
 
     /// <summary>
