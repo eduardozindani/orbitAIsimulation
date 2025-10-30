@@ -266,10 +266,10 @@ public class SceneTransitionManager : MonoBehaviour
     {
         return mission switch
         {
-            "ISS" => "ISS_Mission",
-            "GPS" => "GPS_Mission",
-            "Voyager" => "Voyager_Mission",
-            "Hubble" => "Hubble_Mission",
+            "ISS" => "ISS",
+            "GPS" => "GPS",
+            "Voyager" => "Voyager",
+            "Hubble" => "Hubble",
             "Hub" => "Hub",
             _ => "Hub" // Default to Hub if unknown
         };
