@@ -45,8 +45,18 @@ public class Orbit : MonoBehaviour
         float x = Mathf.Cos(angle) * orbitRadius;
         float z = Mathf.Sin(angle) * orbitRadius;
 
-        transform.position = planet.position + new Vector3(x, 0f, z);
-        transform.LookAt(planet);
+        Vector3 newPosition = planet.position + new Vector3(x, 0f, z);
+
+        // Calculate velocity direction (tangent to orbit)
+        Vector3 velocity = new Vector3(-Mathf.Sin(angle), 0f, Mathf.Cos(angle));
+
+        // Point satellite along velocity (flies "forward")
+        if (velocity.magnitude > 0.001f)
+        {
+            transform.rotation = Quaternion.LookRotation(velocity, Vector3.up);
+        }
+
+        transform.position = newPosition;
     }
 
     /// <summary>
