@@ -64,6 +64,10 @@ public class PromptConsole : MonoBehaviour
     [Tooltip("ElevenLabs settings for text-to-speech audio responses")]
     public ElevenLabsSettings elevenLabsSettings;
 
+    [Header("Prompt Configuration")]
+    [Tooltip("Centralized prompt settings (all AI prompts editable in Inspector)")]
+    public Agents.Config.PromptSettings promptSettings;
+
     private OpenAIClient _client;
     private ToolRegistry _toolRegistry;
     private ToolExecutor _toolExecutor;
@@ -330,6 +334,7 @@ public class PromptConsole : MonoBehaviour
         if (OutputText == null) { error = "OutputText is not assigned."; return false; }
         if (Settings == null) { error = "OpenAISettings is not assigned."; return false; }
         if (_client == null) { error = "OpenAIClient not constructed."; return false; }
+        if (promptSettings == null) { error = "PromptSettings is not assigned. Create via Assets > Create > Config > Prompt Settings"; return false; }
         error = null;
         return true;
     }
@@ -421,7 +426,7 @@ public class PromptConsole : MonoBehaviour
 
         // >>> STAGE 1: Extract tool call using ToolSelectionPrompt (with context)
         string contextualPrompt = BuildContextualPrompt(prompt);
-        string toolSelectionResponse = await _client.CompleteAsync(contextualPrompt, ToolSelectionPrompt.Text, ct);
+        string toolSelectionResponse = await _client.CompleteAsync(contextualPrompt, promptSettings.toolSelectionPrompt, ct);
 
         // >>> STAGE 2: Parse tool call JSON
         ToolCall toolCall = ParseToolCall(toolSelectionResponse);
@@ -502,7 +507,7 @@ public class PromptConsole : MonoBehaviour
 
         // LEGACY MODE: Orbit control system
         // >>> STAGE 1: Extract parameters using system prompt
-        string systemInstructions = UseSystemPrompt ? SystemPrompt.Text : null;
+        string systemInstructions = UseSystemPrompt ? promptSettings.legacySystemPrompt : null;
         string extractionResponse = await _client.CompleteAsync(prompt, systemInstructions, ct);
 
         // >>> STAGE 2: Process orbit update and get status
@@ -539,7 +544,7 @@ public class PromptConsole : MonoBehaviour
         string fullPrompt = $"{missionContext}{conversationHistory}\nUser: {userMessage}";
 
         // Generate response using specialist prompt
-        string response = await _client.CompleteAsync(fullPrompt, SpecialistPrompt.Text, ct);
+        string response = await _client.CompleteAsync(fullPrompt, promptSettings.specialistSystemPrompt, ct);
 
         // Add exchange to global conversation history
         if (MissionContext.Instance != null)
@@ -598,7 +603,7 @@ Be conversational, professional, and helpful. Keep responses under 3 sentences."
 
         try
         {
-            return await _client.CompleteAsync(contextPrompt, ResponsePrompt.Text, ct);
+            return await _client.CompleteAsync(contextPrompt, promptSettings.responsePrompt, ct);
         }
         catch (Exception ex)
         {
@@ -637,7 +642,7 @@ Generate a conversational response acknowledging what was done:";
 
         try
         {
-            return await _client.CompleteAsync(contextPrompt, ResponsePrompt.Text, ct);
+            return await _client.CompleteAsync(contextPrompt, promptSettings.responsePrompt, ct);
         }
         catch (Exception ex)
         {
@@ -667,7 +672,7 @@ Generate a conversational response:";
 
         try
         {
-            string response = await _client.CompleteAsync(contextPrompt, ResponsePrompt.Text, ct);
+            string response = await _client.CompleteAsync(contextPrompt, promptSettings.responsePrompt, ct);
             return response;
         }
         catch (Exception ex)

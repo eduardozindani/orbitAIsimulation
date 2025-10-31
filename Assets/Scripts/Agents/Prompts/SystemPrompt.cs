@@ -1,5 +1,6 @@
 namespace Prompts
 {
+    [System.Obsolete("Use PromptSettings ScriptableObject instead. Create via Assets > Create > Config > Prompt Settings and assign to PromptConsole. This is only used when UseToolSystem = false (legacy mode).")]
     public static class SystemPrompt
     {
         public const string Text =

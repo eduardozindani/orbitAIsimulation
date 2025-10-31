@@ -243,6 +243,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8609351499600420483, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
+      propertyPath: promptSettings
+      value: 
+      objectReference: {fileID: 11400000, guid: 41d3265356581437b89483e62f97a900, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1064,19 +1068,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c1910c4f410c474c82a42805d84ef8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  missionConfig: {fileID: 0}
-  missionName: ISS
-  specialistName: ISS Flight Engineer
-  isCircular: 1
-  altitude_km: 420
-  inclination_deg: 51.6
-  periapsis_km: 500
-  apoapsis_km: 40000
-  specialistVoiceSettings: {fileID: 11400000, guid: 76e17ff5c0ec0473c810909520971443, type: 2}
-  specialistPersonality: Professional engineer - clear, technical, friendly
-  knowledgeDomain: "ISS orbits at 420 km altitude with 51.6\xB0 inclination.\nInclination
-    constrained by Baikonur launch site.\nPeriod: 92.8 minutes (15.5 orbits per day).\nPurpose:
-    Crewed operations, microgravity research, Earth observation."
+  missionConfig: {fileID: 11400000, guid: 276f8bd181e1a4c70b535c2147145bc8, type: 2}
   orbitController: {fileID: 843278018}
   promptConsole: {fileID: 1344970599}
   introDelay: 0

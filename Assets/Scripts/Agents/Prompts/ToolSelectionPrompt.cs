@@ -1,5 +1,6 @@
 namespace Prompts
 {
+    [System.Obsolete("Use PromptSettings ScriptableObject instead. Create via Assets > Create > Config > Prompt Settings and assign to PromptConsole.")]
     public static class ToolSelectionPrompt
     {
         public const string Text = @"You are CAPCOM at Mission Control. Understand user requests and route them to orbital tools OR Mission Spaces for examples. Return structured JSON only.

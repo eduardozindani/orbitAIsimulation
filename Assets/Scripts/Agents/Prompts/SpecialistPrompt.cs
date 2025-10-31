@@ -1,5 +1,6 @@
 namespace Prompts
 {
+    [System.Obsolete("Use PromptSettings ScriptableObject instead. Create via Assets > Create > Config > Prompt Settings and assign to PromptConsole.")]
     public static class SpecialistPrompt
     {
         // Balanced prompt: concise yet engaging, maintains personality while being token-efficient

@@ -477,7 +477,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 310525397}
-  - component: {fileID: 310525396}
+  - component: {fileID: 310525398}
   m_Layer: 0
   m_Name: MissionRegistry
   m_TagString: Untagged
@@ -485,20 +485,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &310525396
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 310525395}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1173e6239d73b405ab40e9c07e6db7e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  missions: []
-  defaultMissionId: 
 --- !u!4 &310525397
 Transform:
   m_ObjectHideFlags: 0
@@ -514,6 +500,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &310525398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 310525395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1173e6239d73b405ab40e9c07e6db7e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  missions:
+  - {fileID: 11400000, guid: 276f8bd181e1a4c70b535c2147145bc8, type: 2}
+  defaultMissionId: 
 --- !u!1 &577454093 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: c92e619f6ee0142718632f0ffd9cc2ec, type: 3}
@@ -908,7 +909,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentState: 0
   introDuration: 32
-  skipIntro: 1
+  skipIntro: 0
   introCameraStartRadius: 50
   cameraZoomDuration: 32
   cameraZoomCurve:
@@ -1828,6 +1829,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8609351499600420483, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
+      propertyPath: promptSettings
+      value: 
+      objectReference: {fileID: 11400000, guid: 41d3265356581437b89483e62f97a900, type: 2}
     - target: {fileID: 8609351499600420483, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
       propertyPath: OrbitController
       value: 
