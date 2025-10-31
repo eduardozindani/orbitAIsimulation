@@ -5,6 +5,8 @@ public class Orbit : MonoBehaviour
     public Transform planet;
     public float orbitRadius = 5.32f; // ISS altitude: ~408km above Earth (5 + 408*0.000785)
     public float orbitSpeed = 0.00119f; // ISS speed: ~7.66 km/s converted to rad/s
+    public float zRotationOffset = 0f; // Z-axis roll offset for satellite orientation
+    public float startingAngle = 0f; // Starting position on orbit (in degrees, 0-360)
 
     private float angle;
     private TrailRenderer trailRenderer;
@@ -13,6 +15,9 @@ public class Orbit : MonoBehaviour
     {
         // Cache TrailRenderer reference if it exists
         trailRenderer = GetComponent<TrailRenderer>();
+
+        // Initialize angle from starting angle (convert degrees to radians)
+        angle = startingAngle * Mathf.Deg2Rad;
 
         // CRITICAL: Set position BEFORE TrailRenderer starts recording
         // This must happen in Awake() to prevent trail from default position
@@ -50,10 +55,12 @@ public class Orbit : MonoBehaviour
         // Calculate velocity direction (tangent to orbit)
         Vector3 velocity = new Vector3(-Mathf.Sin(angle), 0f, Mathf.Cos(angle));
 
-        // Point satellite along velocity (flies "forward")
+        // Point satellite along velocity (flies "forward") with optional Z roll offset
         if (velocity.magnitude > 0.001f)
         {
-            transform.rotation = Quaternion.LookRotation(velocity, Vector3.up);
+            Quaternion forwardRotation = Quaternion.LookRotation(velocity, Vector3.up);
+            Quaternion rollOffset = Quaternion.Euler(0f, 0f, zRotationOffset);
+            transform.rotation = forwardRotation * rollOffset;
         }
 
         transform.position = newPosition;
@@ -65,7 +72,7 @@ public class Orbit : MonoBehaviour
     /// </summary>
     public void ResetPosition()
     {
-        angle = 0f;
+        angle = startingAngle * Mathf.Deg2Rad;
 
         // Immediately update position (don't wait for next Update)
         if (planet != null)
