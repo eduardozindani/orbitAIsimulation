@@ -67,7 +67,6 @@ public class PromptConsole : MonoBehaviour
     private OpenAIClient _client;
     private ToolRegistry _toolRegistry;
     private ToolExecutor _toolExecutor;
-    private ConversationHistory _conversationHistory;
     private ElevenLabsClient _elevenLabsClient;
     private AudioSource _responseAudioSource;
     private ElevenLabsSettings _activeVoiceSettings; // Current speaker voice (null = default CAPCOM)
@@ -129,14 +128,6 @@ public class PromptConsole : MonoBehaviour
                 UseToolSystem = false;
             }
         }
-
-        // Initialize conversation history
-        _conversationHistory = new ConversationHistory
-        {
-            maxHistorySize = 15,
-            currentLocation = "Hub" // Starting in Mission Control Hub
-        };
-        Debug.Log("[PromptConsole] Conversation history initialized");
 
         // Initialize ElevenLabs client
         if (elevenLabsSettings != null)
@@ -443,8 +434,11 @@ public class PromptConsole : MonoBehaviour
             // Convert to audio and play
             await PlayResponseAsAudioAsync(response, ct);
 
-            // Add to history (no tool executed)
-            _conversationHistory.AddExchange(prompt, response, null);
+            // Add to global history (no tool executed)
+            if (MissionContext.Instance != null)
+            {
+                MissionContext.Instance.AddConversationExchange(prompt, response, null);
+            }
             return;
         }
 
@@ -460,8 +454,11 @@ public class PromptConsole : MonoBehaviour
             // Convert to audio and play
             await PlayResponseAsAudioAsync(failureResponse, ct);
 
-            // Add to history (tool execution failed)
-            _conversationHistory.AddExchange(prompt, failureResponse, $"{toolCall.tool} (failed)");
+            // Add to global history (tool execution failed)
+            if (MissionContext.Instance != null)
+            {
+                MissionContext.Instance.AddConversationExchange(prompt, failureResponse, $"{toolCall.tool} (failed)");
+            }
             return;
         }
 
@@ -471,8 +468,11 @@ public class PromptConsole : MonoBehaviour
         // Convert to audio and play
         await PlayResponseAsAudioAsync(conversationalResponse, ct);
 
-        // Add to history (successful tool execution)
-        _conversationHistory.AddExchange(prompt, conversationalResponse, toolCall.tool);
+        // Add to global history (successful tool execution)
+        if (MissionContext.Instance != null)
+        {
+            MissionContext.Instance.AddConversationExchange(prompt, conversationalResponse, toolCall.tool);
+        }
 
         // >>> STAGE 5: If tool requires scene transition, trigger it AFTER audio finishes
         if (executionResult.requiresSceneTransition && !string.IsNullOrEmpty(executionResult.targetMission))
@@ -528,10 +528,12 @@ public class PromptConsole : MonoBehaviour
         // Build specialist prompt with mission context
         string missionContext = _specialistContext ?? "MISSION: Unknown\n\nKNOWLEDGE: General orbital mechanics";
 
-        // Build conversation history
-        string conversationHistory = _conversationHistory.GetExchangeCount() > 0
-            ? $"\nRecent conversation:\n{_conversationHistory.GetFormattedHistory(3)}\n"
-            : "";
+        // Build conversation history from global MissionContext
+        string conversationHistory = "";
+        if (MissionContext.Instance != null && MissionContext.Instance.GetExchangeCount() > 0)
+        {
+            conversationHistory = $"\nRecent conversation:\n{MissionContext.Instance.GetFormattedHistory(3)}\n";
+        }
 
         // Combine: mission knowledge + conversation history + user question
         string fullPrompt = $"{missionContext}{conversationHistory}\nUser: {userMessage}";
@@ -539,8 +541,11 @@ public class PromptConsole : MonoBehaviour
         // Generate response using specialist prompt
         string response = await _client.CompleteAsync(fullPrompt, SpecialistPrompt.Text, ct);
 
-        // Add exchange to conversation history
-        _conversationHistory.AddExchange(userMessage, response);
+        // Add exchange to global conversation history
+        if (MissionContext.Instance != null)
+        {
+            MissionContext.Instance.AddConversationExchange(userMessage, response);
+        }
 
         // Play response as audio or show as text
         await PlayResponseAsAudioAsync(response, ct);
@@ -549,18 +554,18 @@ public class PromptConsole : MonoBehaviour
     // ---------------- Context Building ----------------
 
     /// <summary>
-    /// Builds contextual prompt with conversation history
+    /// Builds contextual prompt with conversation history from MissionContext
     /// </summary>
     private string BuildContextualPrompt(string userMessage)
     {
-        if (_conversationHistory.GetExchangeCount() == 0)
+        if (MissionContext.Instance == null || MissionContext.Instance.GetExchangeCount() == 0)
         {
             // First message, no context needed
             return userMessage;
         }
 
         // Include brief context from recent conversation
-        string context = _conversationHistory.GetContextSummary(3);
+        string context = MissionContext.Instance.GetContextSummary(3);
         return $"{context}\nCurrent user message: {userMessage}";
     }
 
@@ -571,16 +576,12 @@ public class PromptConsole : MonoBehaviour
     /// </summary>
     private async Task<string> GenerateNonToolResponseAsync(string userCommand, CancellationToken ct)
     {
-        // Check if user has been asking vague questions - might benefit from Mission Space visit
-        bool suggestMissionSpace = _conversationHistory.HasRecentVagueQuestions(3);
-        string missionSpaceHint = suggestMissionSpace
-            ? "\n- If they seem unsure about parameters, suggest they could visit Mission Specialists who can show real examples (Phase 2 feature - mention coming soon)"
-            : "";
-
-        // Include conversation history for context
-        string conversationContext = _conversationHistory.GetExchangeCount() > 0
-            ? $"\n\nRecent conversation:\n{_conversationHistory.GetFormattedHistory(5)}\n"
-            : "";
+        // Include conversation history for context from global MissionContext
+        string conversationContext = "";
+        if (MissionContext.Instance != null && MissionContext.Instance.GetExchangeCount() > 0)
+        {
+            conversationContext = $"\n\nRecent conversation:\n{MissionContext.Instance.GetFormattedHistory(5)}\n";
+        }
 
         string contextPrompt = $@"You are Mission Control CAPCOM. {conversationContext}
 
@@ -591,7 +592,7 @@ This was NOT a command to create an orbit. Respond naturally and helpfully:
 - If it's a question about capabilities, explain you can create circular and elliptical orbits, and clear the workspace
 - If it's a vague request without numbers, politely ask for specific altitude/periapsis/apoapsis values
 - If they're asking about previous messages, refer to the conversation history above
-- If they're checking on the system, confirm everything is operational{missionSpaceHint}
+- If they're checking on the system, confirm everything is operational
 
 Be conversational, professional, and helpful. Keep responses under 3 sentences.";
 
@@ -616,10 +617,12 @@ Be conversational, professional, and helpful. Keep responses under 3 sentences."
             return "I'm sorry, there was an issue executing that command.";
         }
 
-        // Include conversation history for context
-        string conversationContext = _conversationHistory.GetExchangeCount() > 0
-            ? $"\n\nRecent conversation:\n{_conversationHistory.GetFormattedHistory(5)}\n"
-            : "";
+        // Include conversation history for context from global MissionContext
+        string conversationContext = "";
+        if (MissionContext.Instance != null && MissionContext.Instance.GetExchangeCount() > 0)
+        {
+            conversationContext = $"\n\nRecent conversation:\n{MissionContext.Instance.GetFormattedHistory(5)}\n";
+        }
 
         // Build context for response generation
         string contextPrompt = $@"You are Mission Control CAPCOM. {conversationContext}

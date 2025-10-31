@@ -1064,19 +1064,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c1910c4f410c474c82a42805d84ef8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  missionConfig: {fileID: 0}
   missionName: ISS
-  specialistName: Anastasia
+  specialistName: ISS Flight Engineer
   isCircular: 1
   altitude_km: 420
   inclination_deg: 51.6
   periapsis_km: 500
   apoapsis_km: 40000
   specialistVoiceSettings: {fileID: 11400000, guid: 76e17ff5c0ec0473c810909520971443, type: 2}
-  specialistPersonality: Friendly Russian ISS crew member, enthusiastic about space
-    exploration, warm and educational
-  knowledgeDomain: "I'm Anastasia, crew member aboard the International Space Station!\n---\nISS
-    orbits at 420 km altitude with 51.6\xB0 inclination.\nInclination constrained
-    by Baikonur launch site.\nPeriod: 92.8 minutes (15.5 orbits per day).\nPurpose:
+  specialistPersonality: Professional engineer - clear, technical, friendly
+  knowledgeDomain: "ISS orbits at 420 km altitude with 51.6\xB0 inclination.\nInclination
+    constrained by Baikonur launch site.\nPeriod: 92.8 minutes (15.5 orbits per day).\nPurpose:
     Crewed operations, microgravity research, Earth observation."
   orbitController: {fileID: 843278018}
   promptConsole: {fileID: 1344970599}

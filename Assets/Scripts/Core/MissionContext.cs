@@ -61,7 +61,7 @@ public class MissionContext : MonoBehaviour
     /// <summary>
     /// Add a conversation exchange to history
     /// </summary>
-    public void AddConversationExchange(string userMessage, string agentResponse, string location = null)
+    public void AddConversationExchange(string userMessage, string agentResponse, string toolExecuted = null, string location = null)
     {
         if (location == null)
         {
@@ -72,6 +72,7 @@ public class MissionContext : MonoBehaviour
         {
             userMessage = userMessage,
             agentResponse = agentResponse,
+            toolExecuted = toolExecuted,
             location = location,
             timestamp = System.DateTime.Now
         };
@@ -84,7 +85,7 @@ public class MissionContext : MonoBehaviour
             recentHistory.RemoveAt(0);
         }
 
-        Debug.Log($"[MissionContext] Added exchange in {location}");
+        Debug.Log($"[MissionContext] Added exchange in {location}" + (toolExecuted != null ? $" (tool: {toolExecuted})" : ""));
     }
 
     /// <summary>
@@ -142,6 +143,79 @@ public class MissionContext : MonoBehaviour
     }
 
     /// <summary>
+    /// Get formatted conversation history for use in prompts
+    /// </summary>
+    public string GetFormattedHistory(int lastNExchanges = 5)
+    {
+        if (recentHistory.Count == 0)
+            return "No previous conversation.";
+
+        int startIndex = Mathf.Max(0, recentHistory.Count - lastNExchanges);
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.AppendLine("Recent conversation history:");
+
+        for (int i = startIndex; i < recentHistory.Count; i++)
+        {
+            var exchange = recentHistory[i];
+            sb.AppendLine($"[{exchange.timestamp:HH:mm:ss}] @ {exchange.location}");
+            sb.AppendLine($"User: {exchange.userMessage}");
+            if (!string.IsNullOrEmpty(exchange.toolExecuted))
+            {
+                sb.AppendLine($"Tool executed: {exchange.toolExecuted}");
+            }
+            sb.AppendLine($"Agent: {exchange.agentResponse}");
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Get condensed context summary for efficient prompt injection
+    /// </summary>
+    public string GetContextSummary(int lastNExchanges = 3)
+    {
+        if (recentHistory.Count == 0)
+            return "";
+
+        int startIndex = Mathf.Max(0, recentHistory.Count - lastNExchanges);
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.AppendLine("Conversation context:");
+
+        for (int i = startIndex; i < recentHistory.Count; i++)
+        {
+            var exchange = recentHistory[i];
+            string truncatedMsg = TruncateResponse(exchange.userMessage, 80);
+            sb.AppendLine($"User asked: \"{truncatedMsg}\"");
+            if (!string.IsNullOrEmpty(exchange.toolExecuted))
+            {
+                sb.AppendLine($"→ Executed: {exchange.toolExecuted}");
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Get the count of conversation exchanges
+    /// </summary>
+    public int GetExchangeCount()
+    {
+        return recentHistory.Count;
+    }
+
+    /// <summary>
+    /// Get the last user message
+    /// </summary>
+    public string GetLastUserMessage()
+    {
+        if (recentHistory.Count == 0)
+            return null;
+
+        return recentHistory[recentHistory.Count - 1].userMessage;
+    }
+
+    /// <summary>
     /// Clear all context (for testing or reset)
     /// </summary>
     public void ClearContext()
@@ -171,6 +245,7 @@ public class ConversationExchange
 {
     public string userMessage;
     public string agentResponse;
+    public string toolExecuted; // Tool executed during this exchange (null if none)
     public string location; // Where this exchange happened (Hub, ISS, etc.)
     public System.DateTime timestamp;
 }

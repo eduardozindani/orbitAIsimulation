@@ -5,42 +5,45 @@ using UnityEngine;
 /// Controls a Mission Space scene.
 /// Sets up pre-built orbit configuration and triggers specialist introduction.
 /// Each Mission Space (ISS, GPS, Voyager, Hubble) has one of these components.
+/// NEW: Now uses MissionConfig ScriptableObject for centralized configuration.
 /// </summary>
 public class MissionSpaceController : MonoBehaviour
 {
-    [Header("Mission Identity")]
-    [Tooltip("Mission name: ISS, GPS, Voyager, or Hubble")]
+    [Header("Mission Configuration")]
+    [Tooltip("Mission configuration ScriptableObject (centralized settings)")]
+    public MissionConfig missionConfig;
+
+    [Header("Legacy Fallback (will be removed)")]
+    [Tooltip("DEPRECATED: Mission name (use MissionConfig instead)")]
     public string missionName = "ISS";
 
-    [Tooltip("Display name of the specialist character")]
+    [Tooltip("DEPRECATED: Specialist name")]
     public string specialistName = "ISS Flight Engineer";
 
-    [Header("Pre-Built Orbit Configuration")]
-    [Tooltip("Is this orbit circular or elliptical?")]
+    [Tooltip("DEPRECATED: Orbit type")]
     public bool isCircular = true;
 
-    [Tooltip("Altitude in km (for circular orbits)")]
+    [Tooltip("DEPRECATED: Altitude (circular orbits)")]
     public float altitude_km = 420f;
 
-    [Tooltip("Orbital inclination in degrees (0=equatorial, 90=polar)")]
+    [Tooltip("DEPRECATED: Inclination")]
     public float inclination_deg = 51.6f;
 
-    [Tooltip("Periapsis in km (for elliptical orbits)")]
+    [Tooltip("DEPRECATED: Periapsis (elliptical)")]
     public float periapsis_km = 500f;
 
-    [Tooltip("Apoapsis in km (for elliptical orbits)")]
+    [Tooltip("DEPRECATED: Apoapsis (elliptical)")]
     public float apoapsis_km = 40000f;
 
-    [Header("Specialist Configuration")]
-    [Tooltip("ElevenLabs voice settings for this specialist")]
+    [Tooltip("DEPRECATED: Specialist voice")]
     public ElevenLabsSettings specialistVoiceSettings;
 
-    [Tooltip("Specialist personality description for prompt")]
-    [TextArea(3, 6)]
+    [Tooltip("DEPRECATED: Specialist personality")]
+    [TextArea(2, 4)]
     public string specialistPersonality = "Professional engineer - clear, technical, friendly";
 
-    [Tooltip("Specialist's domain knowledge for prompt")]
-    [TextArea(5, 10)]
+    [Tooltip("DEPRECATED: Mission knowledge")]
+    [TextArea(4, 8)]
     public string knowledgeDomain = @"ISS orbits at 420 km altitude with 51.6° inclination.
 Inclination constrained by Baikonur launch site.
 Period: 92.8 minutes (15.5 orbits per day).
@@ -59,7 +62,33 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
 
     void Start()
     {
-        Debug.Log($"[MissionSpaceController] Initializing {missionName} Mission Space");
+        // Try to load mission config from MissionRegistry if not assigned
+        if (missionConfig == null && !string.IsNullOrEmpty(missionName))
+        {
+            if (MissionRegistry.Instance != null)
+            {
+                missionConfig = MissionRegistry.Instance.GetMission(missionName);
+                if (missionConfig != null)
+                {
+                    Debug.Log($"[MissionSpaceController] Loaded config from MissionRegistry: {missionName}");
+                }
+            }
+        }
+
+        // Determine if using MissionConfig or legacy fields
+        bool usingLegacy = (missionConfig == null);
+        string activeMissionName = usingLegacy ? missionName : missionConfig.missionName;
+
+        if (usingLegacy)
+        {
+            Debug.LogWarning($"[MissionSpaceController] Using LEGACY configuration for {missionName} - consider creating MissionConfig asset");
+        }
+        else
+        {
+            Debug.Log($"[MissionSpaceController] Using MissionConfig for {missionConfig.missionName}");
+        }
+
+        Debug.Log($"[MissionSpaceController] Initializing {activeMissionName} Mission Space");
 
         // 1. Create pre-built orbit immediately
         CreateMissionOrbit();
@@ -67,12 +96,17 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
         // 2. Set specialist voice and context for ongoing conversation
         if (promptConsole != null)
         {
-            if (specialistVoiceSettings != null)
+            ElevenLabsSettings voiceToUse = usingLegacy ? specialistVoiceSettings : missionConfig.specialistVoice;
+            if (voiceToUse != null)
             {
-                promptConsole.SetActiveVoice(specialistVoiceSettings);
+                promptConsole.SetActiveVoice(voiceToUse);
             }
-            promptConsole.SetSpecialistContext(missionName, knowledgeDomain);
-            Debug.Log($"[MissionSpaceController] Specialist configured for {specialistName}");
+
+            string knowledge = usingLegacy ? knowledgeDomain : missionConfig.knowledgeDomain;
+            promptConsole.SetSpecialistContext(activeMissionName, knowledge);
+
+            string specialist = usingLegacy ? specialistName : missionConfig.specialistName;
+            Debug.Log($"[MissionSpaceController] Specialist configured for {specialist}");
         }
         else
         {
@@ -90,19 +124,39 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
     {
         if (orbitController == null)
         {
-            Debug.LogError($"[MissionSpaceController] OrbitController not assigned for {missionName}!");
+            Debug.LogError($"[MissionSpaceController] OrbitController not assigned!");
             return;
         }
 
-        if (isCircular)
+        bool usingLegacy = (missionConfig == null);
+
+        if (usingLegacy)
         {
-            Debug.Log($"[MissionSpaceController] Creating circular orbit: {altitude_km}km, {inclination_deg}°");
-            orbitController.CreateCircularOrbit(altitude_km, inclination_deg);
+            // Use legacy fields
+            if (isCircular)
+            {
+                Debug.Log($"[MissionSpaceController] Creating circular orbit (legacy): {altitude_km}km, {inclination_deg}°");
+                orbitController.CreateCircularOrbit(altitude_km, inclination_deg);
+            }
+            else
+            {
+                Debug.Log($"[MissionSpaceController] Creating elliptical orbit (legacy): {periapsis_km}km - {apoapsis_km}km, {inclination_deg}°");
+                orbitController.CreateEllipticalOrbit(periapsis_km, apoapsis_km, inclination_deg);
+            }
         }
         else
         {
-            Debug.Log($"[MissionSpaceController] Creating elliptical orbit: {periapsis_km}km - {apoapsis_km}km, {inclination_deg}°");
-            orbitController.CreateEllipticalOrbit(periapsis_km, apoapsis_km, inclination_deg);
+            // Use MissionConfig
+            if (missionConfig.orbitType == OrbitType.Circular)
+            {
+                Debug.Log($"[MissionSpaceController] Creating circular orbit: {missionConfig.altitudeKm}km, {missionConfig.inclinationDeg}°");
+                orbitController.CreateCircularOrbit(missionConfig.altitudeKm, missionConfig.inclinationDeg);
+            }
+            else
+            {
+                Debug.Log($"[MissionSpaceController] Creating elliptical orbit: {missionConfig.periapsisKm}km - {missionConfig.apoapsisKm}km, {missionConfig.inclinationDeg}°");
+                orbitController.CreateEllipticalOrbit(missionConfig.periapsisKm, missionConfig.apoapsisKm, missionConfig.inclinationDeg);
+            }
         }
     }
 
@@ -116,13 +170,16 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
 
         if (promptConsole == null)
         {
-            Debug.LogError($"[MissionSpaceController] PromptConsole not assigned for {missionName}!");
+            Debug.LogError($"[MissionSpaceController] PromptConsole not assigned!");
             yield break;
         }
 
-        if (specialistVoiceSettings == null)
+        bool usingLegacy = (missionConfig == null);
+        ElevenLabsSettings voiceToUse = usingLegacy ? specialistVoiceSettings : missionConfig.specialistVoice;
+
+        if (voiceToUse == null)
         {
-            Debug.LogError($"[MissionSpaceController] Specialist voice settings not assigned for {missionName}!");
+            Debug.LogError($"[MissionSpaceController] Specialist voice settings not assigned!");
             yield break;
         }
 
@@ -142,26 +199,28 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
         // Build specialist introduction prompt
         string introPrompt = BuildSpecialistIntroPrompt(routingContext);
 
-        Debug.Log($"[MissionSpaceController] Triggering specialist introduction for {missionName}");
+        string activeMissionName = usingLegacy ? missionName : missionConfig.missionName;
+        Debug.Log($"[MissionSpaceController] Triggering specialist introduction for {activeMissionName}");
 
         // Generate and play introduction via PromptConsole
         // Uses specialist voice settings and context-aware prompt
         var introTask = promptConsole.GenerateSpecialistIntroductionAsync(
             introPrompt,
-            specialistVoiceSettings,
+            voiceToUse,
             System.Threading.CancellationToken.None
         );
 
         // Wait for introduction to complete
         yield return new WaitUntil(() => introTask.IsCompleted);
 
+        string activeSpecialistName = usingLegacy ? specialistName : missionConfig.specialistName;
         if (introTask.IsFaulted)
         {
             Debug.LogError($"[MissionSpaceController] Introduction failed: {introTask.Exception?.Message}");
         }
         else
         {
-            Debug.Log($"[MissionSpaceController] {specialistName} introduction complete");
+            Debug.Log($"[MissionSpaceController] {activeSpecialistName} introduction complete");
         }
     }
 
@@ -171,12 +230,31 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
     /// </summary>
     private string BuildSpecialistIntroPrompt(string routingContext)
     {
+        bool usingLegacy = (missionConfig == null);
+
+        // Get mission details
+        string activeMissionName = usingLegacy ? missionName : missionConfig.missionName;
+        string activeSpecialistName = usingLegacy ? specialistName : missionConfig.specialistName;
+        string activePersonality = usingLegacy ? specialistPersonality : missionConfig.specialistPersonality;
+        string activeKnowledge = usingLegacy ? knowledgeDomain : missionConfig.knowledgeDomain;
+
+        // Get related missions for cross-mission awareness (only if using MissionConfig)
+        string relatedMissionsHint = "";
+        if (!usingLegacy && MissionRegistry.Instance != null)
+        {
+            var related = MissionRegistry.Instance.GetRelatedMissions(missionConfig.missionId);
+            if (related.Count > 0)
+            {
+                relatedMissionsHint = $"\n\nRelated missions: {string.Join(", ", related.ConvertAll(m => m.missionId))}";
+            }
+        }
+
         return $@"IDENTITY
-You are the {specialistName} for the {missionName} mission.
-Personality: {specialistPersonality}
+You are the {activeSpecialistName} for the {activeMissionName} mission.
+Personality: {activePersonality}
 
 MISSION KNOWLEDGE
-{knowledgeDomain}
+{activeKnowledge}{relatedMissionsHint}
 
 ROUTING CONTEXT
 {routingContext}
@@ -191,7 +269,7 @@ STRICT REQUIREMENTS:
 - Acknowledge why they came (routing context)
 - Invite them to ask questions
 
-Example length: Hello! I'm Anastasia, crew member aboard ISS. I heard you want to learn about our orbit. What would you like to know?
+Example: Hello! I'm Anastasia, crew member aboard ISS. I heard you want to learn about our orbit. What would you like to know?
 
 Be warm, concise, and enthusiastic. DO NOT explain orbital mechanics in the introduction - keep it brief!";
     }
@@ -202,17 +280,25 @@ Be warm, concise, and enthusiastic. DO NOT explain orbital mechanics in the intr
     /// </summary>
     public string GetSpecialistSystemPrompt()
     {
+        // Get available missions for cross-mission awareness
+        string availableMissions = "";
+        if (MissionRegistry.Instance != null)
+        {
+            availableMissions = $"\n\nAVAILABLE MISSIONS YOU CAN RECOMMEND:\n{MissionRegistry.Instance.GetAvailableMissionsString()}";
+        }
+
         return $@"IDENTITY
-You are the {specialistName} specialist for the {missionName} mission.
-Personality: {specialistPersonality}
+You are the {missionConfig.specialistName} specialist for the {missionConfig.missionName} mission.
+Personality: {missionConfig.specialistPersonality}
 
 YOUR MISSION KNOWLEDGE
-{knowledgeDomain}
+{missionConfig.knowledgeDomain}{availableMissions}
 
 YOUR ROLE
-- Answer questions about {missionName} orbit design and mission rationale
+- Answer questions about {missionConfig.missionName} orbit design and mission rationale
 - Explain orbital mechanics principles using this mission as example
 - Help users understand real-world orbital design tradeoffs
+- Recommend related missions when relevant
 - Be encouraging and educational
 
 When user wants to leave, acknowledge gracefully and let them know they can return anytime.
