@@ -105,6 +105,12 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
             yield break;
         }
 
+        if (specialistVoiceSettings == null)
+        {
+            Debug.LogError($"[MissionSpaceController] Specialist voice settings not assigned for {missionName}!");
+            yield break;
+        }
+
         // Get routing context from MissionContext
         string routingContext = "";
         if (MissionContext.Instance != null)
@@ -115,20 +121,33 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
         else
         {
             Debug.LogWarning("[MissionSpaceController] MissionContext.Instance is null - no routing context available");
-            routingContext = "User arrived at mission space";
+            routingContext = "User arrived at mission space to learn more";
         }
 
         // Build specialist introduction prompt
         string introPrompt = BuildSpecialistIntroPrompt(routingContext);
 
-        // Generate and play audio introduction via PromptConsole
-        // This will use ElevenLabs to convert text to speech
         Debug.Log($"[MissionSpaceController] Triggering specialist introduction for {missionName}");
 
-        // Simulate specialist speaking (PromptConsole will handle actual audio generation)
-        // For now, we'll trigger this through the existing system
-        // TODO: May need to add GenerateAndPlayIntroduction method to PromptConsole
-        // For Phase 2A, we can use the existing message system
+        // Generate and play introduction via PromptConsole
+        // Uses specialist voice settings and context-aware prompt
+        var introTask = promptConsole.GenerateSpecialistIntroductionAsync(
+            introPrompt,
+            specialistVoiceSettings,
+            System.Threading.CancellationToken.None
+        );
+
+        // Wait for introduction to complete
+        yield return new WaitUntil(() => introTask.IsCompleted);
+
+        if (introTask.IsFaulted)
+        {
+            Debug.LogError($"[MissionSpaceController] Introduction failed: {introTask.Exception?.Message}");
+        }
+        else
+        {
+            Debug.Log($"[MissionSpaceController] {specialistName} introduction complete");
+        }
     }
 
     /// <summary>
@@ -148,12 +167,18 @@ ROUTING CONTEXT
 {routingContext}
 
 YOUR TASK
-Generate a warm, context-aware greeting (2-3 sentences):
-1. Acknowledge WHY they came (based on routing context)
-2. Briefly introduce this mission's orbital configuration
-3. Invite them to ask questions
+Generate a SHORT, warm introduction greeting.
 
-Be conversational, enthusiastic, and mission-specific. Make them feel welcome and eager to learn.";
+STRICT REQUIREMENTS:
+- MAXIMUM 2-3 SHORT SENTENCES
+- MAXIMUM 40 WORDS TOTAL
+- 10-15 seconds of speech when spoken
+- Acknowledge why they came (routing context)
+- Invite them to ask questions
+
+Example length: Hello! I'm Anastasia, crew member aboard ISS. I heard you want to learn about our orbit. What would you like to know?
+
+Be warm, concise, and enthusiastic. DO NOT explain orbital mechanics in the introduction - keep it brief!";
     }
 
     /// <summary>

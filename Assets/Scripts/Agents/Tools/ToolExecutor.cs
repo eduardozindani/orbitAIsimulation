@@ -14,10 +14,10 @@ namespace Agents.Tools
         private readonly OrbitController _orbitController;
         private readonly TimeController _timeController;
 
-        public ToolExecutor(ToolRegistry registry, OrbitController orbitController, TimeController timeController = null)
+        public ToolExecutor(ToolRegistry registry, OrbitController orbitController = null, TimeController timeController = null)
         {
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
-            _orbitController = orbitController ?? throw new ArgumentNullException(nameof(orbitController));
+            _orbitController = orbitController; // Optional - orbit tools won't work if null (specialist mode)
             _timeController = timeController; // Optional - time control tools won't work if null
         }
 
@@ -98,6 +98,15 @@ namespace Agents.Tools
 
         private bool ExecuteCreateCircularOrbit(Dictionary<string, object> parameters, ref ToolExecutionResult result)
         {
+            // Check if orbit controller is available
+            if (_orbitController == null)
+            {
+                result.success = false;
+                result.errorMessage = "I'm sorry, there was an issue processing your command. The orbit control system is not available.";
+                Debug.LogWarning("[ToolExecutor] Cannot create orbit - OrbitController is null (specialist mode)");
+                return false;
+            }
+
             // Extract parameters
             float altitude_km = (float)GetDoubleParameter(parameters, "altitude_km", 420); // Default ISS altitude
             float inclination_deg = (float)GetDoubleParameter(parameters, "inclination_deg", 0); // Default equatorial
@@ -122,6 +131,15 @@ namespace Agents.Tools
 
         private bool ExecuteCreateEllipticalOrbit(Dictionary<string, object> parameters, ref ToolExecutionResult result)
         {
+            // Check if orbit controller is available
+            if (_orbitController == null)
+            {
+                result.success = false;
+                result.errorMessage = "I'm sorry, there was an issue processing your command. The orbit control system is not available.";
+                Debug.LogWarning("[ToolExecutor] Cannot create orbit - OrbitController is null (specialist mode)");
+                return false;
+            }
+
             // Extract parameters
             float periapsis_km = (float)GetDoubleParameter(parameters, "periapsis_km", 500);
             float apoapsis_km = (float)GetDoubleParameter(parameters, "apoapsis_km", 40000);
@@ -178,6 +196,15 @@ namespace Agents.Tools
 
         private bool ExecuteClearOrbit(Dictionary<string, object> parameters, ref ToolExecutionResult result)
         {
+            // Check if orbit controller is available
+            if (_orbitController == null)
+            {
+                result.success = false;
+                result.errorMessage = "I'm sorry, there was an issue processing your command. The orbit control system is not available.";
+                Debug.LogWarning("[ToolExecutor] Cannot clear orbit - OrbitController is null (specialist mode)");
+                return false;
+            }
+
             // Clear orbit has no parameters - just execute
             OrbitController.OrbitUpdateResult orbitResult = _orbitController.ClearOrbit();
 

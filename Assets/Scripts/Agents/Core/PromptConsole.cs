@@ -152,6 +152,7 @@ public class PromptConsole : MonoBehaviour
         _responseAudioSource.playOnAwake = false;
         _responseAudioSource.loop = false;
         _responseAudioSource.volume = 1f;
+        _responseAudioSource.spatialBlend = 0f; // 2D audio (non-spatial) - ensures audio is heard regardless of camera position
 
         _cts = new CancellationTokenSource();
     }
@@ -489,20 +490,54 @@ public class PromptConsole : MonoBehaviour
 
     private async Task SubmitWithLegacySystemAsync(string prompt, CancellationToken ct)
     {
+        // Check if this is specialist mode (no orbit controller)
+        if (OrbitController == null)
+        {
+            // SPECIALIST MODE: Pure conversational AI without orbit control
+            await SubmitAsSpecialistAsync(prompt, ct);
+            return;
+        }
+
+        // LEGACY MODE: Orbit control system
         // >>> STAGE 1: Extract parameters using system prompt
         string systemInstructions = UseSystemPrompt ? SystemPrompt.Text : null;
         string extractionResponse = await _client.CompleteAsync(prompt, systemInstructions, ct);
 
         // >>> STAGE 2: Process orbit update and get status
-        OrbitController.OrbitUpdateResult updateResult = null;
-        if (OrbitController != null)
-        {
-            updateResult = OrbitController.ProcessAICommand(extractionResponse);
-        }
+        OrbitController.OrbitUpdateResult updateResult = OrbitController.ProcessAICommand(extractionResponse);
 
         // >>> STAGE 3: Generate conversational response
         string conversationalResponse = await GenerateConversationalResponse(prompt, updateResult, ct);
         SafeSetOutput(conversationalResponse);
+    }
+
+    /// <summary>
+    /// Specialist mode: Pure conversational AI without orbit control tools
+    /// Used when OrbitController is null (mission spaces)
+    /// </summary>
+    private async Task SubmitAsSpecialistAsync(string userMessage, CancellationToken ct)
+    {
+        // Stop any currently playing audio
+        if (_responseAudioSource != null && _responseAudioSource.isPlaying)
+        {
+            _responseAudioSource.Stop();
+        }
+
+        // Build contextual prompt with conversation history
+        string conversationContext = _conversationHistory.GetExchangeCount() > 0
+            ? $"Recent conversation:\n{_conversationHistory.GetFormattedHistory(5)}\n\n"
+            : "";
+
+        string contextualPrompt = $"{conversationContext}User: {userMessage}";
+
+        // Generate response using specialist prompt
+        string response = await _client.CompleteAsync(contextualPrompt, SpecialistPrompt.Text, ct);
+
+        // Add exchange to conversation history
+        _conversationHistory.AddExchange(userMessage, response);
+
+        // Play response as audio or show as text
+        await PlayResponseAsAudioAsync(response, ct);
     }
 
     // ---------------- Context Building ----------------
@@ -696,6 +731,122 @@ Generate a conversational response:";
         {
             Debug.LogError($"[PromptConsole] Audio generation failed: {ex.Message}");
             SafeSetOutput("Error: Could not generate audio");
+        }
+    }
+
+    // ---------------- Specialist Introduction ----------------
+
+    /// <summary>
+    /// Generate and play specialist introduction with context awareness
+    /// Called by MissionSpaceController when entering a mission space
+    /// </summary>
+    public async Task GenerateSpecialistIntroductionAsync(string introPrompt, ElevenLabsSettings specialistVoice, CancellationToken ct)
+    {
+        if (_busy)
+        {
+            Debug.LogWarning("[PromptConsole] Cannot generate introduction - busy");
+            return;
+        }
+
+        try
+        {
+            _busy = true;
+            SafeSetOutput("Specialist arriving...");
+
+            // Generate introduction text via OpenAI
+            // Use simple input with specialist prompt as instructions
+            string input = "Generate your introduction greeting now.";
+
+            Debug.Log("[PromptConsole] Generating specialist introduction...");
+            string introText = await _client.CompleteAsync(input, introPrompt, ct);
+
+            if (string.IsNullOrEmpty(introText))
+            {
+                Debug.LogError("[PromptConsole] No introduction generated");
+                SafeSetOutput("Error: Could not generate introduction");
+                return;
+            }
+
+            Debug.Log($"[PromptConsole] Introduction generated: {introText}");
+
+            // Generate and play audio with specialist voice
+            await PlaySpecialistAudioAsync(introText, specialistVoice, ct);
+
+            Debug.Log("[PromptConsole] Specialist introduction complete");
+        }
+        catch (OperationCanceledException)
+        {
+            SafeSetOutput("Introduction canceled.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[PromptConsole] Failed to generate introduction: {ex.Message}");
+            SafeSetOutput($"Error: {ex.Message}");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    /// <summary>
+    /// Play audio using specialist-specific voice settings
+    /// </summary>
+    private async Task PlaySpecialistAudioAsync(string text, ElevenLabsSettings specialistVoice, CancellationToken ct)
+    {
+        if (_responseAudioSource == null)
+        {
+            Debug.LogWarning("[PromptConsole] AudioSource is null - showing text instead");
+            SafeSetOutput(text);
+            return;
+        }
+
+        try
+        {
+            Debug.Log($"[PromptConsole] Generating specialist audio for: {text.Substring(0, Mathf.Min(50, text.Length))}...");
+
+            // Create temporary ElevenLabs client with specialist voice
+            var specialistClient = new ElevenLabsClient(specialistVoice);
+
+            // Generate audio from text
+            AudioClip audioClip = await specialistClient.TextToSpeechAsync(text, ct);
+
+            if (audioClip != null)
+            {
+                // Double-check AudioSource is still valid after async operation
+                if (_responseAudioSource == null || this == null)
+                {
+                    Debug.LogError("[PromptConsole] AudioSource destroyed during audio generation!");
+                    return;
+                }
+
+                _responseAudioSource.clip = audioClip;
+                _responseAudioSource.Play();
+                SafeSetOutput(""); // Clear text - audio only
+
+                // Wait for audio to complete
+                float audioDuration = audioClip.length;
+                Debug.Log($"[PromptConsole] Playing specialist audio ({audioDuration:F1}s)...");
+
+                float elapsed = 0f;
+                while (elapsed < audioDuration && _responseAudioSource != null && _responseAudioSource.isPlaying)
+                {
+                    await Task.Delay(100, ct);
+                    elapsed += 0.1f;
+                }
+
+                Debug.Log($"[PromptConsole] Specialist audio complete");
+            }
+            else
+            {
+                Debug.LogError("[PromptConsole] AudioClip is null after generation");
+                SafeSetOutput("Error: Could not generate specialist audio");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[PromptConsole] Specialist audio failed: {ex.Message}\nStack: {ex.StackTrace}");
+            SafeSetOutput(text); // Fallback to text
         }
     }
 

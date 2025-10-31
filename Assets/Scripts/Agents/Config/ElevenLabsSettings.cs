@@ -26,6 +26,10 @@ public class ElevenLabsSettings : ScriptableObject
     [Range(0f, 1f)]
     public float similarityBoost = 0.8f;
 
+    [Tooltip("Speech Speed (0.7-1.2): 1.0 = normal, 1.2 = fastest")]
+    [Range(0.7f, 1.2f)]
+    public float speed = 1.0f;
+
     [Header("Advanced")]
     [Tooltip("API endpoint base URL")]
     public string baseUrl = "https://api.elevenlabs.io/v1";

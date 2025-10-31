@@ -48,7 +48,8 @@ namespace Agents.Services
                     voice_settings = new
                     {
                         stability = _settings.stability,
-                        similarity_boost = _settings.similarityBoost
+                        similarity_boost = _settings.similarityBoost,
+                        speed = _settings.speed
                     }
                 };
 
