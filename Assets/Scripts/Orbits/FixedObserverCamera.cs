@@ -19,12 +19,18 @@ public class FixedObserverCamera : MonoBehaviour
     [Tooltip("Height offset above orbital plane")]
     public float heightOffset = 0.3f;
 
-    [Header("Look Around (Mouse)")]
+    [Header("Look Around (Mouse & Arrows)")]
     [Tooltip("Allow mouse drag to rotate view")]
     public bool allowMouseLook = true;
 
     [Tooltip("Mouse sensitivity for looking around")]
     public float mouseSensitivity = 2f;
+
+    [Tooltip("Allow arrow keys to rotate view")]
+    public bool allowArrowKeys = true;
+
+    [Tooltip("Arrow key rotation speed (degrees per second)")]
+    public float arrowKeySpeed = 60f;
 
     [Header("Camera Smoothing")]
     [Tooltip("How smoothly camera follows target (0=instant, 1=very smooth)")]
@@ -92,6 +98,28 @@ public class FixedObserverCamera : MonoBehaviour
 
                 userYaw += mouseX;
                 userPitch -= mouseY; // Inverted for natural feel
+                userPitch = Mathf.Clamp(userPitch, minPitch, maxPitch);
+            }
+        }
+
+        // Handle arrow key look (always active, no button press needed)
+        if (allowArrowKeys)
+        {
+            float horizontal = 0f;
+            float vertical = 0f;
+
+            if (Input.GetKey(KeyCode.LeftArrow))  horizontal -= 1f;
+            if (Input.GetKey(KeyCode.RightArrow)) horizontal += 1f;
+            if (Input.GetKey(KeyCode.UpArrow))    vertical += 1f;
+            if (Input.GetKey(KeyCode.DownArrow))  vertical -= 1f;
+
+            if (horizontal != 0f || vertical != 0f)
+            {
+                float arrowX = horizontal * arrowKeySpeed * Time.deltaTime;
+                float arrowY = vertical * arrowKeySpeed * Time.deltaTime;
+
+                userYaw += arrowX;
+                userPitch += arrowY;
                 userPitch = Mathf.Clamp(userPitch, minPitch, maxPitch);
             }
         }
