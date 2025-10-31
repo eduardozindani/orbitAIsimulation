@@ -64,7 +64,18 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
         // 1. Create pre-built orbit immediately
         CreateMissionOrbit();
 
-        // 2. Wait briefly, then trigger specialist introduction
+        // 2. Set specialist voice for ongoing conversation
+        if (promptConsole != null && specialistVoiceSettings != null)
+        {
+            promptConsole.SetActiveVoice(specialistVoiceSettings);
+            Debug.Log($"[MissionSpaceController] Specialist voice configured for {specialistName}");
+        }
+        else
+        {
+            Debug.LogWarning("[MissionSpaceController] Could not set specialist voice - missing references");
+        }
+
+        // 3. Wait briefly, then trigger specialist introduction
         StartCoroutine(TriggerSpecialistIntroduction());
     }
 

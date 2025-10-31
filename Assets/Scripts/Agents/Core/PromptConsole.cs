@@ -70,6 +70,7 @@ public class PromptConsole : MonoBehaviour
     private ConversationHistory _conversationHistory;
     private ElevenLabsClient _elevenLabsClient;
     private AudioSource _responseAudioSource;
+    private ElevenLabsSettings _activeVoiceSettings; // Current speaker voice (null = default CAPCOM)
     private bool _busy;
     private CancellationTokenSource _cts;
 
@@ -688,17 +689,30 @@ Generate a conversational response:";
     /// </summary>
     private async Task PlayResponseAsAudioAsync(string responseText, CancellationToken ct)
     {
-        if (_elevenLabsClient == null || _responseAudioSource == null)
+        if (_responseAudioSource == null)
         {
             // Fallback: No audio system available, show text
             SafeSetOutput(responseText);
             return;
         }
 
+        // Use active voice if set (specialist), otherwise use default (CAPCOM)
+        var voiceSettings = _activeVoiceSettings ?? elevenLabsSettings;
+
+        if (voiceSettings == null)
+        {
+            // No voice settings available, show text
+            SafeSetOutput(responseText);
+            return;
+        }
+
         try
         {
+            // Create temporary client with appropriate voice (matches PlaySpecialistAudioAsync pattern)
+            var voiceClient = new ElevenLabsClient(voiceSettings);
+
             // Generate audio from text
-            AudioClip audioClip = await _elevenLabsClient.TextToSpeechAsync(responseText, ct);
+            AudioClip audioClip = await voiceClient.TextToSpeechAsync(responseText, ct);
 
             if (audioClip != null)
             {
@@ -848,6 +862,27 @@ Generate a conversational response:";
             Debug.LogError($"[PromptConsole] Specialist audio failed: {ex.Message}\nStack: {ex.StackTrace}");
             SafeSetOutput(text); // Fallback to text
         }
+    }
+
+    // ---------------- Voice Management ----------------
+
+    /// <summary>
+    /// Set the active voice for responses (e.g., specialist voice in mission spaces)
+    /// </summary>
+    public void SetActiveVoice(ElevenLabsSettings voiceSettings)
+    {
+        _activeVoiceSettings = voiceSettings;
+        string voiceId = voiceSettings?.voiceId ?? "null";
+        Debug.Log($"[PromptConsole] Active voice set to: {voiceId}");
+    }
+
+    /// <summary>
+    /// Reset to default CAPCOM voice (called when returning to Hub)
+    /// </summary>
+    public void ResetToDefaultVoice()
+    {
+        _activeVoiceSettings = null;
+        Debug.Log("[PromptConsole] Voice reset to default (CAPCOM)");
     }
 
     // ---------------- Experience Manager Integration ----------------
