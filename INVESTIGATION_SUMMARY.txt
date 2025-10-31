@@ -1,0 +1,334 @@
+================================================================================
+SCENE TRANSITION AND AUDIO SYSTEM INVESTIGATION - SUMMARY
+================================================================================
+
+Date: 2025-10-31
+Status: Complete Analysis
+Issues Found: 2 Critical Issues
+Fixes Provided: 3 Solutions (2 quick, 1 advanced)
+
+================================================================================
+ISSUES IDENTIFIED
+================================================================================
+
+ISSUE #1: VOICE TIMING - SPECIALIST SPEAKS DURING FADE-IN
+──────────────────────────────────────────────────────────
+
+Problem:
+  Specialist introduction audio starts while screen is still black/fading in.
+  User hears voice before seeing the specialist or scene.
+
+Root Cause:
+  - SceneTransitionManager fade-in duration: 2.0 seconds (lines 186-187)
+  - MissionSpaceController introDelay: 0.5 seconds (line 58)
+  - 0.5s is insufficient to wait for 2.0s fade-in
+
+Timeline:
+  t=2s:    Scene loads and starts fade-in
+  t=2.5s:  MissionSpaceController.Start() runs
+  t=3.0s:  Specialist BEGINS SPEAKING (after 0.5s delay)
+  t=4s:    Fade-in COMPLETES (screen becomes visible)
+           → User hears specialist for 1 second before seeing them
+
+Fix #1a (Simple - 1 minute):
+  Change line 58 in MissionSpaceController.cs:
+    FROM: public float introDelay = 0.5f;
+    TO:   public float introDelay = 2.5f;
+  
+  Result: Waits 2.5s before speaking, ensures fade completes first
+
+Fix #1b (Advanced - 5 minutes):
+  Add OnFadeInComplete() signal from SceneTransitionManager
+  MissionSpaceController waits for signal instead of timer
+  More robust, survives future fade timing changes
+
+Priority: HIGH - Affects user experience and immersion
+
+
+ISSUE #2: BACKGROUND MUSIC STOPS AFTER SCENE TRANSITION
+────────────────────────────────────────────────────────
+
+Problem:
+  Background music plays in Hub scene but stops when transitioning to ISS
+  (or any other mission scene).
+
+Root Cause:
+  ExperienceManager.cs (lines 76-87):
+    - Creates AudioSource for background music
+    - Music is set to loop = true
+    - BUT: NO DontDestroyOnLoad() call!
+    - When Hub scene unloads, ExperienceManager is destroyed
+    - AudioSource is destroyed with it
+    - Music stops abruptly
+
+Comparison to Other Persistent Systems:
+  ✓ SceneTransitionManager.cs (line 54):
+      DontDestroyOnLoad(gameObject);
+  
+  ✓ MissionContext.cs (line 35):
+      DontDestroyOnLoad(gameObject);
+  
+  ✗ ExperienceManager.cs:
+      NO DontDestroyOnLoad! ← MISSING
+
+Fix #2 (Simple - 1 minute):
+  In ExperienceManager.cs, Awake() method (line 76):
+  
+  Add one line at the beginning:
+    DontDestroyOnLoad(gameObject);
+  
+  Optional: Implement singleton pattern to prevent duplicates
+  
+  Result: Background music persists across all scenes
+
+Priority: HIGH - Affects audio continuity and immersion
+
+
+ISSUES SUMMARY TABLE
+────────────────────
+
+| Issue | Severity | Root Cause | Current | Fix | Time |
+|-------|----------|-----------|---------|-----|------|
+| Voice timing | HIGH | Short delay | 0.5s | 2.5s | 1 min |
+| Music stops | HIGH | No persistence | None | Add DontDestroyOnLoad | 1 min |
+
+Total Fix Time: 2 minutes (simple fixes)
+Total Fix Time: 7 minutes (with advanced voice fix)
+
+================================================================================
+TECHNICAL ANALYSIS
+================================================================================
+
+SCENE TRANSITION TIMELINE
+─────────────────────────
+
+Phase 1: Fade to Black
+  Duration: 2.0 seconds (SceneTransitionManager.cs, line 18: fadeDuration)
+  Action: Lerp canvas alpha from 0 → 1
+  Status: User sees black screen
+
+Phase 2: Show Logo & Load Scene
+  Duration: 0 seconds (instantaneous)
+  Action: Show mission logo, load scene asynchronously
+  Note: allowSceneActivation = false (wait for phase 5)
+
+Phase 3-5: Logo Animation & Scene Load
+  Duration: 4.0 seconds total (sceneLoadWaitTime)
+    - Logo fade-in: 2.0s
+    - Logo hold: 2.0s (calculated as sceneLoadWaitTime - fadeInDuration)
+
+Phase 6: Scene Activation
+  Duration: 0 seconds (instantaneous)
+  Action: allowSceneActivation = true
+  Triggers: MissionSpaceController.Start() fires
+           → TriggerSpecialistIntroduction() starts immediately
+
+Phase 7: Fade from Black (WITH SCENE VISIBLE)
+  Duration: 2.0 seconds (fadeDuration)
+  Action: Lerp canvas alpha from 1 → 0
+  Status: Logo fades out, scene fades in
+
+Total Transition Time: 6.0 seconds
+
+
+AUDIO PLAYBACK TIMELINE
+───────────────────────
+
+AudioSource Lifecycle (PromptConsole.cs, lines 809-865):
+  1. GenerateSpecialistIntroductionAsync() called
+  2. Prompt sent to OpenAI (variable time, typically 1-3s)
+  3. Audio generated from response via ElevenLabs (variable, 2-5s)
+  4. AudioClip returned from API
+  5. _responseAudioSource.clip = audioClip
+  6. _responseAudioSource.Play()
+  7. Wait for audio to complete (audioClip.length)
+  8. Return
+
+Timing Issue:
+  - Step 1 occurs at t=2.5s (when MissionSpaceController.Start() fires)
+  - Step 7 occurs at t=3.0s + API times (generation time varies)
+  - Typically audio starts at t=3-5s (while fade is still in progress)
+  - Fade completes at t=4s
+  - Result: Audio overlaps with visual fade
+
+
+PERSISTENCE PATTERN ANALYSIS
+─────────────────────────────
+
+Unity Scene Lifecycle:
+  1. Scene A is active (contains GameObjects)
+  2. Scene B is loaded asynchronously (allowSceneActivation = false)
+  3. Scene B activated (allowSceneActivation = true)
+  4. Scene A is unloaded
+  5. All GameObjects in Scene A are destroyed (including children)
+
+To Preserve Audio Across Scenes:
+  - AudioSource must be marked with DontDestroyOnLoad()
+  - When Scene A unloads, AudioSource persists
+  - Continues playing in Scene B
+  - Persists until explicitly destroyed or game exits
+
+Current State:
+  - ExperienceManager in Hub scene
+  - AudioSource created on ExperienceManager.gameObject
+  - NO DontDestroyOnLoad()
+  - Hub unloads → ExperienceManager destroyed → Audio stops
+
+Fixed State:
+  - ExperienceManager in Hub scene with DontDestroyOnLoad()
+  - AudioSource persists across scene changes
+  - Audio continues in all mission scenes
+  - Optional: Implement singleton to prevent duplicates on reload
+
+================================================================================
+EXACT CODE LOCATIONS
+================================================================================
+
+SceneTransitionManager.cs
+─────────────────────────
+File: /Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Assets/Scripts/Core/SceneTransitionManager.cs
+
+  Line 18:   public float fadeDuration = 2f;
+  Line 21:   public float sceneLoadWaitTime = 4f;
+  Line 54:   DontDestroyOnLoad(gameObject);  ← Good pattern!
+  Line 116:  private IEnumerator TransitionSequence(string destination, string sceneName)
+  Line 122:  yield return FadeOut(fadeDuration);
+  Line 137:  float fadeInDuration = 2f;  ← Logo fade-in duration
+  Line 177:  loadOperation.allowSceneActivation = true;  ← Activates scene
+  Line 186:  yield return FadeInWithLogo(fadeDuration);  ← Final fade-in
+  Line 187:  (end of coroutine)  ← Where to signal MissionSpaceController
+
+
+MissionSpaceController.cs
+─────────────────────────
+File: /Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Assets/Scripts/Core/MissionSpaceController.cs
+
+  Line 58:   public float introDelay = 0.5f;  ← CHANGE TO 2.5f
+  Line 60:   void Start()
+  Line 65:   CreateMissionOrbit();
+  Line 79:   StartCoroutine(TriggerSpecialistIntroduction());  ← Starts intro
+  Line 108:  private IEnumerator TriggerSpecialistIntroduction()
+  Line 111:  yield return new WaitForSeconds(introDelay);  ← TIMING ISSUE HERE
+  Line 145:  promptConsole.GenerateSpecialistIntroductionAsync(...)
+
+
+ExperienceManager.cs
+────────────────────
+File: /Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Assets/Scripts/Core/ExperienceManager.cs
+
+  Line 17:   public class ExperienceManager : MonoBehaviour
+  Line 76:   void Awake()  ← ADD DontDestroyOnLoad HERE!
+  Line 78:   _narrationSource = gameObject.AddComponent<AudioSource>();
+  Line 83:   _musicSource = gameObject.AddComponent<AudioSource>();
+  Line 85:   _musicSource.loop = true;
+  Line 146:  _musicSource.clip = backgroundMusic;
+  Line 149:  _musicSource.Play();
+  Line 184:  // Background music continues playing... (misleading comment!)
+
+
+PromptConsole.cs
+────────────────
+File: /Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Assets/Scripts/Agents/Core/PromptConsole.cs
+
+  Line 757:  public async Task GenerateSpecialistIntroductionAsync(...)
+  Line 775:  string introText = await _client.CompleteAsync(input, introPrompt, ct);
+  Line 787:  await PlaySpecialistAudioAsync(introText, specialistVoice, ct);
+  Line 838:  _responseAudioSource.Play();
+
+
+MissionContext.cs
+─────────────────
+File: /Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Assets/Scripts/Core/MissionContext.cs
+
+  Line 35:   DontDestroyOnLoad(gameObject);  ← Good pattern to copy!
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+IMMEDIATE ACTION (2 minutes)
+────────────────────────────
+
+1. Fix voice timing issue:
+   - Open MissionSpaceController.cs
+   - Line 58: Change "0.5f" to "2.5f"
+   - Save
+
+2. Fix music persistence:
+   - Open ExperienceManager.cs
+   - Line 76 (in Awake method): Add "DontDestroyOnLoad(gameObject);"
+   - Save
+
+3. Test:
+   - Play game
+   - Go to Hub, visit ISS
+   - Verify: Music continues, specialist speaks after fade completes
+
+OPTIONAL - ADVANCED FIX (5 minutes)
+───────────────────────────────────
+
+Implement signal-based synchronization for voice timing:
+
+1. Add public method to MissionSpaceController:
+   ```csharp
+   private bool _fadeCompleted = false;
+   
+   public void OnFadeInComplete()
+   {
+       _fadeCompleted = true;
+   }
+   ```
+
+2. Modify TriggerSpecialistIntroduction() to wait for signal:
+   ```csharp
+   yield return new WaitUntil(() => _fadeCompleted);
+   ```
+
+3. Call signal from SceneTransitionManager after fade completes
+
+Benefits:
+- More robust (survives future timing changes)
+- Self-documenting code
+- Professional implementation
+
+FOLLOW-UP ACTIONS
+─────────────────
+
+- [ ] Apply quick fixes (2 min)
+- [ ] Test in-game transitions
+- [ ] Verify audio playback quality
+- [ ] Check for console errors
+- [ ] Apply advanced fix if desired
+- [ ] Document any additional issues found
+
+================================================================================
+DELIVERABLES
+================================================================================
+
+This investigation includes:
+
+1. SCENE_TRANSITION_ANALYSIS.md
+   - Comprehensive 300+ line analysis
+   - Detailed root cause explanation
+   - Code references and line numbers
+   - Multiple solution options
+
+2. TIMING_DIAGRAMS.txt
+   - Visual timeline comparisons
+   - Before/after diagrams
+   - Scene hierarchy illustrations
+   - Code location reference
+
+3. QUICK_FIX_GUIDE.md
+   - Step-by-step fix instructions
+   - Copy-paste code snippets
+   - Testing procedures
+   - Summary table
+
+4. INVESTIGATION_SUMMARY.txt (this file)
+   - Executive summary
+   - Technical analysis
+   - Exact code locations
+   - Implementation checklist
+
+================================================================================

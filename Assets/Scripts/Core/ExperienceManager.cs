@@ -75,6 +75,9 @@ namespace Core
 
         void Awake()
         {
+            // Persist across all scenes so music continues playing
+            DontDestroyOnLoad(gameObject);
+
             // Create audio sources
             _narrationSource = gameObject.AddComponent<AudioSource>();
             _narrationSource.playOnAwake = false;

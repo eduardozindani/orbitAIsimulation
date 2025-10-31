@@ -54,8 +54,8 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
     public PromptConsole promptConsole;
 
     [Header("Timing")]
-    [Tooltip("Delay before specialist speaks (seconds)")]
-    public float introDelay = 0.5f;
+    [Tooltip("Delay before specialist speaks (seconds) - should match fade-in duration + 0.5s buffer")]
+    public float introDelay = 2.5f;
 
     void Start()
     {
@@ -64,15 +64,19 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
         // 1. Create pre-built orbit immediately
         CreateMissionOrbit();
 
-        // 2. Set specialist voice for ongoing conversation
-        if (promptConsole != null && specialistVoiceSettings != null)
+        // 2. Set specialist voice and context for ongoing conversation
+        if (promptConsole != null)
         {
-            promptConsole.SetActiveVoice(specialistVoiceSettings);
-            Debug.Log($"[MissionSpaceController] Specialist voice configured for {specialistName}");
+            if (specialistVoiceSettings != null)
+            {
+                promptConsole.SetActiveVoice(specialistVoiceSettings);
+            }
+            promptConsole.SetSpecialistContext(missionName, knowledgeDomain);
+            Debug.Log($"[MissionSpaceController] Specialist configured for {specialistName}");
         }
         else
         {
-            Debug.LogWarning("[MissionSpaceController] Could not set specialist voice - missing references");
+            Debug.LogWarning("[MissionSpaceController] Could not configure specialist - PromptConsole not assigned");
         }
 
         // 3. Wait briefly, then trigger specialist introduction

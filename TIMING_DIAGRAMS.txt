@@ -1,0 +1,240 @@
+================================================================================
+SCENE TRANSITION TIMING DIAGRAMS
+================================================================================
+
+PROBLEM 1: VOICE TIMING ISSUE
+================================================================================
+
+CURRENT TIMELINE (BROKEN):
+─────────────────────────────
+
+    0s ──────────────────────────────────────────────────────────── 6s
+       |
+       ├─ FADE OUT (2s)
+       │  ├─ t=0s: User sees Hub scene normally
+       │  └─ t=2s: Screen is fully black
+       │
+       ├─ LOGO ANIMATION (4s)
+       │  ├─ t=2s: Show ISS logo, start fade-in
+       │  ├─ t=4s: Logo fully visible, start hold
+       │  └─ t=6s: Logo has been visible 2s
+       │
+       ├─ SCENE ACTIVATION (instantaneous at t=2s)
+       │  └─ MissionSpaceController.Start() fires
+       │     └─ TriggerSpecialistIntroduction() starts immediately
+       │
+       ├─ SPECIALIST INTRO (audio generation + playback)
+       │  ├─ t=2.5s: MissionSpaceController.Start() completes
+       │  ├─ t=3.0s: SPECIALIST STARTS SPEAKING ← STILL DURING FADE!
+       │  └─ During: FadeInWithLogo (2s) is running (black→transparent)
+       │
+       ├─ FADE FROM BLACK (2s)
+       │  ├─ t=4s: Fade in begins
+       │  └─ t=6s: Screen is fully visible ← BUT SPECIALIST ALREADY TALKING!
+       │
+       └─ USER EXPERIENCE
+          - t=0-2s: Sees black screen (expected, fade out)
+          - t=2-4s: Sees black + logo fading in (expected)
+          - t=3-6s: HEARS SPECIALIST while screen still fading ← PROBLEM!
+          - t=6s: FINALLY sees scene clearly
+
+FIXED TIMELINE (OPTION A - Signal-based):
+──────────────────────────────────────────
+
+    0s ──────────────────────────────────────────────────────────── 7s
+       |
+       ├─ FADE OUT (2s) → same as before
+       │
+       ├─ LOGO ANIMATION (4s) → same as before
+       │
+       ├─ FADE FROM BLACK (2s)
+       │  ├─ t=4s: Fade in begins
+       │  └─ t=6s: Screen fully visible, OnFadeInComplete() signal sent
+       │     └─ Waiting TriggerSpecialistIntroduction() wakes up
+       │
+       ├─ SPECIALIST INTRO (audio generation + playback)
+       │  ├─ t=6s: Signal received, start generation
+       │  ├─ t=6.5s: Audio generation completes
+       │  ├─ t=6.5s: SPECIALIST STARTS SPEAKING ← NOW USER SEES THEM!
+       │  └─ t=9.5s: Specialist finishes (approx 3s audio)
+       │
+       └─ USER EXPERIENCE
+          - t=0-2s: Sees black (expected)
+          - t=2-4s: Sees logo (expected)
+          - t=4-6s: Screen fades in (good!)
+          - t=6s: SCREEN VISIBLE + SPECIALIST SPEAKS (PERFECT!)
+
+FIXED TIMELINE (OPTION B - Increased delay):
+──────────────────────────────────────────────
+
+    0s ──────────────────────────────────────────────────────────── 7s
+       |
+       ├─ FADE OUT (2s)
+       │
+       ├─ LOGO ANIMATION (4s)
+       │
+       ├─ SCENE ACTIVATION (instantaneous at t=2s)
+       │  └─ TriggerSpecialistIntroduction() starts
+       │     └─ Wait 2.5 seconds (new introDelay value)
+       │
+       ├─ FADE FROM BLACK (2s)
+       │  ├─ t=4s: Fade in begins
+       │  └─ t=6s: Screen visible
+       │
+       ├─ SPECIALIST INTRO (audio generation + playback)
+       │  ├─ t=4.5s: introDelay (2.5s) complete
+       │  ├─ t=5.0s: Audio generation starts/completes
+       │  ├─ t=6.5s: SPECIALIST STARTS SPEAKING ← AFTER FADE!
+       │  └─ t=9.5s: Specialist finishes (approx 3s audio)
+       │
+       └─ USER EXPERIENCE
+          - Works similarly to Option A
+          - Main difference: delay is passive (simpler code)
+
+================================================================================
+
+PROBLEM 2: BACKGROUND MUSIC PERSISTENCE
+================================================================================
+
+CURRENT SCENE HIERARCHY:
+────────────────────────
+
+Hub Scene (ACTIVE)
+├─ Canvas
+├─ ExperienceManager (contains music player)
+│  ├─ AudioSource (narration)
+│  └─ AudioSource (background music) ← This is destroyed!
+├─ PromptConsole
+└─ ... other objects
+
+User clicks "Visit ISS" → Scene transition starts
+
+ISS Scene (LOADING)
+├─ Canvas
+├─ MissionSpaceController
+├─ OrbitController
+└─ ... other objects
+
+When Hub unloads:
+├─ ALL GameObjects in Hub are destroyed
+├─ ExperienceManager GameObject destroyed ← NO DontDestroyOnLoad!
+├─ AudioSource components destroyed ← MUSIC STOPS
+└─ Music clip reference lost
+
+User never hears background music in ISS scene
+
+
+FIXED SCENE HIERARCHY:
+──────────────────────
+
+Hub Scene (Active but music persists)
+├─ Canvas
+├─ ExperienceManager (DontDestroyOnLoad!)
+│  ├─ AudioSource (narration)
+│  └─ AudioSource (background music) ← PERSISTS ACROSS SCENES
+├─ PromptConsole
+└─ ... other objects
+
+User clicks "Visit ISS" → Scene transition starts
+
+ISS Scene (LOADED, Hub keeps running in background)
+├─ Canvas
+├─ MissionSpaceController
+├─ OrbitController
+└─ ... other objects
+
+Music continues because:
+├─ ExperienceManager marked with DontDestroyOnLoad
+├─ GameObject persists when Hub unloads
+├─ AudioSource continues playing
+├─ _musicSource.loop = true keeps it playing
+└─ User hears continuous background music in ISS
+
+================================================================================
+
+PERSISTENCE PATTERN ANALYSIS
+================================================================================
+
+Currently in codebase:
+
+SceneTransitionManager.cs (line 54):
+   ✓ DontDestroyOnLoad(gameObject);
+   ✓ Singleton pattern: if (Instance == null) { Instance = this; }
+   ✓ Prevents duplicate: else { Destroy(gameObject); }
+   ✓ Result: Persists across ALL scenes
+
+MissionContext.cs (line 35):
+   ✓ DontDestroyOnLoad(gameObject);
+   ✓ Singleton pattern: if (Instance == null) { Instance = this; }
+   ✓ Prevents duplicate: else { Destroy(gameObject); }
+   ✓ Result: Conversation history preserved
+
+ExperienceManager.cs:
+   ✗ NO DontDestroyOnLoad
+   ✗ NO Singleton pattern
+   ✗ NO duplicate prevention
+   ✗ Result: Background music destroyed on scene unload!
+
+
+RECOMMENDED PATTERN:
+
+void Awake()
+{
+    // Singleton + DontDestroyOnLoad pattern
+    if (Instance == null)
+    {
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+        // Initialize audio sources
+    }
+    else
+    {
+        Destroy(gameObject);
+    }
+}
+
+================================================================================
+
+ACTUAL CODE LOCATIONS
+================================================================================
+
+SceneTransitionManager.cs:
+─────────────────────────
+File: /Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Assets/Scripts/Core/SceneTransitionManager.cs
+
+Line 18:   public float fadeDuration = 2f;
+Line 21:   public float sceneLoadWaitTime = 4f;
+Line 137:  float fadeInDuration = 2f;  // Logo fade-in
+Line 157:  float holdDuration = sceneLoadWaitTime - fadeInDuration;
+Line 186:  yield return FadeInWithLogo(fadeDuration);
+
+
+MissionSpaceController.cs:
+──────────────────────────
+File: /Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Assets/Scripts/Core/MissionSpaceController.cs
+
+Line 58:   public float introDelay = 0.5f;
+Line 79:   StartCoroutine(TriggerSpecialistIntroduction());
+Line 111:  yield return new WaitForSeconds(introDelay);
+Line 145:  var introTask = promptConsole.GenerateSpecialistIntroductionAsync(...)
+
+
+ExperienceManager.cs:
+─────────────────────
+File: /Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Assets/Scripts/Core/ExperienceManager.cs
+
+Line 76:   void Awake()  ← ADD DontDestroyOnLoad HERE
+Line 83:   _musicSource = gameObject.AddComponent<AudioSource>();
+Line 85:   _musicSource.loop = true;
+Line 148:  _musicSource.clip = backgroundMusic;
+Line 149:  _musicSource.Play();
+
+
+PromptConsole.cs:
+─────────────────
+File: /Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Assets/Scripts/Agents/Core/PromptConsole.cs
+
+Line 757:  public async Task GenerateSpecialistIntroductionAsync(...)
+Line 787:  await PlaySpecialistAudioAsync(introText, specialistVoice, ct);
+
+================================================================================

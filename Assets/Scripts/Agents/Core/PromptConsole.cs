@@ -71,6 +71,7 @@ public class PromptConsole : MonoBehaviour
     private ElevenLabsClient _elevenLabsClient;
     private AudioSource _responseAudioSource;
     private ElevenLabsSettings _activeVoiceSettings; // Current speaker voice (null = default CAPCOM)
+    private string _specialistContext; // Mission-specific knowledge for specialists
     private bool _busy;
     private CancellationTokenSource _cts;
 
@@ -524,15 +525,19 @@ public class PromptConsole : MonoBehaviour
             _responseAudioSource.Stop();
         }
 
-        // Build contextual prompt with conversation history
-        string conversationContext = _conversationHistory.GetExchangeCount() > 0
-            ? $"Recent conversation:\n{_conversationHistory.GetFormattedHistory(5)}\n\n"
+        // Build specialist prompt with mission context
+        string missionContext = _specialistContext ?? "MISSION: Unknown\n\nKNOWLEDGE: General orbital mechanics";
+
+        // Build conversation history
+        string conversationHistory = _conversationHistory.GetExchangeCount() > 0
+            ? $"\nRecent conversation:\n{_conversationHistory.GetFormattedHistory(3)}\n"
             : "";
 
-        string contextualPrompt = $"{conversationContext}User: {userMessage}";
+        // Combine: mission knowledge + conversation history + user question
+        string fullPrompt = $"{missionContext}{conversationHistory}\nUser: {userMessage}";
 
         // Generate response using specialist prompt
-        string response = await _client.CompleteAsync(contextualPrompt, SpecialistPrompt.Text, ct);
+        string response = await _client.CompleteAsync(fullPrompt, SpecialistPrompt.Text, ct);
 
         // Add exchange to conversation history
         _conversationHistory.AddExchange(userMessage, response);
@@ -877,12 +882,22 @@ Generate a conversational response:";
     }
 
     /// <summary>
+    /// Set specialist context (mission name, knowledge domain) for ongoing conversation
+    /// </summary>
+    public void SetSpecialistContext(string missionName, string knowledgeDomain)
+    {
+        _specialistContext = $"MISSION: {missionName}\n\nKNOWLEDGE:\n{knowledgeDomain}";
+        Debug.Log($"[PromptConsole] Specialist context set for {missionName}");
+    }
+
+    /// <summary>
     /// Reset to default CAPCOM voice (called when returning to Hub)
     /// </summary>
     public void ResetToDefaultVoice()
     {
         _activeVoiceSettings = null;
-        Debug.Log("[PromptConsole] Voice reset to default (CAPCOM)");
+        _specialistContext = null;
+        Debug.Log("[PromptConsole] Voice and context reset to default (CAPCOM)");
     }
 
     // ---------------- Experience Manager Integration ----------------
