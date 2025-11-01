@@ -23,6 +23,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Voyager.unity
     guid: 19d0bf982d2ee48aebd56c1985f5cf64
+  - enabled: 1
+    path: Assets/Scenes/ARHub.unity
+    guid: 19ede42bca0694e918e82fd8fa0533be
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 6a355e5e4889b4bcfa860d2ca4c70b09, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: fdfdf79c5da2440f4bf852fb1f45ec89, type: 2}
   m_UseUCBPForAssetBundles: 0

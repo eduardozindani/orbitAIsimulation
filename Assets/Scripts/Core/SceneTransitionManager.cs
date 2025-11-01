@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
+using XR;
 
 /// <summary>
 /// Manages scene transitions with beautiful fade effects and mission logos.
@@ -560,5 +561,35 @@ public class SceneTransitionManager : MonoBehaviour
         {
             Debug.Log($"[SceneTransitionManager] Persistent UI already exists (fadeCanvasGroup: {fadeCanvasGroup != null}, missionLogoImage: {missionLogoImage != null})");
         }
+    }
+
+    // ---------------- Public Fade Methods (for ExperienceManager XR transitions) ----------------
+
+    /// <summary>
+    /// Public method to fade out to black (used by ExperienceManager for VR→AR transitions)
+    /// </summary>
+    public IEnumerator FadeOut()
+    {
+        Debug.Log("[SceneTransitionManager] Public FadeOut() called");
+        yield return FadeOut(fadeDuration);
+    }
+
+    /// <summary>
+    /// Public method to fade in from black (used by ExperienceManager for VR→AR transitions)
+    /// </summary>
+    public IEnumerator FadeIn()
+    {
+        Debug.Log("[SceneTransitionManager] Public FadeIn() called");
+        yield return FadeIn(fadeDuration);
+    }
+
+    /// <summary>
+    /// Check if XR mode is active and adjust fade behavior accordingly
+    /// In VR: Use canvas fade
+    /// In AR: Also fade passthrough opacity
+    /// </summary>
+    private bool IsXRMode()
+    {
+        return XRModeManager.Instance != null && XRModeManager.Instance.IsXRAvailable();
     }
 }

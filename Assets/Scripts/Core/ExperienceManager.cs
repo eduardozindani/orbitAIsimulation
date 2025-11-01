@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UI;
+using XR;
 
 namespace Core
 {
@@ -240,22 +242,45 @@ namespace Core
         /// </summary>
         private IEnumerator IntroSequence()
         {
-            Debug.Log("[ExperienceManager] Intro cutscene started");
+            Debug.Log("[ExperienceManager] Intro cutscene started in VR");
 
-            // Animate camera zoom if camera controller is assigned
-            if (cameraController != null)
+            // For VR: Just play narration (no camera animation needed - user naturally looks around)
+            // For Desktop: Animate camera zoom
+            bool isXRMode = XRModeManager.Instance != null && XRModeManager.Instance.IsXRAvailable();
+
+            if (isXRMode)
             {
-                yield return StartCoroutine(AnimateCameraZoom());
+                // VR mode: Wait for narration duration (user can look around naturally)
+                Debug.Log("[ExperienceManager] VR mode - waiting for narration duration");
+                yield return new WaitForSeconds(cameraZoomDuration);
             }
             else
             {
-                // No camera animation, just wait for intro duration
-                yield return new WaitForSeconds(introDuration);
+                // Desktop mode: Animate camera zoom
+                if (cameraController != null)
+                {
+                    Debug.Log("[ExperienceManager] Desktop mode - animating camera zoom");
+                    yield return StartCoroutine(AnimateCameraZoom());
+                }
+                else
+                {
+                    yield return new WaitForSeconds(introDuration);
+                }
             }
 
-            // Immediate transition to Hub (no pause)
+            // Transition to Hub (VR → AR for XR, or normal Hub for desktop)
             Debug.Log("[ExperienceManager] Intro cutscene complete, transitioning to Hub");
-            StartHub();
+
+            if (isXRMode)
+            {
+                // XR mode: Transition from VR intro to AR Hub
+                yield return TransitionToARHub();
+            }
+            else
+            {
+                // Desktop mode: Continue with normal Hub in same scene
+                StartHub();
+            }
         }
 
         /// <summary>
@@ -318,6 +343,55 @@ namespace Core
         public bool IsHubActive()
         {
             return currentState == State.HUB_ACTIVE;
+        }
+
+        // ---------------- XR Transitions ----------------
+
+        /// <summary>
+        /// Transition from VR intro to AR Hub scene
+        /// </summary>
+        private IEnumerator TransitionToARHub()
+        {
+            Debug.Log("[ExperienceManager] Transitioning from VR to AR Hub");
+
+            // Fade out VR scene
+            if (SceneTransitionManager.Instance != null)
+            {
+                yield return SceneTransitionManager.Instance.FadeOut();
+            }
+            else
+            {
+                // Simple fade if no transition manager
+                yield return new WaitForSeconds(0.5f);
+            }
+
+            // Switch to AR mode
+            if (XRModeManager.Instance != null)
+            {
+                XRModeManager.Instance.SwitchToAR();
+            }
+
+            // Load AR Hub scene
+            Debug.Log("[ExperienceManager] Loading ARHub scene");
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("ARHub");
+
+            // Wait for scene to load
+            while (!asyncLoad.isDone)
+            {
+                yield return null;
+            }
+
+            Debug.Log("[ExperienceManager] ARHub scene loaded - calibration will begin");
+
+            // Fade in AR scene
+            if (SceneTransitionManager.Instance != null)
+            {
+                yield return SceneTransitionManager.Instance.FadeIn();
+            }
+
+            // Mark intro as completed
+            _introCompleted = true;
+            currentState = State.HUB_ACTIVE;
         }
     }
 }
