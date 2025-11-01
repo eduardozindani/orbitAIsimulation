@@ -398,8 +398,8 @@ namespace Agents.Tools
             // Store context in MissionContext
             if (MissionContext.Instance != null)
             {
-                string currentLocation = MissionContext.Instance.currentLocation;
-                MissionContext.Instance.SetRoutingContext("Hub", $"Returning from {currentLocation}");
+                string departingFrom = MissionContext.Instance.currentLocation ?? "mission space";
+                MissionContext.Instance.SetRoutingContext("Hub", $"Returning from {departingFrom}");
             }
             else
             {

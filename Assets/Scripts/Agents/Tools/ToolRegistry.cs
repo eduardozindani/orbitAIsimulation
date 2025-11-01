@@ -109,6 +109,32 @@ namespace Agents.Tools
         }
 
         /// <summary>
+        /// Create a specialist-only registry with just navigation tools (return_to_hub)
+        /// Used in Mission Spaces where specialists can help users return to Hub but cannot manipulate orbits
+        /// </summary>
+        public static ToolRegistry CreateSpecialistRegistry()
+        {
+            var registry = new ToolRegistry();
+
+            // Manually create return_to_hub tool schema (no orbit manipulation tools)
+            var returnToHubTool = new ToolSchema
+            {
+                id = "return_to_hub",
+                name = "Return to Mission Control Hub",
+                description = "Return user to Mission Control Hub from a mission space",
+                parameters = new Dictionary<string, ToolParameter>(), // No parameters required
+                specialist_persona = "Navigator",
+                specialist_team = "Navigation",
+                unity_function = "ReturnToHub"
+            };
+
+            registry._tools["return_to_hub"] = returnToHubTool;
+
+            Debug.Log("[ToolRegistry] Created specialist registry with 1 navigation tool (return_to_hub)");
+            return registry;
+        }
+
+        /// <summary>
         /// Get a preset orbit definition by name (e.g., "ISS", "GPS")
         /// </summary>
         public CommonOrbitDefinition GetCommonOrbit(string name)

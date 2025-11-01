@@ -75,33 +75,44 @@ Deployment targets the Meta Quest 3 headset, which enables both immersive VR exp
 
 The project follows systematic development practices using GitHub for version control. All source code—including Unity C\# scripts, prompt templates, and configuration files—is tracked in a central repository, providing complete history of changes and enabling experimental work through branching without compromising the main project stability. This systematic approach aligns with the iterative development philosophy, where each development cycle's progress is documented and preserved.
 
-\section{Evaluation Plan}
+\section{Demonstration and Release Strategy}
 \label{sec:evaluation_plan}
 
-\paragraph{Dual Assessment Rationale}
+\paragraph{Community-Driven Validation Rationale}
 
-The platform's success must be measured along two dimensions: technical functionality and educational effectiveness. Technical validation alone cannot confirm whether the system actually helps users learn, while educational assessment without technical verification cannot determine if observed outcomes result from reliable, consistent system behavior or from chance. This dual approach ensures the platform is both technically sound and pedagogically valuable.
+The platform's ultimate value lies in its real-world application by educators, students, and developers across diverse contexts. Rather than limiting validation to a controlled study, this work adopts a demonstration and open-source release strategy designed to enable broader community engagement, adaptation, and extension. This approach allows the system to be tested and refined through authentic use cases while inviting collaboration from those who can benefit from and contribute to its development.
 
-\subsection{Technical Validation}
+\subsection{Demonstration Video}
 
-Technical evaluation verifies that the system performs reliably and correctly. This validation establishes confidence that observed learning outcomes stem from consistent, accurate system behavior rather than from unpredictable or incorrect responses.
+To showcase the platform's capabilities and interaction paradigm, a comprehensive demonstration video will be produced. This walkthrough presents the core features and user experience across multiple mission scenarios, illustrating how natural language dialogue seamlessly controls orbital simulations in augmented reality.
 
-Key validation areas include:
+The demonstration includes:
 \begin{itemize}
-    \item \textbf{Conversational Accuracy:} The agent correctly interprets user intent and executes appropriate simulation functions across diverse natural language inputs
-    \item \textbf{Physics Fidelity:} Rendered orbital trajectories match validated astrodynamics calculations
-    \item \textbf{Interaction Responsiveness:} Voice input to visual and auditory feedback occurs quickly enough to maintain conversational flow
-    \item \textbf{Spatial Stability:} Augmented reality visualizations remain properly anchored in the user's physical environment
+    \item \textbf{Interaction Flow:} A complete cycle from voice command input through agent interpretation to AR visualization and auditory feedback
+    \item \textbf{Mission Showcase:} Examples from different mission contexts (ISS, GPS constellation, Hubble telescope, Voyager deep space) demonstrating the system's versatility
+    \item \textbf{Educational Scenarios:} Representative tasks such as creating circular and elliptical orbits, adjusting simulation parameters, and exploring orbital mechanics concepts through conversational guidance
+    \item \textbf{Technical Capabilities:} Display of the platform's physically accurate trajectory calculations, spatial anchoring, and real-time responsiveness
 \end{itemize}
 
-These technical metrics ensure the platform provides a stable foundation for learning rather than introducing confusion through inconsistent or incorrect behavior.
+This demonstration serves both as documentation of the functional prototype and as a reference for potential users and contributors to understand the system's design and capabilities before engaging with the codebase.
 
-\subsection{Educational Effectiveness Assessment}
+\subsection{Open-Source Release}
 
-Educational evaluation investigates whether the platform achieves its fundamental purpose: helping users develop genuine understanding of orbital mechanics principles.
+The platform will be released as open-source software on GitHub, making the complete implementation—Unity project, C\# scripts, agent prompts, configuration templates, and documentation—publicly accessible. This release strategy serves multiple strategic objectives:
 
-This assessment employs a small-scale qualitative study with 3-5 undergraduate students from aerospace engineering or related fields. Participants engage with the platform through exploratory tasks—creating different orbit types, visiting mission showcases, asking questions about observed phenomena—then provide feedback through semi-structured interviews and questionnaires.
+\begin{itemize}
+    \item \textbf{Community Validation:} Educators, students, and developers can test the platform in their own contexts, providing authentic feedback on its educational effectiveness and technical robustness
+    \item \textbf{Accessibility and Extensibility:} Users can adapt the system for different educational levels, add new mission scenarios, integrate alternative celestial bodies, or extend the agent's capabilities to suit specific pedagogical goals
+    \item \textbf{Collaborative Development:} The open-source model invites contributions from the community, enabling iterative improvement and evolution beyond the scope of this initial work
+    \item \textbf{Transparent Implementation:} Full access to source code allows technical review, replication of results, and learning from the implementation itself as an educational resource
+\end{itemize}
 
-The evaluation focuses on whether the platform makes orbital concepts more intuitive and comprehensible compared to traditional learning methods like textbooks and diagrams. Questions probe engagement, ease of use, and most critically, whether users feel they developed better mental models of how orbits work through the interactive, spatial experience.
+\paragraph{User Configuration}
 
-This qualitative approach prioritizes depth of insight over statistical significance. Rich feedback from a few users who thoughtfully engage with the system provides more actionable understanding of educational effectiveness than surface-level metrics from larger samples. The goal is to validate the core educational premise and identify opportunities for refinement.
+To maintain accessibility while respecting API service constraints, users provide their own API keys for OpenAI (language model) and ElevenLabs (text-to-speech) services. This approach ensures that the platform remains available to anyone interested in exploring or adapting it without imposing unsustainable service costs, while also giving users control over their model selection and usage limits.
+
+\paragraph{Documentation and Support}
+
+The repository includes comprehensive setup instructions, architectural documentation, and usage guidelines to lower the barrier for community adoption and contribution. This documentation covers Unity environment configuration, Meta Quest 3 deployment procedures, API integration, and the modular system architecture that facilitates extension.
+
+This demonstration and release strategy transforms the platform from a single-instance prototype into a foundation for ongoing exploration and refinement by the broader educational technology and aerospace communities.

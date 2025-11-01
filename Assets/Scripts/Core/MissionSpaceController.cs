@@ -59,12 +59,19 @@ public class MissionSpaceController : MonoBehaviour
         // 1. Create pre-built orbit immediately
         CreateMissionOrbit();
 
-        // 2. Set specialist voice and context for ongoing conversation
+        // 2. Update MissionContext to reflect we're now in this mission space
+        if (MissionContext.Instance != null)
+        {
+            MissionContext.Instance.currentLocation = missionConfig.missionName;
+            Debug.Log($"[MissionSpaceController] Updated currentLocation to '{missionConfig.missionName}'");
+        }
+
+        // 3. Set specialist voice and context for ongoing conversation
         promptConsole.SetActiveVoice(missionConfig.specialistVoice);
         promptConsole.SetSpecialistContext(missionConfig.missionName, missionConfig.knowledgeDomain);
         Debug.Log($"[MissionSpaceController] Specialist configured for {missionConfig.specialistName}");
 
-        // 3. Wait briefly, then trigger specialist introduction
+        // 4. Wait briefly, then trigger specialist introduction
         StartCoroutine(TriggerSpecialistIntroduction());
     }
 

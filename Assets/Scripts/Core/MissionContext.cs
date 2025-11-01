@@ -33,11 +33,16 @@ public class MissionContext : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("[MissionContext] Initialized - will persist across scenes");
+            Debug.Log($"[MissionContext] ╔══════════════════════════════════════════════════════════");
+            Debug.Log($"[MissionContext] ║ INITIALIZED - Will persist across scenes");
+            Debug.Log($"[MissionContext] ║ Current Scene: {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
+            Debug.Log($"[MissionContext] ║ Initial currentLocation: '{currentLocation}'");
+            Debug.Log($"[MissionContext] ║ Initial routingReason: '{routingReason}'");
+            Debug.Log($"[MissionContext] ╚══════════════════════════════════════════════════════════");
         }
         else
         {
-            Debug.Log("[MissionContext] Instance already exists, destroying duplicate");
+            Debug.Log($"[MissionContext] Instance already exists (currentLocation: '{Instance.currentLocation}'), destroying duplicate from {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
             Destroy(gameObject);
         }
     }
@@ -47,6 +52,7 @@ public class MissionContext : MonoBehaviour
     /// </summary>
     public void SetRoutingContext(string destination, string reason)
     {
+        string previousLocation = currentLocation;
         currentLocation = destination;
         routingReason = reason;
 
@@ -55,7 +61,12 @@ public class MissionContext : MonoBehaviour
             visitedMissions.Add(destination);
         }
 
-        Debug.Log($"[MissionContext] Routing to {destination}. Reason: {reason}");
+        Debug.Log($"[MissionContext] ╔══════════════════════════════════════════════════════════");
+        Debug.Log($"[MissionContext] ║ ROUTING CONTEXT UPDATED");
+        Debug.Log($"[MissionContext] ║ Previous Location: '{previousLocation}'");
+        Debug.Log($"[MissionContext] ║ New Location: '{currentLocation}'");
+        Debug.Log($"[MissionContext] ║ Routing Reason: '{routingReason}'");
+        Debug.Log($"[MissionContext] ╚══════════════════════════════════════════════════════════");
     }
 
     /// <summary>
@@ -124,6 +135,46 @@ public class MissionContext : MonoBehaviour
 
         string lastVisited = currentLocation != "Hub" ? currentLocation : "a mission";
         return $"User just returned from {lastVisited} Mission Space.";
+    }
+
+    /// <summary>
+    /// Get detailed context for Mission Control when user returns from a mission
+    /// Includes routing reason and recent conversation summary
+    /// </summary>
+    public string GetContextForMissionControl()
+    {
+        System.Text.StringBuilder context = new System.Text.StringBuilder();
+
+        // Add routing context
+        if (!string.IsNullOrEmpty(routingReason))
+        {
+            context.AppendLine($"User just returned: {routingReason}");
+        }
+
+        // Add recent conversation summary
+        if (recentHistory.Count > 0)
+        {
+            context.AppendLine("\nRecent conversation:");
+
+            // Get last 2-3 exchanges
+            int startIndex = Mathf.Max(0, recentHistory.Count - 3);
+            for (int i = startIndex; i < recentHistory.Count; i++)
+            {
+                var exchange = recentHistory[i];
+                string location = !string.IsNullOrEmpty(exchange.location) ? $"[{exchange.location}]" : "";
+                context.AppendLine($"{location} User: {exchange.userMessage}");
+
+                // Truncate long responses
+                string response = exchange.agentResponse;
+                if (response.Length > 100)
+                {
+                    response = response.Substring(0, 100) + "...";
+                }
+                context.AppendLine($"{location} Agent: {response}");
+            }
+        }
+
+        return context.ToString();
     }
 
     /// <summary>

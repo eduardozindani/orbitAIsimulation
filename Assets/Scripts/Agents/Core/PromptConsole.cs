@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,6 +72,8 @@ public class PromptConsole : MonoBehaviour
     private OpenAIClient _client;
     private ToolRegistry _toolRegistry;
     private ToolExecutor _toolExecutor;
+    private ToolRegistry _specialistToolRegistry; // Specialist-only registry (return_to_hub)
+    private ToolExecutor _specialistToolExecutor; // For mission specialists navigation
     private ElevenLabsClient _elevenLabsClient;
     private AudioSource _responseAudioSource;
     private ElevenLabsSettings _activeVoiceSettings; // Current speaker voice (null = default CAPCOM)
@@ -130,6 +133,27 @@ public class PromptConsole : MonoBehaviour
             {
                 Debug.LogError("[PromptConsole] Failed to initialize tool system: " + e.Message);
                 UseToolSystem = false;
+            }
+        }
+        // Initialize specialist tool system (navigation only - for mission spaces)
+        else if (UseToolSystem && OrbitController == null)
+        {
+            try
+            {
+                // Find TimeController if not manually assigned
+                if (TimeController == null)
+                {
+                    TimeController = FindFirstObjectByType<TimeController>();
+                }
+
+                // Create specialist registry with ONLY return_to_hub tool
+                _specialistToolRegistry = ToolRegistry.CreateSpecialistRegistry();
+                _specialistToolExecutor = new ToolExecutor(_specialistToolRegistry, null, TimeController);
+                Debug.Log("[PromptConsole] Specialist tool system initialized (navigation only - return_to_hub available)");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[PromptConsole] Failed to initialize specialist tool system: " + e.Message);
             }
         }
 
@@ -519,7 +543,7 @@ public class PromptConsole : MonoBehaviour
     }
 
     /// <summary>
-    /// Specialist mode: Pure conversational AI without orbit control tools
+    /// Specialist mode: Conversational AI with navigation tool (return_to_hub)
     /// Used when OrbitController is null (mission spaces)
     /// </summary>
     private async Task SubmitAsSpecialistAsync(string userMessage, CancellationToken ct)
@@ -530,6 +554,67 @@ public class PromptConsole : MonoBehaviour
             _responseAudioSource.Stop();
         }
 
+        // >>> STAGE 1: Check if user wants to use return_to_hub tool
+        if (_specialistToolExecutor != null)
+        {
+            try
+            {
+                // Build context for tool detection
+                string contextualPrompt = BuildContextualPrompt(userMessage);
+
+                // Use specialist tool prompt (only detects return_to_hub)
+                string toolSelectionResponse = await _client.CompleteAsync(contextualPrompt, promptSettings.specialistToolPrompt, ct);
+
+                // Parse tool call
+                ToolCall toolCall = ParseToolCall(toolSelectionResponse);
+
+                // If user wants to return to hub, execute the tool
+                if (toolCall != null && toolCall.intent == "execute_tool" && toolCall.tool == "return_to_hub")
+                {
+                    Debug.Log("[PromptConsole] Specialist detected return_to_hub request");
+
+                    // Execute return_to_hub tool
+                    ToolExecutionResult executionResult;
+                    bool success = _specialistToolExecutor.ExecuteTool(toolCall.tool, toolCall.parameters, out executionResult);
+
+                    if (success)
+                    {
+                        // Generate specialist farewell (concise, < 10 seconds)
+                        string farewellResponse = await GenerateSpecialistFarewellAsync(userMessage, ct);
+
+                        // Play farewell audio
+                        await PlayResponseAsAudioAsync(farewellResponse, ct);
+
+                        // Add to conversation history
+                        if (MissionContext.Instance != null)
+                        {
+                            MissionContext.Instance.AddConversationExchange(userMessage, farewellResponse, "return_to_hub");
+                        }
+
+                        // Trigger scene transition after audio finishes
+                        if (executionResult.requiresSceneTransition)
+                        {
+                            Debug.Log("[PromptConsole] Triggering return to Hub after specialist farewell");
+                            SceneTransitionManager.Instance?.TransitionToHub();
+                        }
+
+                        return;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[PromptConsole] return_to_hub failed: {executionResult.errorMessage}");
+                        // Fall through to conversational mode
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[PromptConsole] Tool detection failed, falling back to conversation: {ex.Message}");
+                // Fall through to conversational mode
+            }
+        }
+
+        // >>> STAGE 2: Conversational mode (no tool or tool detection failed)
         // Build specialist prompt with mission context
         string missionContext = _specialistContext ?? "MISSION: Unknown\n\nKNOWLEDGE: General orbital mechanics";
 
@@ -648,6 +733,30 @@ Generate a conversational response acknowledging what was done:";
         {
             Debug.LogWarning($"[PromptConsole] Failed to generate tool response: {ex.Message}");
             return executionResult.message ?? "Orbit parameters updated successfully.";
+        }
+    }
+
+    /// <summary>
+    /// Generates a specialist farewell when returning user to Mission Control Hub
+    /// </summary>
+    private async Task<string> GenerateSpecialistFarewellAsync(string userMessage, CancellationToken ct)
+    {
+        // Build context
+        string missionContext = _specialistContext ?? "MISSION: Unknown";
+
+        // Use specialist farewell prompt
+        string fullPrompt = $"{missionContext}\n\nUser said: {userMessage}";
+
+        try
+        {
+            string farewell = await _client.CompleteAsync(fullPrompt, promptSettings.specialistFarewellPrompt, ct);
+            return farewell;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"[PromptConsole] Farewell generation failed: {ex.Message}");
+            // Fallback farewell
+            return "Safe travels back to Mission Control!";
         }
     }
 
@@ -941,13 +1050,133 @@ Generate a conversational response:";
         if (OutputText != null)
         {
             OutputText.gameObject.SetActive(true);
-            OutputText.text = "Mission Control: Ready for your commands.";
+        }
+
+        Debug.Log($"[PromptConsole] ╔══════════════════════════════════════════════════════════");
+        Debug.Log($"[PromptConsole] ║ ENABLE CONSOLE - CHECKING FOR RETURN GREETING");
+        Debug.Log($"[PromptConsole] ║ MissionContext.Instance exists: {MissionContext.Instance != null}");
+
+        if (MissionContext.Instance != null)
+        {
+            Debug.Log($"[PromptConsole] ║ currentLocation: '{MissionContext.Instance.currentLocation}'");
+            Debug.Log($"[PromptConsole] ║ routingReason: '{MissionContext.Instance.routingReason}'");
+            Debug.Log($"[PromptConsole] ║ currentLocation == 'Hub': {MissionContext.Instance.currentLocation == "Hub"}");
+            Debug.Log($"[PromptConsole] ║ routingReason is not empty: {!string.IsNullOrEmpty(MissionContext.Instance.routingReason)}");
+            Debug.Log($"[PromptConsole] ║ routingReason contains 'Returning from': {MissionContext.Instance.routingReason?.Contains("Returning from")}");
+        }
+        Debug.Log($"[PromptConsole] ╚══════════════════════════════════════════════════════════");
+
+        // Check if this is a return from mission space
+        if (MissionContext.Instance != null &&
+            MissionContext.Instance.currentLocation == "Hub" &&
+            !string.IsNullOrEmpty(MissionContext.Instance.routingReason) &&
+            MissionContext.Instance.routingReason.Contains("Returning from"))
+        {
+            // User returned from a mission - generate context-aware greeting
+            Debug.Log("[PromptConsole] ✓ CONDITIONS MET: Starting GenerateReturnGreeting coroutine");
+            StartCoroutine(GenerateReturnGreeting());
+        }
+        else
+        {
+            // First time or no context
+            Debug.Log("[PromptConsole] ✗ CONDITIONS NOT MET: Using default greeting");
+            if (OutputText != null)
+            {
+                OutputText.text = "Mission Control: Ready for your commands.";
+            }
         }
 
         // Give input field focus
         ActivateInputSafely();
 
         Debug.Log("[PromptConsole] Console enabled - Hub is active");
+    }
+
+    /// <summary>
+    /// Generate context-aware greeting when user returns from a mission
+    /// </summary>
+    private IEnumerator GenerateReturnGreeting()
+    {
+        Debug.Log("[PromptConsole] ╔══════════════════════════════════════════════════════════");
+        Debug.Log("[PromptConsole] ║ GENERATE RETURN GREETING COROUTINE STARTED");
+        Debug.Log("[PromptConsole] ╚══════════════════════════════════════════════════════════");
+
+        if (OutputText != null)
+        {
+            OutputText.text = "Mission Control: Welcome back...";
+            Debug.Log("[PromptConsole] Set OutputText to temporary 'Welcome back...' message");
+        }
+
+        // Get context from MissionContext
+        string returnContext = "";
+        if (MissionContext.Instance != null)
+        {
+            returnContext = MissionContext.Instance.GetContextForMissionControl();
+            Debug.Log($"[PromptConsole] Retrieved context from MissionContext:\n{returnContext}");
+        }
+        else
+        {
+            Debug.LogWarning("[PromptConsole] MissionContext.Instance is NULL - cannot get return context!");
+        }
+
+        // Build greeting prompt
+        string greetingPrompt = $@"{returnContext}
+
+Generate a BRIEF welcome back greeting for user returning to Mission Control.
+
+REQUIREMENTS:
+- Maximum 2 sentences, under 20 words
+- Reference where they returned from
+- Be ready for next command
+- Conversational but professional
+
+Example: ""Welcome back from ISS. What's your next move?""";
+
+        Debug.Log($"[PromptConsole] Sending greeting generation request to OpenAI...");
+
+        // Generate greeting asynchronously (greeting prompt as user input, empty system prompt)
+        var greetingTask = _client.CompleteAsync(greetingPrompt, "", CancellationToken.None);
+        yield return new WaitUntil(() => greetingTask.IsCompleted);
+
+        Debug.Log($"[PromptConsole] OpenAI request completed - Success: {greetingTask.IsCompletedSuccessfully}");
+
+        if (greetingTask.IsCompletedSuccessfully)
+        {
+            string greeting = greetingTask.Result;
+            Debug.Log($"[PromptConsole] Generated greeting: '{greeting}'");
+
+            if (OutputText != null)
+            {
+                OutputText.text = $"Mission Control: {greeting}";
+                Debug.Log("[PromptConsole] Updated OutputText with greeting");
+            }
+
+            // Optionally play as audio
+            if (_elevenLabsClient != null && elevenLabsSettings != null)
+            {
+                Debug.Log("[PromptConsole] Starting audio generation for greeting...");
+                _ = PlayResponseAsAudioAsync(greeting, CancellationToken.None);
+            }
+            else
+            {
+                Debug.Log("[PromptConsole] Skipping audio - ElevenLabs client or settings not available");
+            }
+        }
+        else
+        {
+            Debug.LogError($"[PromptConsole] Greeting generation FAILED - Task status: {greetingTask.Status}");
+            if (greetingTask.Exception != null)
+            {
+                Debug.LogError($"[PromptConsole] Exception: {greetingTask.Exception.Message}");
+            }
+
+            if (OutputText != null)
+            {
+                OutputText.text = "Mission Control: Ready for your commands.";
+            }
+        }
+
+        Debug.Log("[PromptConsole] GenerateReturnGreeting coroutine complete");
     }
 
     // ---------------- Helper Classes ----------------

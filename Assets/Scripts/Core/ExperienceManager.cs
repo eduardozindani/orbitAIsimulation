@@ -72,20 +72,24 @@ namespace Core
         private AudioSource _musicSource;
 
         private static ExperienceManager _instance;
+        private static bool _hasPlayedIntroThisSession = false; // Static flag survives scene reloads and instance recreation
 
         // ---------------- Lifecycle ----------------
 
         void Awake()
         {
+            Debug.Log($"[ExperienceManager] Awake() called - Current _instance exists: {_instance != null}, This is new instance: {_instance != this}, _hasPlayedIntroThisSession={_hasPlayedIntroThisSession}");
+
             // Singleton pattern - only allow one ExperienceManager to exist
             if (_instance != null && _instance != this)
             {
-                Debug.LogWarning("[ExperienceManager] Duplicate instance detected - destroying this one");
+                Debug.LogWarning("[ExperienceManager] Duplicate instance detected - destroying this one (persisted instance continues)");
                 Destroy(gameObject);
                 return;
             }
 
             _instance = this;
+            Debug.Log("[ExperienceManager] Set as singleton instance, applying DontDestroyOnLoad");
 
             // Persist across all scenes so music continues playing
             DontDestroyOnLoad(gameObject);
@@ -103,14 +107,30 @@ namespace Core
 
         void Start()
         {
-            if (skipIntro)
+            // Safety check: Don't run Start() if this is a duplicate being destroyed
+            if (_instance != this)
             {
-                Debug.Log("[ExperienceManager] Skipping intro, going straight to Hub");
+                Debug.LogWarning("[ExperienceManager] Start() called on duplicate instance - ignoring");
+                return;
+            }
+
+            // Check if we're returning from a mission space (routing context exists)
+            bool returningFromMission = MissionContext.Instance != null &&
+                                       !string.IsNullOrEmpty(MissionContext.Instance.routingReason) &&
+                                       MissionContext.Instance.routingReason.Contains("Returning from");
+
+            Debug.Log($"[ExperienceManager] Start() - skipIntro={skipIntro}, _hasPlayedIntroThisSession={_hasPlayedIntroThisSession}, returningFromMission={returningFromMission}");
+
+            if (skipIntro || _hasPlayedIntroThisSession || returningFromMission)
+            {
+                Debug.Log("[ExperienceManager] Skipping intro (already played, skipIntro=true, or returning from mission) → Starting Hub directly");
+                _hasPlayedIntroThisSession = true; // Mark as played for future scene loads
                 StartHub();
             }
             else
             {
-                Debug.Log("[ExperienceManager] Starting intro cutscene");
+                Debug.Log("[ExperienceManager] Starting intro cutscene (first launch)");
+                _hasPlayedIntroThisSession = true;
                 StartIntro();
             }
         }

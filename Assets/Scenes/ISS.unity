@@ -331,6 +331,34 @@ PrefabInstance:
       propertyPath: m_Name
       value: SceneTransitionManager
       objectReference: {fileID: 0}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: gpsLogo
+      value: 
+      objectReference: {fileID: 21300000, guid: 1307c1bfb76804a71aa1ade8f8120dc6, type: 3}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: hubLogo
+      value: 
+      objectReference: {fileID: 21300000, guid: 793309c49ece74b08acfa40be8a0f658, type: 3}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: issLogo
+      value: 
+      objectReference: {fileID: 21300000, guid: fc8e228d1e85c44749d08e5f0e96668c, type: 3}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: hubbleLogo
+      value: 
+      objectReference: {fileID: 21300000, guid: 2cbe2105848c34281aef3ce8bea822fb, type: 3}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: voyagerLogo
+      value: 
+      objectReference: {fileID: 21300000, guid: ff2bf350d24f44d92a1af042a4746e57, type: 3}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: fadeCanvasGroup
+      value: 
+      objectReference: {fileID: 1082812435}
+    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
+      propertyPath: missionLogoImage
+      value: 
+      objectReference: {fileID: 881702189}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -863,6 +891,17 @@ Transform:
   - {fileID: 14240195}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &881702189 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4997700579210291043, guid: f088c757a77ad4e96b447273f3285662, type: 3}
+  m_PrefabInstance: {fileID: 791793612}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1022039586
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1034,6 +1073,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af46308ff817e4b93a628b821e9d89d0, type: 3}
+--- !u!225 &1082812435 stripped
+CanvasGroup:
+  m_CorrespondingSourceObject: {fileID: 6703631858371352270, guid: f088c757a77ad4e96b447273f3285662, type: 3}
+  m_PrefabInstance: {fileID: 791793612}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1132352055 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
