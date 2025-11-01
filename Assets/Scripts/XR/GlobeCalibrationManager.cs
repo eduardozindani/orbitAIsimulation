@@ -354,8 +354,8 @@ namespace XR
                 _spatialAnchor = earthPreview.AddComponent<OVRSpatialAnchor>();
             }
 
-            // Save anchor to Quest storage (using async method)
-            var result = await _spatialAnchor.SaveAsync();
+            // Save anchor to Quest storage (using newest API)
+            var result = await _spatialAnchor.SaveAnchorAsync();
             if (result.Success)
             {
                 Debug.Log("[GlobeCalibrationManager] ✓ Spatial anchor saved successfully");

@@ -40,13 +40,13 @@ namespace Core
         public float introCameraStartRadius = 50f;
 
         [Tooltip("Camera zoom duration in seconds (synced with audio narration)")]
-        public float cameraZoomDuration = 29f;
+        public float cameraZoomDuration = 28.7f;
 
         [Tooltip("Animation curve for smooth zoom (EaseInOut for cinematic feel)")]
         public AnimationCurve cameraZoomCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
         [Header("Audio")]
-        [Tooltip("Voice narration for intro (29 seconds)")]
+        [Tooltip("Voice narration for intro (28.7 seconds)")]
         public AudioClip introNarration;
 
         [Tooltip("Background music (loops continuously)")]
@@ -153,11 +153,18 @@ namespace Core
             }
 
             // Setup camera for intro animation (start far away in deep space)
-            if (cameraController != null)
+            // Only use desktop camera controller in non-XR mode
+            bool isXRMode = XRModeManager.Instance != null && XRModeManager.Instance.IsXRAvailable();
+
+            if (cameraController != null && !isXRMode)
             {
                 cameraController.allowExternalRadiusControl = true;
                 cameraController.SetRadius(introCameraStartRadius);
-                Debug.Log($"[ExperienceManager] Camera set to deep space (radius: {introCameraStartRadius})");
+                Debug.Log($"[ExperienceManager] Desktop mode - Camera set to deep space (radius: {introCameraStartRadius})");
+            }
+            else if (isXRMode)
+            {
+                Debug.Log("[ExperienceManager] VR mode - User camera controlled by XR tracking, no desktop animation");
             }
 
             // Disable user input console
@@ -205,11 +212,13 @@ namespace Core
                 satelliteOrbit.SetOrbitActive(true);
             }
 
-            // Return camera control to user
-            if (cameraController != null)
+            // Return camera control to user (desktop only)
+            bool isXRMode = XRModeManager.Instance != null && XRModeManager.Instance.IsXRAvailable();
+
+            if (cameraController != null && !isXRMode)
             {
                 cameraController.allowExternalRadiusControl = false;
-                Debug.Log("[ExperienceManager] Camera control returned to user");
+                Debug.Log("[ExperienceManager] Desktop mode - Camera control returned to user");
             }
 
             // Enable user input console
@@ -273,8 +282,16 @@ namespace Core
 
             if (isXRMode)
             {
-                // XR mode: Transition from VR intro to AR Hub
-                yield return TransitionToARHub();
+                // XR mode: Stay in Hub scene, just activate Hub features and enable AR
+                Debug.Log("[ExperienceManager] VR mode - activating Hub features in current scene");
+                StartHub();
+
+                // Switch to AR mode for passthrough
+                if (XRModeManager.Instance != null)
+                {
+                    XRModeManager.Instance.SwitchToAR();
+                    Debug.Log("[ExperienceManager] Switched to AR mode - passthrough should now be enabled");
+                }
             }
             else
             {

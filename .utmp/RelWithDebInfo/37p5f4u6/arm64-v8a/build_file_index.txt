@@ -1,0 +1,2 @@
+/Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/CMakeLists.txt
+/Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/CMakeLists.txt
