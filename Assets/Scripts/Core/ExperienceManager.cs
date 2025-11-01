@@ -71,10 +71,22 @@ namespace Core
         private AudioSource _narrationSource;
         private AudioSource _musicSource;
 
+        private static ExperienceManager _instance;
+
         // ---------------- Lifecycle ----------------
 
         void Awake()
         {
+            // Singleton pattern - only allow one ExperienceManager to exist
+            if (_instance != null && _instance != this)
+            {
+                Debug.LogWarning("[ExperienceManager] Duplicate instance detected - destroying this one");
+                Destroy(gameObject);
+                return;
+            }
+
+            _instance = this;
+
             // Persist across all scenes so music continues playing
             DontDestroyOnLoad(gameObject);
 

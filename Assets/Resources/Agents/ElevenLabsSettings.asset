@@ -17,4 +17,5 @@ MonoBehaviour:
   modelId: eleven_flash_v2_5
   stability: 0.7
   similarityBoost: 0.8
+  speed: 1
   baseUrl: https://api.elevenlabs.io/v1
