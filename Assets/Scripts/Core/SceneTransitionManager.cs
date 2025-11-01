@@ -239,8 +239,8 @@ public class SceneTransitionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Fade from black to transparent while simultaneously fading out the logo
-    /// This creates a smooth transition where both black screen and logo disappear together
+    /// Fade from black to transparent while fading out the logo faster
+    /// Logo fades out in first half of duration to ensure it always has black backing
     /// </summary>
     private IEnumerator FadeInWithLogo(float duration)
     {
@@ -250,12 +250,15 @@ public class SceneTransitionManager : MonoBehaviour
             yield break;
         }
 
-        // Get the logo's current alpha (should be from the pulse animation)
+        // Get the logo's current alpha (should be 1.0 from hold phase)
         float logoStartAlpha = 1f;
         if (missionLogoImage != null && missionLogoImage.gameObject.activeSelf)
         {
             logoStartAlpha = missionLogoImage.color.a;
         }
+
+        // Logo fades out in first half of duration (faster)
+        float logoFadeDuration = duration * 0.5f;
 
         float elapsed = 0f;
         while (elapsed < duration)
@@ -263,14 +266,15 @@ public class SceneTransitionManager : MonoBehaviour
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
 
-            // Fade out black screen
+            // Fade out black screen over full duration
             fadeCanvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
 
-            // Fade out logo at the same time
+            // Fade out logo faster (in first half of duration)
             if (missionLogoImage != null && missionLogoImage.gameObject.activeSelf)
             {
+                float logoT = Mathf.Clamp01(elapsed / logoFadeDuration);
                 Color logoColor = missionLogoImage.color;
-                logoColor.a = Mathf.Lerp(logoStartAlpha, 0f, t);
+                logoColor.a = Mathf.Lerp(logoStartAlpha, 0f, logoT);
                 missionLogoImage.color = logoColor;
             }
 
