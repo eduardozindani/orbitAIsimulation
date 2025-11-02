@@ -34,6 +34,9 @@ namespace Scenes.Hub
         [Tooltip("Skip intro and go straight to Hub (for testing)")]
         public bool skipIntro = false;
 
+        [Tooltip("Skip Hub welcome audio (for debugging - console activates immediately)")]
+        public bool skipHubWelcome = false;
+
         [Header("Camera Animation")]
         [Tooltip("Starting camera distance for intro (deep space)")]
         public float introCameraStartRadius = 50f;
@@ -229,20 +232,29 @@ namespace Scenes.Hub
                 introUI.HideIntro();
             }
 
-            // Play welcome audio on first Hub visit
-            if (!_hasPlayedHubWelcome && hubWelcome != null && _narrationSource != null)
+            // Play welcome audio on first Hub visit (unless skipHubWelcome is enabled)
+            if (!skipHubWelcome && !_hasPlayedHubWelcome && hubWelcome != null && _narrationSource != null)
             {
                 _hasPlayedHubWelcome = true;
                 StartCoroutine(PlayHubWelcomeSequence());
             }
             else
             {
-                // No welcome audio, enable console immediately
+                // No welcome audio or skipped, enable console immediately
                 if (promptConsole != null)
                 {
                     promptConsole.EnableConsole();
                 }
-                Debug.Log("[ExperienceManager] Hub is now active - user can interact");
+
+                // Log why welcome was skipped
+                if (skipHubWelcome)
+                {
+                    Debug.Log("[ExperienceManager] Hub welcome skipped (skipHubWelcome=true) - user can interact immediately");
+                }
+                else
+                {
+                    Debug.Log("[ExperienceManager] Hub is now active - user can interact");
+                }
             }
         }
 

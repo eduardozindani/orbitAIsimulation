@@ -77,6 +77,7 @@ public class PromptConsole : MonoBehaviour
     private ToolExecutor _specialistToolExecutor; // For mission specialists navigation
     private ElevenLabsClient _elevenLabsClient;
     private AudioSource _responseAudioSource;
+    private AudioSource _feedbackAudioSource; // For UI feedback sounds (beeps)
     private Core.Config.ElevenLabsSettings _activeVoiceSettings; // Current speaker voice (null = default CAPCOM)
     private string _specialistContext; // Mission-specific knowledge for specialists
     private bool _busy;
@@ -89,6 +90,10 @@ public class PromptConsole : MonoBehaviour
     private string _microphoneDevice;
     private const int RECORDING_FREQUENCY = 16000; // 16kHz for speech
     private const int MAX_RECORDING_LENGTH = 30; // 30 seconds max
+
+    // Procedural beep sounds
+    private AudioClip _recordStartBeep;
+    private AudioClip _recordStopBeep;
 
     // ---------------- Lifecycle ----------------
 
@@ -183,6 +188,16 @@ public class PromptConsole : MonoBehaviour
         _responseAudioSource.loop = false;
         _responseAudioSource.volume = 1f;
         _responseAudioSource.spatialBlend = 0f; // 2D audio (non-spatial) - ensures audio is heard regardless of camera position
+
+        // Create audio source for UI feedback sounds
+        _feedbackAudioSource = gameObject.AddComponent<AudioSource>();
+        _feedbackAudioSource.playOnAwake = false;
+        _feedbackAudioSource.loop = false;
+        _feedbackAudioSource.volume = 0.3f; // Quieter for subtle feedback
+        _feedbackAudioSource.spatialBlend = 0f; // 2D audio
+
+        // Create procedural beep sounds
+        CreateProceduralBeeps();
 
         _cts = new CancellationTokenSource();
 
@@ -327,7 +342,8 @@ public class PromptConsole : MonoBehaviour
         {
             _busy = true;
             InputField.interactable = false;
-            SafeSetOutput("Sending…");
+            // No visual feedback during processing
+            Debug.Log("[PromptConsole] Processing request...");
 
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
 
@@ -473,8 +489,8 @@ public class PromptConsole : MonoBehaviour
             _responseAudioSource.Stop();
         }
 
-        // Show loading message
-        SafeSetOutput("Mission Control is responding...");
+        // No visual feedback during processing
+        Debug.Log("[PromptConsole] Mission Control is responding...");
 
         // >>> STAGE 1: Extract tool call using ToolSelectionPrompt (with context)
         string contextualPrompt = BuildContextualPrompt(prompt);
@@ -915,7 +931,8 @@ Generate a conversational response:";
         try
         {
             _busy = true;
-            SafeSetOutput("Specialist arriving...");
+            // No visual feedback during specialist arrival
+            Debug.Log("[PromptConsole] Specialist arriving...");
 
             // Generate introduction text via OpenAI
             // Use simple input with specialist prompt as instructions
@@ -1124,11 +1141,12 @@ Generate a conversational response:";
         }
         else
         {
-            // First time or no context
-            Debug.Log("[PromptConsole] ✗ CONDITIONS NOT MET: Using default greeting");
+            // First time or no context - clean state, no text
+            Debug.Log("[PromptConsole] ✗ CONDITIONS NOT MET: Ready state (no visual)");
             if (OutputText != null)
             {
-                OutputText.text = "Mission Control: Ready. Press Space to speak.";
+                // Clean state - no text displayed
+                OutputText.text = "";
             }
         }
 
@@ -1146,11 +1164,8 @@ Generate a conversational response:";
         Debug.Log("[PromptConsole] ║ GENERATE RETURN GREETING COROUTINE STARTED");
         Debug.Log("[PromptConsole] ╚══════════════════════════════════════════════════════════");
 
-        if (OutputText != null)
-        {
-            OutputText.text = "Mission Control: Welcome back...";
-            Debug.Log("[PromptConsole] Set OutputText to temporary 'Welcome back...' message");
-        }
+        // No temporary message - keep it clean
+        Debug.Log("[PromptConsole] Generating return greeting (no visual)");
 
         // Get context from MissionContext
         string returnContext = "";
@@ -1190,13 +1205,10 @@ Example: ""Welcome back from ISS. What's your next move?""";
             string greeting = greetingTask.Result;
             Debug.Log($"[PromptConsole] Generated greeting: '{greeting}'");
 
-            if (OutputText != null)
-            {
-                OutputText.text = $"Mission Control: {greeting}";
-                Debug.Log("[PromptConsole] Updated OutputText with greeting");
-            }
+            // No text display - audio only experience
+            Debug.Log("[PromptConsole] Greeting ready for audio playback");
 
-            // Optionally play as audio
+            // Play as audio
             if (_elevenLabsClient != null && elevenLabsSettings != null)
             {
                 Debug.Log("[PromptConsole] Starting audio generation for greeting...");
@@ -1215,13 +1227,62 @@ Example: ""Welcome back from ISS. What's your next move?""";
                 Debug.LogError($"[PromptConsole] Exception: {greetingTask.Exception.Message}");
             }
 
-            if (OutputText != null)
-            {
-                OutputText.text = "Mission Control: Ready for your commands.";
-            }
+            // Silent failure - no default text
+            Debug.Log("[PromptConsole] Using silent ready state after greeting failure");
         }
 
         Debug.Log("[PromptConsole] GenerateReturnGreeting coroutine complete");
+    }
+
+    // ---------------- Procedural Audio Generation ----------------
+
+    /// <summary>
+    /// Creates procedural beep sounds for recording feedback
+    /// </summary>
+    private void CreateProceduralBeeps()
+    {
+        // Create start recording beep (higher frequency, shorter)
+        _recordStartBeep = CreateBeep(800f, 0.1f); // 800Hz for 0.1 seconds
+
+        // Create stop recording beep (lower frequency, slightly longer)
+        _recordStopBeep = CreateBeep(600f, 0.15f); // 600Hz for 0.15 seconds
+    }
+
+    /// <summary>
+    /// Creates a simple sine wave beep sound
+    /// </summary>
+    private AudioClip CreateBeep(float frequency, float duration)
+    {
+        int sampleRate = 44100;
+        int sampleCount = (int)(sampleRate * duration);
+        AudioClip beep = AudioClip.Create("Beep", sampleCount, 1, sampleRate, false);
+
+        float[] samples = new float[sampleCount];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            // Generate sine wave
+            float time = i / (float)sampleRate;
+            samples[i] = Mathf.Sin(2f * Mathf.PI * frequency * time);
+
+            // Apply envelope to avoid clicks (fade in/out)
+            float fadeTime = 0.01f; // 10ms fade
+            int fadeSamples = (int)(sampleRate * fadeTime);
+
+            if (i < fadeSamples)
+            {
+                // Fade in
+                samples[i] *= i / (float)fadeSamples;
+            }
+            else if (i > sampleCount - fadeSamples)
+            {
+                // Fade out
+                samples[i] *= (sampleCount - i) / (float)fadeSamples;
+            }
+        }
+
+        beep.SetData(samples, 0);
+        return beep;
     }
 
     // ---------------- Voice Recording Methods ----------------
@@ -1234,16 +1295,23 @@ Example: ""Welcome back from ISS. What's your next move?""";
         if (string.IsNullOrEmpty(_microphoneDevice))
         {
             Debug.LogError("[PromptConsole] No microphone available!");
+            // Keep this error visible as it's a critical failure
             SafeSetOutput("Error: No microphone detected");
             return;
+        }
+
+        // Play start recording beep
+        if (_feedbackAudioSource != null && _recordStartBeep != null)
+        {
+            _feedbackAudioSource.PlayOneShot(_recordStartBeep);
         }
 
         // Start recording
         _recordingClip = Microphone.Start(_microphoneDevice, false, MAX_RECORDING_LENGTH, RECORDING_FREQUENCY);
         _isRecording = true;
 
-        // Show recording feedback
-        SafeSetOutput("Listening... (Press Space to stop)");
+        // Show ONLY the red recording indicator - no text
+        SafeSetOutput("<color=#FF0000>●</color> Listening... (Press Space to stop)");
         Debug.Log("[PromptConsole] Started recording");
     }
 
@@ -1258,6 +1326,12 @@ Example: ""Welcome back from ISS. What's your next move?""";
             return;
         }
 
+        // Play stop recording beep
+        if (_feedbackAudioSource != null && _recordStopBeep != null)
+        {
+            _feedbackAudioSource.PlayOneShot(_recordStopBeep);
+        }
+
         // Stop recording
         int recordingPosition = Microphone.GetPosition(_microphoneDevice);
         Microphone.End(_microphoneDevice);
@@ -1268,8 +1342,8 @@ Example: ""Welcome back from ISS. What's your next move?""";
         // Check if we recorded anything
         if (recordingPosition <= 0)
         {
-            Debug.LogWarning("[PromptConsole] No audio recorded");
-            SafeSetOutput("No audio detected. Press Space to try again.");
+            Debug.LogWarning("[PromptConsole] No audio recorded - silent fail");
+            // Silent failure - no visual feedback
             return;
         }
 
@@ -1277,8 +1351,9 @@ Example: ""Welcome back from ISS. What's your next move?""";
         float recordingLength = (float)recordingPosition / RECORDING_FREQUENCY;
         AudioClip trimmedClip = TrimAudioClip(_recordingClip, recordingLength);
 
-        // Show transcribing status
-        SafeSetOutput("Transcribing...");
+        // Clear the recording indicator - processing happens silently
+        SafeSetOutput("");
+        Debug.Log("[PromptConsole] Transcribing audio...");
 
         try
         {
@@ -1300,20 +1375,20 @@ Example: ""Welcome back from ISS. What's your next move?""";
                 }
                 else
                 {
-                    Debug.LogError("[PromptConsole] Transcription failed - no text returned");
-                    SafeSetOutput("Transcription failed. Press Space to try again.");
+                    Debug.LogError("[PromptConsole] Transcription failed - no text returned (silent)");
+                    // Silent failure - no visual feedback
                 }
             }
             else
             {
-                Debug.LogError("[PromptConsole] ElevenLabsClient not initialized");
-                SafeSetOutput("Speech-to-text not available");
+                Debug.LogError("[PromptConsole] ElevenLabsClient not initialized (silent)");
+                // Silent failure - no visual feedback
             }
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[PromptConsole] Transcription error: {ex.Message}");
-            SafeSetOutput($"Error: {ex.Message}");
+            Debug.LogError($"[PromptConsole] Transcription error: {ex.Message} (silent)");
+            // Silent failure - no visual feedback
         }
     }
 
@@ -1326,8 +1401,8 @@ Example: ""Welcome back from ISS. What's your next move?""";
         {
             Microphone.End(_microphoneDevice);
             _isRecording = false;
-            SafeSetOutput("Recording cancelled. Press Space to record.");
-            Debug.Log("[PromptConsole] Recording cancelled");
+            // Silent cancellation - no visual feedback
+            Debug.Log("[PromptConsole] Recording cancelled (silent)");
         }
     }
 

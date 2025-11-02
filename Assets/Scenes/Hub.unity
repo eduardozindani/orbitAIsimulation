@@ -910,6 +910,7 @@ MonoBehaviour:
   currentState: 0
   introDuration: 32
   skipIntro: 1
+  skipHubWelcome: 1
   introCameraStartRadius: 50
   cameraZoomDuration: 32
   cameraZoomCurve:
@@ -937,6 +938,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   introNarration: {fileID: 8300000, guid: 91c620a58d832463abf6e397031b9bd1, type: 3}
+  hubWelcome: {fileID: 8300000, guid: 37ac430a162e24d6a94ebd5006c5f6b5, type: 3}
   backgroundMusic: {fileID: 8300000, guid: 1dbd5127839024e4f99605cdbf5634e7, type: 3}
   musicVolume: 0.4
   satelliteOrbit: {fileID: 1065534242}
@@ -1647,6 +1649,14 @@ PrefabInstance:
     - target: {fileID: 2049481108817984537, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
       propertyPath: m_Name
       value: PromptConsole
+      objectReference: {fileID: 0}
+    - target: {fileID: 4893729806921361182, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
+      propertyPath: m_text
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5131639524114735821, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6476490834570632923, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
       propertyPath: m_Pivot.x

@@ -163,6 +163,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: PromptConsole
       objectReference: {fileID: 0}
+    - target: {fileID: 4893729806921361182, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
+      propertyPath: m_text
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5131639524114735821, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6476490834570632923, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
       propertyPath: m_Pivot.x
       value: 0
