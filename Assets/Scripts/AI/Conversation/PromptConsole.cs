@@ -82,6 +82,13 @@ public class PromptConsole : MonoBehaviour
     private bool _busy;
     private CancellationTokenSource _cts;
 
+    // Voice recording variables
+    private bool _isRecording = false;
+    private AudioClip _recordingClip;
+    private string _microphoneDevice;
+    private const int RECORDING_FREQUENCY = 16000; // 16kHz for speech
+    private const int MAX_RECORDING_LENGTH = 30; // 30 seconds max
+
     // ---------------- Lifecycle ----------------
 
     private void Awake()
@@ -177,6 +184,24 @@ public class PromptConsole : MonoBehaviour
         _responseAudioSource.spatialBlend = 0f; // 2D audio (non-spatial) - ensures audio is heard regardless of camera position
 
         _cts = new CancellationTokenSource();
+
+        // Initialize microphone
+        InitializeMicrophone();
+    }
+
+    private void InitializeMicrophone()
+    {
+        // Get available microphone devices
+        string[] devices = Microphone.devices;
+        if (devices.Length > 0)
+        {
+            _microphoneDevice = devices[0]; // Use first available microphone
+            Debug.Log($"[PromptConsole] Microphone initialized: {_microphoneDevice}");
+        }
+        else
+        {
+            Debug.LogWarning("[PromptConsole] No microphone detected! Voice input will not be available.");
+        }
     }
 
     private void OnEnable()
@@ -191,8 +216,21 @@ public class PromptConsole : MonoBehaviour
 
     private void Start()
     {
-        // Give user immediate focus so Enter works right away.
-        ActivateInputSafely();
+        // Hide input field for voice-only interaction
+        if (InputField != null)
+        {
+            // Make input field invisible but keep it functional
+            var canvasGroup = InputField.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = InputField.gameObject.AddComponent<CanvasGroup>();
+            }
+            canvasGroup.alpha = 0f; // Make invisible
+            canvasGroup.interactable = false; // Disable interaction
+            canvasGroup.blocksRaycasts = false; // Don't block mouse
+
+            Debug.Log("[PromptConsole] Input field hidden for voice input mode");
+        }
     }
 
     private void OnDisable()
@@ -218,42 +256,30 @@ public class PromptConsole : MonoBehaviour
 
     private void Update()
     {
-        if (!SubmitOnEnter || InputField == null)
-            return;
-
-        // Auto-refocus when user starts typing (any key) but field isn't focused
-        if (!InputField.isFocused && !_busy)
+        // Handle Space key for voice recording toggle
+        if (Input.GetKeyDown(KeyCode.Space) && !_busy)
         {
-            if (Input.anyKeyDown && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1))
+            if (!_isRecording)
             {
-                // User is trying to type but field isn't focused - refocus it
-                ActivateInputSafely();
-            }
-        }
-
-        if (!InputField.isFocused)
-            return;
-
-        // Enter or keypad Enter
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-        {
-            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-
-            if (AllowShiftEnterNewline && shift)
-            {
-                InsertNewlineAtCaret();
+                StartRecording();
             }
             else
             {
-                // Fire-and-forget; guarded inside.
-                _ = SubmitAsync();
+                StopRecordingAndTranscribe();
             }
         }
 
-        // Optional: ESC cancels an in-flight request
-        if (Input.GetKeyDown(KeyCode.Escape) && _busy)
+        // Optional: ESC cancels recording or in-flight request
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            CancelInFlight();
+            if (_isRecording)
+            {
+                CancelRecording();
+            }
+            else if (_busy)
+            {
+                CancelInFlight();
+            }
         }
     }
 
@@ -1083,12 +1109,11 @@ Generate a conversational response:";
             Debug.Log("[PromptConsole] ✗ CONDITIONS NOT MET: Using default greeting");
             if (OutputText != null)
             {
-                OutputText.text = "Mission Control: Ready for your commands.";
+                OutputText.text = "Mission Control: Ready. Press Space to speak.";
             }
         }
 
-        // Give input field focus
-        ActivateInputSafely();
+        // No need to activate input field in voice mode
 
         Debug.Log("[PromptConsole] Console enabled - Hub is active");
     }
@@ -1178,6 +1203,138 @@ Example: ""Welcome back from ISS. What's your next move?""";
         }
 
         Debug.Log("[PromptConsole] GenerateReturnGreeting coroutine complete");
+    }
+
+    // ---------------- Voice Recording Methods ----------------
+
+    /// <summary>
+    /// Start recording audio from microphone
+    /// </summary>
+    private void StartRecording()
+    {
+        if (string.IsNullOrEmpty(_microphoneDevice))
+        {
+            Debug.LogError("[PromptConsole] No microphone available!");
+            SafeSetOutput("Error: No microphone detected");
+            return;
+        }
+
+        // Start recording
+        _recordingClip = Microphone.Start(_microphoneDevice, false, MAX_RECORDING_LENGTH, RECORDING_FREQUENCY);
+        _isRecording = true;
+
+        // Show recording feedback
+        SafeSetOutput("Listening... (Press Space to stop)");
+        Debug.Log("[PromptConsole] Started recording");
+    }
+
+    /// <summary>
+    /// Stop recording and transcribe the audio
+    /// </summary>
+    private async void StopRecordingAndTranscribe()
+    {
+        if (!_isRecording || _recordingClip == null)
+        {
+            Debug.LogWarning("[PromptConsole] Not recording");
+            return;
+        }
+
+        // Stop recording
+        int recordingPosition = Microphone.GetPosition(_microphoneDevice);
+        Microphone.End(_microphoneDevice);
+        _isRecording = false;
+
+        Debug.Log($"[PromptConsole] Stopped recording at position {recordingPosition}");
+
+        // Check if we recorded anything
+        if (recordingPosition <= 0)
+        {
+            Debug.LogWarning("[PromptConsole] No audio recorded");
+            SafeSetOutput("No audio detected. Press Space to try again.");
+            return;
+        }
+
+        // Trim the audio clip to actual recording length
+        float recordingLength = (float)recordingPosition / RECORDING_FREQUENCY;
+        AudioClip trimmedClip = TrimAudioClip(_recordingClip, recordingLength);
+
+        // Show transcribing status
+        SafeSetOutput("Transcribing...");
+
+        try
+        {
+            // Transcribe audio using ElevenLabs Scribe
+            if (_elevenLabsClient != null)
+            {
+                string transcribedText = await _elevenLabsClient.SpeechToTextAsync(trimmedClip, _cts.Token);
+
+                if (!string.IsNullOrEmpty(transcribedText))
+                {
+                    Debug.Log($"[PromptConsole] Transcribed: {transcribedText}");
+
+                    // Put transcribed text in input field and submit
+                    if (InputField != null)
+                    {
+                        InputField.text = transcribedText;
+                        await SubmitAsync();
+                    }
+                }
+                else
+                {
+                    Debug.LogError("[PromptConsole] Transcription failed - no text returned");
+                    SafeSetOutput("Transcription failed. Press Space to try again.");
+                }
+            }
+            else
+            {
+                Debug.LogError("[PromptConsole] ElevenLabsClient not initialized");
+                SafeSetOutput("Speech-to-text not available");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[PromptConsole] Transcription error: {ex.Message}");
+            SafeSetOutput($"Error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Cancel recording without transcribing
+    /// </summary>
+    private void CancelRecording()
+    {
+        if (_isRecording)
+        {
+            Microphone.End(_microphoneDevice);
+            _isRecording = false;
+            SafeSetOutput("Recording cancelled. Press Space to record.");
+            Debug.Log("[PromptConsole] Recording cancelled");
+        }
+    }
+
+    /// <summary>
+    /// Trim AudioClip to actual recording length
+    /// </summary>
+    private AudioClip TrimAudioClip(AudioClip originalClip, float lengthInSeconds)
+    {
+        if (originalClip == null) return null;
+
+        int samples = Mathf.RoundToInt(lengthInSeconds * originalClip.frequency);
+        samples = Mathf.Min(samples, originalClip.samples);
+
+        float[] data = new float[samples * originalClip.channels];
+        originalClip.GetData(data, 0);
+
+        AudioClip trimmedClip = AudioClip.Create(
+            "TrimmedRecording",
+            samples,
+            originalClip.channels,
+            originalClip.frequency,
+            false
+        );
+        trimmedClip.SetData(data, 0);
+
+        return trimmedClip;
     }
 
     // ---------------- Helper Classes ----------------

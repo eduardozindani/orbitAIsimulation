@@ -10,8 +10,8 @@ using Core.Config;
 namespace AI.Services
 {
     /// <summary>
-    /// Client for ElevenLabs text-to-speech API.
-    /// Converts text responses into audio using Mission Control's voice.
+    /// Client for ElevenLabs text-to-speech and speech-to-text APIs.
+    /// Converts text responses into audio and transcribes voice input using Scribe v2.
     /// </summary>
     public class ElevenLabsClient
     {
@@ -214,6 +214,167 @@ namespace AI.Services
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Convert speech audio to text using ElevenLabs Scribe v2 API
+        /// </summary>
+        /// <param name="audioClip">AudioClip containing speech to transcribe</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Transcribed text if successful, null if failed</returns>
+        public async Task<string> SpeechToTextAsync(AudioClip audioClip, CancellationToken cancellationToken = default)
+        {
+            if (audioClip == null)
+            {
+                Debug.LogError("[ElevenLabsClient] No audio clip provided for transcription");
+                return null;
+            }
+
+            try
+            {
+                Debug.Log($"[ElevenLabsClient] Starting speech-to-text for clip: {audioClip.length}s, {audioClip.frequency}Hz");
+
+                // Convert AudioClip to WAV bytes
+                byte[] wavData = ConvertAudioClipToWav(audioClip);
+                if (wavData == null || wavData.Length == 0)
+                {
+                    Debug.LogError("[ElevenLabsClient] Failed to convert AudioClip to WAV");
+                    return null;
+                }
+
+                Debug.Log($"[ElevenLabsClient] WAV data size: {wavData.Length} bytes");
+
+                // Build request URL for Scribe v2
+                // The speech-to-text endpoint
+                string url = $"{_settings.baseUrl}/speech-to-text";
+
+                // Create form data with the audio file
+                var form = new WWWForm();
+                // Send as "file" field - this is what most APIs expect
+                form.AddBinaryData("file", wavData, "recording.wav", "audio/wav");
+                // Add model_id parameter - using scribe v1 as per logs
+                form.AddField("model_id", "scribe_v1");
+
+                // Create UnityWebRequest
+                using (UnityWebRequest request = UnityWebRequest.Post(url, form))
+                {
+                    // Add API key header
+                    request.SetRequestHeader("xi-api-key", _settings.apiKey);
+
+                    Debug.Log("[ElevenLabsClient] Sending STT request to Scribe v2...");
+
+                    // Send request
+                    var operation = request.SendWebRequest();
+
+                    // Wait for completion
+                    while (!operation.isDone)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            request.Abort();
+                            Debug.Log("[ElevenLabsClient] STT request cancelled");
+                            return null;
+                        }
+                        await Task.Yield();
+                    }
+
+                    // Check for errors
+                    if (request.result != UnityWebRequest.Result.Success)
+                    {
+                        Debug.LogError($"[ElevenLabsClient] STT request failed: {request.error}");
+                        Debug.LogError($"[ElevenLabsClient] Response code: {request.responseCode}");
+                        if (!string.IsNullOrEmpty(request.downloadHandler.text))
+                        {
+                            Debug.LogError($"[ElevenLabsClient] Response: {request.downloadHandler.text}");
+                        }
+                        return null;
+                    }
+
+                    // Parse response
+                    string responseText = request.downloadHandler.text;
+                    Debug.Log($"[ElevenLabsClient] STT response: {responseText}");
+
+                    // Parse JSON response to get transcribed text
+                    var response = JsonConvert.DeserializeObject<ScribeResponse>(responseText);
+                    if (response != null && !string.IsNullOrEmpty(response.text))
+                    {
+                        Debug.Log($"[ElevenLabsClient] Transcribed text: {response.text}");
+                        return response.text;
+                    }
+                    else
+                    {
+                        Debug.LogError("[ElevenLabsClient] No text in transcription response");
+                        return null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[ElevenLabsClient] Exception during STT: {ex.Message}");
+                Debug.LogError($"[ElevenLabsClient] Stack trace: {ex.StackTrace}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Unity AudioClip to WAV byte array
+        /// </summary>
+        private byte[] ConvertAudioClipToWav(AudioClip clip)
+        {
+            if (clip == null) return null;
+
+            // Get audio data from clip
+            float[] samples = new float[clip.samples * clip.channels];
+            clip.GetData(samples, 0);
+
+            // Convert to 16-bit PCM
+            short[] intData = new short[samples.Length];
+            for (int i = 0; i < samples.Length; i++)
+            {
+                intData[i] = (short)(samples[i] * 32767f);
+            }
+
+            // Create WAV file in memory
+            byte[] wavData;
+            using (var memoryStream = new System.IO.MemoryStream())
+            using (var writer = new System.IO.BinaryWriter(memoryStream))
+            {
+                // WAV header
+                writer.Write(new char[4] { 'R', 'I', 'F', 'F' });
+                writer.Write(36 + intData.Length * 2); // File size
+                writer.Write(new char[4] { 'W', 'A', 'V', 'E' });
+                writer.Write(new char[4] { 'f', 'm', 't', ' ' });
+                writer.Write(16); // Subchunk1 size (16 for PCM)
+                writer.Write((short)1); // Audio format (1 for PCM)
+                writer.Write((short)clip.channels);
+                writer.Write(clip.frequency);
+                writer.Write(clip.frequency * clip.channels * 2); // Byte rate
+                writer.Write((short)(clip.channels * 2)); // Block align
+                writer.Write((short)16); // Bits per sample
+                writer.Write(new char[4] { 'd', 'a', 't', 'a' });
+                writer.Write(intData.Length * 2); // Data size
+
+                // Write audio data
+                foreach (short value in intData)
+                {
+                    writer.Write(value);
+                }
+
+                writer.Flush();
+                wavData = memoryStream.ToArray();
+            }
+
+            return wavData;
+        }
+
+        /// <summary>
+        /// Response structure from Scribe API
+        /// </summary>
+        [System.Serializable]
+        private class ScribeResponse
+        {
+            public string text;
+            public float confidence;
         }
     }
 }
