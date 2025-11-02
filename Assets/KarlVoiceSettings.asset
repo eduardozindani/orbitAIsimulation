@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: KarlVoiceSettings
   m_EditorClassIdentifier:
   apiKey: sk_3ec3c03f00fce191107dd999afd752104d169cb833b57d24
-  voiceId: MFZUKuGQUsGJPQjTS4wC
+  voiceId: t1oG32lG6Z6edP2XJLiz
   modelId: eleven_flash_v2_5
   stability: 0.75
   similarityBoost: 0.85
-  speed: 1
+  speed: 0.9
   baseUrl: https://api.elevenlabs.io/v1

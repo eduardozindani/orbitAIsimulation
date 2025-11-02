@@ -912,8 +912,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentState: 0
   introDuration: 32
-  skipIntro: 0
-  skipHubWelcome: 0
+  skipIntro: 1
+  skipHubWelcome: 1
   introCameraStartRadius: 50
   cameraZoomDuration: 32
   cameraZoomCurve:
