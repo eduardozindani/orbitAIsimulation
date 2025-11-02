@@ -9,7 +9,7 @@ public class TimeController : MonoBehaviour
 {
     [Header("Time Speed Presets")]
     [Tooltip("Available time multipliers (1x = real-time)")]
-    public float[] speedPresets = { 1f, 10f, 20f, 50f, 100f };
+    public float[] speedPresets = { 1f, 10f, 50f, 100f, 250f, 500f };
 
     [Header("Keyboard Controls")]
     [Tooltip("Enable keyboard shortcuts for manual control (disabled by default - use AI control instead)")]
@@ -96,7 +96,7 @@ public class TimeController : MonoBehaviour
     public void SetSpeed(float multiplier)
     {
         multiplier = Mathf.Max(0.1f, multiplier); // Minimum 0.1x
-        multiplier = Mathf.Min(1000f, multiplier); // Maximum 1000x
+        multiplier = Mathf.Min(500f, multiplier); // Maximum 500x
 
         currentSpeed = multiplier;
 
