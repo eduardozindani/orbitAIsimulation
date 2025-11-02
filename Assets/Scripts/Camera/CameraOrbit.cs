@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Reflection;
+using System.Collections;
 
 // XR Input support for Quest controllers
 #if UNITY_ANDROID || UNITY_STANDALONE
@@ -41,10 +43,42 @@ public class CameraSphereController : MonoBehaviour
     [HideInInspector]
     public bool allowExternalRadiusControl = false;
 
+    // VR support
+    private Transform _trackingSpace;
+    private bool _isVR = false;
+    private bool _debugLoggedOnce = false; // Only log once per session
+
     void Start()
     {
+        // Detect VR mode
+        #if UNITY_ANDROID || UNITY_STANDALONE
+        _isVR = UnityEngine.XR.XRSettings.isDeviceActive;
+        #endif
+
+        // Find camera reference
         if (cam == null)
-            cam = GetComponentInChildren<Camera>().transform;
+        {
+            if (_isVR)
+            {
+                // VR: Try to find OVR camera rig structure
+                _trackingSpace = FindTrackingSpace();
+                if (_trackingSpace != null)
+                {
+                    // Find camera in OVR rig (LeftEyeAnchor or RightEyeAnchor)
+                    Camera ovrCamera = _trackingSpace.GetComponentInChildren<Camera>();
+                    if (ovrCamera != null)
+                    {
+                        cam = ovrCamera.transform;
+                    }
+                }
+            }
+            
+            // Fallback: use standard camera discovery
+            if (cam == null)
+            {
+                cam = GetComponentInChildren<Camera>().transform;
+            }
+        }
 
         // set initial orientation and distance
         yaw    = initialYaw;
@@ -55,6 +89,45 @@ public class CameraSphereController : MonoBehaviour
         {
             radius = Mathf.Clamp(startRadius, minRadius, maxRadius);
         }
+
+        // Debug: Log initial state in VR mode
+        #if UNITY_ANDROID || UNITY_STANDALONE
+        if (_isVR)
+        {
+            Debug.Log($"[CameraSphereController] Start() - VR Mode Detected");
+            Debug.Log($"[CameraSphereController] TrackingSpace found: {_trackingSpace != null}");
+            if (_trackingSpace != null)
+            {
+                Debug.Log($"[CameraSphereController] TrackingSpace: {_trackingSpace.name}, active: {_trackingSpace.gameObject.activeSelf}");
+                
+                // Check eye cameras
+                Transform leftEye = _trackingSpace.Find("LeftEyeAnchor");
+                Transform rightEye = _trackingSpace.Find("RightEyeAnchor");
+                Debug.Log($"[CameraSphereController] LeftEyeAnchor: {(leftEye != null ? leftEye.name + (leftEye.gameObject.activeSelf ? " (active)" : " (inactive)") : "NOT FOUND")}");
+                Debug.Log($"[CameraSphereController] RightEyeAnchor: {(rightEye != null ? rightEye.name + (rightEye.gameObject.activeSelf ? " (active)" : " (inactive)") : "NOT FOUND")}");
+                
+                if (leftEye != null)
+                {
+                    Camera leftCam = leftEye.GetComponent<Camera>();
+                    Debug.Log($"[CameraSphereController] LeftEye Camera: {(leftCam != null ? "EXISTS, enabled: " + leftCam.enabled : "MISSING")}");
+                }
+            }
+            Debug.Log($"[CameraSphereController] cam reference: {(cam != null ? cam.name : "NULL")}");
+            
+            // Check OVRCameraRig component
+            Component[] components = GetComponents<Component>();
+            foreach (var comp in components)
+            {
+                if (comp.GetType().Name == "OVRCameraRig")
+                {
+                    MonoBehaviour mb = comp as MonoBehaviour;
+                    bool isEnabled = mb != null ? mb.enabled : true;
+                    Debug.Log($"[CameraSphereController] OVRCameraRig found, enabled: {isEnabled}");
+                    break;
+                }
+            }
+        }
+        #endif
 
         UpdateCamera();
     }
@@ -84,10 +157,178 @@ public class CameraSphereController : MonoBehaviour
 
     void UpdateCamera()
     {
-        Quaternion rot = Quaternion.Euler(pitch, yaw, 0f);
-        Vector3 pos = transform.position + rot * Vector3.back * radius;
-        cam.position = pos;
-        cam.LookAt(transform.position, Vector3.up);
+        // Re-detect VR mode in case it changes
+        #if UNITY_ANDROID || UNITY_STANDALONE
+        _isVR = UnityEngine.XR.XRSettings.isDeviceActive;
+        #endif
+
+        if (!_isVR)
+        {
+            // Desktop: existing behavior (position + LookAt)
+            Quaternion rot = Quaternion.Euler(pitch, yaw, 0f);
+            Vector3 pos = transform.position + rot * Vector3.back * radius;
+            cam.position = pos;
+            cam.LookAt(transform.position, Vector3.up);
+        }
+        else
+        {
+            // VR: Keep CameraRig at identity rotation (OVR requires this for head tracking)
+            // Position and rotate TrackingSpace instead to achieve orbit effect
+            transform.rotation = Quaternion.identity; // Critical: OVR needs CameraRig at identity
+
+            // Position TrackingSpace relative to pivot (orbit radius)
+            // OVRCameraRig will handle camera rotation via head tracking
+            if (_trackingSpace == null)
+            {
+                _trackingSpace = FindTrackingSpace();
+            }
+
+            if (_trackingSpace != null)
+            {
+                // Calculate orbit position in world space
+                Quaternion orbitRot = Quaternion.Euler(pitch, yaw, 0f);
+                Vector3 orbitOffset = orbitRot * Vector3.back * radius;
+                
+                // Position TrackingSpace at orbit distance (world space)
+                _trackingSpace.position = transform.position + orbitOffset;
+                
+                // Orient TrackingSpace to face Earth (provides natural "forward" direction)
+                // OVR applies head tracking as LOCAL rotations on eye anchors relative to this
+                Vector3 lookDir = transform.position - _trackingSpace.position;
+                if (lookDir.sqrMagnitude > 0.01f)
+                {
+                    _trackingSpace.rotation = Quaternion.LookRotation(lookDir, Vector3.up);
+                }
+                
+                // Debug: Log once to verify eye cameras and check if OVR is updating rotation
+                if (!_debugLoggedOnce)
+                {
+                    Transform leftEye = _trackingSpace.Find("LeftEyeAnchor");
+                    Transform rightEye = _trackingSpace.Find("RightEyeAnchor");
+                    Transform centerEye = _trackingSpace.Find("CenterEyeAnchor");
+                    
+                    Debug.Log($"[CameraSphereController] VR Path: TrackingSpace found");
+                    Debug.Log($"[CameraSphereController] TrackingSpace world pos: {_trackingSpace.position}, world rot: {_trackingSpace.rotation.eulerAngles}");
+                    Debug.Log($"[CameraSphereController] CameraRig rotation: {transform.rotation.eulerAngles} (should be identity)");
+                    Debug.Log($"[CameraSphereController] Orbit: pitch={pitch}, yaw={yaw}, radius={radius}");
+                    
+                    if (leftEye != null)
+                    {
+                        Camera leftCam = leftEye.GetComponent<Camera>();
+                        Debug.Log($"[CameraSphereController] LeftEyeAnchor - local rot: {leftEye.localRotation.eulerAngles}, cam enabled: {(leftCam != null ? leftCam.enabled.ToString() : "NO CAMERA")}");
+                    }
+                    if (centerEye != null)
+                    {
+                        Camera centerCam = centerEye.GetComponent<Camera>();
+                        Debug.Log($"[CameraSphereController] CenterEyeAnchor - local rot: {centerEye.localRotation.eulerAngles}, cam enabled: {(centerCam != null ? centerCam.enabled.ToString() : "NO CAMERA")}");
+                    }
+                    if (rightEye != null)
+                    {
+                        Camera rightCam = rightEye.GetComponent<Camera>();
+                        Debug.Log($"[CameraSphereController] RightEyeAnchor - local rot: {rightEye.localRotation.eulerAngles}, cam enabled: {(rightCam != null ? rightCam.enabled.ToString() : "NO CAMERA")}");
+                    }
+                    
+                    // Schedule a delayed check to see if eye rotation changes (OVR should update it)
+                    StartCoroutine(CheckEyeCameraRotation(leftEye, centerEye));
+                    
+                    _debugLoggedOnce = true;
+                }
+                // DO NOT modify camera rotation - let OVR handle head tracking
+            }
+            else
+            {
+                // Fallback: if no TrackingSpace found, use standard camera positioning
+                // But still don't force LookAt to allow head tracking
+                if (!_debugLoggedOnce)
+                {
+                    Debug.LogWarning($"[CameraSphereController] VR Mode but TrackingSpace NOT FOUND - using fallback path with cam: {(cam != null ? cam.name : "NULL")}");
+                    _debugLoggedOnce = true;
+                }
+                Quaternion rot2 = Quaternion.Euler(pitch, yaw, 0f);
+                Vector3 pos = transform.position + rot2 * Vector3.back * radius;
+                cam.position = pos;
+                // Don't call LookAt in VR - let XR system handle rotation
+            }
+        }
+    }
+
+    /// <summary>
+    /// Find OVR TrackingSpace transform (used for VR head tracking)
+    /// </summary>
+    private Transform FindTrackingSpace()
+    {
+        #if UNITY_ANDROID || UNITY_STANDALONE
+        // Method 1: Find by name (OVRCameraRig creates TrackingSpace as child)
+        Transform trackingSpace = transform.Find("TrackingSpace");
+        if (trackingSpace != null)
+        {
+            return trackingSpace;
+        }
+
+        // Method 2: Find OVRCameraRig component and get its tracking space reference
+        // Use reflection to avoid compile errors if OVR namespace not available
+        Component[] components = GetComponents<Component>();
+        Component ovrRig = null;
+        foreach (var comp in components)
+        {
+            if (comp.GetType().Name == "OVRCameraRig")
+            {
+                ovrRig = comp;
+                break;
+            }
+        }
+        
+        if (ovrRig != null)
+        {
+            // Try to get trackingSpace property via reflection
+            var trackingSpaceProp = ovrRig.GetType().GetProperty("trackingSpace");
+            if (trackingSpaceProp != null)
+            {
+                var trackingSpaceObj = trackingSpaceProp.GetValue(ovrRig);
+                if (trackingSpaceObj is Transform ts)
+                {
+                    return ts;
+                }
+            }
+            
+            // Alternative: TrackingSpace might be a child
+            trackingSpace = ovrRig.transform.Find("TrackingSpace");
+            if (trackingSpace != null)
+            {
+                return trackingSpace;
+            }
+        }
+        #endif
+
+        return null;
+    }
+
+    /// <summary>
+    /// Coroutine to check if eye camera rotation changes (verifies OVR head tracking is working)
+    /// </summary>
+    private IEnumerator CheckEyeCameraRotation(Transform leftEye, Transform centerEye)
+    {
+        if (leftEye == null && centerEye == null) yield break;
+        
+        Transform eyeToCheck = centerEye != null ? centerEye : leftEye;
+        Quaternion initialRot = eyeToCheck.localRotation;
+        
+        // Wait 0.5 seconds
+        yield return new WaitForSeconds(0.5f);
+        
+        Quaternion afterRot = eyeToCheck.localRotation;
+        
+        float angleDiff = Quaternion.Angle(initialRot, afterRot);
+        Debug.Log($"[CameraSphereController] Eye rotation check (0.5s later): Initial={initialRot.eulerAngles}, After={afterRot.eulerAngles}, Change={angleDiff}°");
+        
+        if (angleDiff > 1f)
+        {
+            Debug.Log($"[CameraSphereController] ✓ OVR IS updating eye camera rotation (head tracking working)");
+        }
+        else
+        {
+            Debug.LogWarning($"[CameraSphereController] ✗ OVR is NOT updating eye camera rotation - rotation is static! This indicates OVR head tracking is blocked or not working.");
+        }
     }
 
     // ---------------- External Control (for intro cutscene) ----------------

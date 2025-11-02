@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8325255563373306493}
   - component: {fileID: 5795000516643317526}
+  - component: {fileID: -3685194747616981791}
   m_Layer: 0
   m_Name: CameraRig
   m_TagString: Untagged
@@ -57,6 +58,21 @@ MonoBehaviour:
   minRadius: 6
   maxRadius: 50
   allowExternalRadiusControl: 0
+--- !u!114 &-3685194747616981791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3495054044478215450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df9f338034892c44ebb62d97894772f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  usePerEyeCameras: 0
+  useFixedUpdateForTracking: 0
+  disableEyeAnchorCameras: 0
 --- !u!1 &8788562560234888284
 GameObject:
   m_ObjectHideFlags: 0
