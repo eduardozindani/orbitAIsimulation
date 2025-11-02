@@ -2,7 +2,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UI;
-using XR;
 
 namespace Core
 {
@@ -153,18 +152,11 @@ namespace Core
             }
 
             // Setup camera for intro animation (start far away in deep space)
-            // Only use desktop camera controller in non-XR mode
-            bool isXRMode = XRModeManager.Instance != null && XRModeManager.Instance.IsXRAvailable();
-
-            if (cameraController != null && !isXRMode)
+            if (cameraController != null)
             {
                 cameraController.allowExternalRadiusControl = true;
                 cameraController.SetRadius(introCameraStartRadius);
-                Debug.Log($"[ExperienceManager] Desktop mode - Camera set to deep space (radius: {introCameraStartRadius})");
-            }
-            else if (isXRMode)
-            {
-                Debug.Log("[ExperienceManager] VR mode - User camera controlled by XR tracking, no desktop animation");
+                Debug.Log($"[ExperienceManager] Camera set to deep space (radius: {introCameraStartRadius})");
             }
 
             // Disable user input console
@@ -212,13 +204,11 @@ namespace Core
                 satelliteOrbit.SetOrbitActive(true);
             }
 
-            // Return camera control to user (desktop only)
-            bool isXRMode = XRModeManager.Instance != null && XRModeManager.Instance.IsXRAvailable();
-
-            if (cameraController != null && !isXRMode)
+            // Return camera control to user
+            if (cameraController != null)
             {
                 cameraController.allowExternalRadiusControl = false;
-                Debug.Log("[ExperienceManager] Desktop mode - Camera control returned to user");
+                Debug.Log("[ExperienceManager] Camera control returned to user");
             }
 
             // Enable user input console
@@ -251,53 +241,22 @@ namespace Core
         /// </summary>
         private IEnumerator IntroSequence()
         {
-            Debug.Log("[ExperienceManager] Intro cutscene started in VR");
+            Debug.Log("[ExperienceManager] Intro cutscene started");
 
-            // For VR: Just play narration (no camera animation needed - user naturally looks around)
-            // For Desktop: Animate camera zoom
-            bool isXRMode = XRModeManager.Instance != null && XRModeManager.Instance.IsXRAvailable();
-
-            if (isXRMode)
+            // Animate camera zoom
+            if (cameraController != null)
             {
-                // VR mode: Wait for narration duration (user can look around naturally)
-                Debug.Log("[ExperienceManager] VR mode - waiting for narration duration");
-                yield return new WaitForSeconds(cameraZoomDuration);
+                Debug.Log("[ExperienceManager] Animating camera zoom");
+                yield return StartCoroutine(AnimateCameraZoom());
             }
             else
             {
-                // Desktop mode: Animate camera zoom
-                if (cameraController != null)
-                {
-                    Debug.Log("[ExperienceManager] Desktop mode - animating camera zoom");
-                    yield return StartCoroutine(AnimateCameraZoom());
-                }
-                else
-                {
-                    yield return new WaitForSeconds(introDuration);
-                }
+                yield return new WaitForSeconds(introDuration);
             }
 
-            // Transition to Hub (VR → AR for XR, or normal Hub for desktop)
+            // Transition to Hub
             Debug.Log("[ExperienceManager] Intro cutscene complete, transitioning to Hub");
-
-            if (isXRMode)
-            {
-                // XR mode: Stay in Hub scene, just activate Hub features and enable AR
-                Debug.Log("[ExperienceManager] VR mode - activating Hub features in current scene");
-                StartHub();
-
-                // Switch to AR mode for passthrough
-                if (XRModeManager.Instance != null)
-                {
-                    XRModeManager.Instance.SwitchToAR();
-                    Debug.Log("[ExperienceManager] Switched to AR mode - passthrough should now be enabled");
-                }
-            }
-            else
-            {
-                // Desktop mode: Continue with normal Hub in same scene
-                StartHub();
-            }
+            StartHub();
         }
 
         /// <summary>
@@ -360,55 +319,6 @@ namespace Core
         public bool IsHubActive()
         {
             return currentState == State.HUB_ACTIVE;
-        }
-
-        // ---------------- XR Transitions ----------------
-
-        /// <summary>
-        /// Transition from VR intro to AR Hub scene
-        /// </summary>
-        private IEnumerator TransitionToARHub()
-        {
-            Debug.Log("[ExperienceManager] Transitioning from VR to AR Hub");
-
-            // Fade out VR scene
-            if (SceneTransitionManager.Instance != null)
-            {
-                yield return SceneTransitionManager.Instance.FadeOut();
-            }
-            else
-            {
-                // Simple fade if no transition manager
-                yield return new WaitForSeconds(0.5f);
-            }
-
-            // Switch to AR mode
-            if (XRModeManager.Instance != null)
-            {
-                XRModeManager.Instance.SwitchToAR();
-            }
-
-            // Load AR Hub scene
-            Debug.Log("[ExperienceManager] Loading ARHub scene");
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("ARHub");
-
-            // Wait for scene to load
-            while (!asyncLoad.isDone)
-            {
-                yield return null;
-            }
-
-            Debug.Log("[ExperienceManager] ARHub scene loaded - calibration will begin");
-
-            // Fade in AR scene
-            if (SceneTransitionManager.Instance != null)
-            {
-                yield return SceneTransitionManager.Instance.FadeIn();
-            }
-
-            // Mark intro as completed
-            _introCompleted = true;
-            currentState = State.HUB_ACTIVE;
         }
     }
 }
