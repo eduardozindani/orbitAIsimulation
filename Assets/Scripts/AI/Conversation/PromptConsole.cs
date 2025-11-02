@@ -12,6 +12,11 @@ using AI.Services;
 using Core.Config;
 using Newtonsoft.Json.Linq;
 
+// XR Input support for Quest controllers
+#if UNITY_ANDROID || UNITY_STANDALONE
+using UnityEngine.XR;
+#endif
+
 /// <summary>
 /// Minimal, robust bridge between a TMP input box and your OpenAI client.
 /// - Press Enter to send (Shift+Enter inserts newline).
@@ -90,6 +95,9 @@ public class PromptConsole : MonoBehaviour
     private string _microphoneDevice;
     private const int RECORDING_FREQUENCY = 16000; // 16kHz for speech
     private const int MAX_RECORDING_LENGTH = 30; // 30 seconds max
+
+    // VR Controller input debouncing
+    private bool _previousAButtonState = false;
 
     // Procedural beep sounds
     private AudioClip _recordStartBeep;
@@ -272,8 +280,37 @@ public class PromptConsole : MonoBehaviour
 
     private void Update()
     {
-        // Handle Space key for voice recording toggle
-        if (Input.GetKeyDown(KeyCode.Space) && !_busy && !_spaceKeyBlocked)
+        // Detect voice recording input from Space key (desktop) OR Quest A button (VR)
+        bool recordingInputDetected = Input.GetKeyDown(KeyCode.Space);
+
+        #if UNITY_ANDROID || UNITY_STANDALONE
+        // Add Quest controller A button support (right hand primary button)
+        if (UnityEngine.XR.XRSettings.isDeviceActive)
+        {
+            InputDevice rightController = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+            if (rightController.isValid)
+            {
+                bool aButtonPressed;
+                if (rightController.TryGetFeatureValue(CommonUsages.primaryButton, out aButtonPressed))
+                {
+                    // Debounce: Only trigger on button down edge (false → true)
+                    if (aButtonPressed && !_previousAButtonState)
+                    {
+                        recordingInputDetected = true;
+                    }
+                    _previousAButtonState = aButtonPressed;
+                }
+            }
+            else
+            {
+                // Reset debounce state if controller not valid
+                _previousAButtonState = false;
+            }
+        }
+        #endif
+
+        // Handle voice recording toggle (works for both Space and Quest A button)
+        if (recordingInputDetected && !_busy && !_spaceKeyBlocked)
         {
             if (!_isRecording)
             {

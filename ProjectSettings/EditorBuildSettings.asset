@@ -11,21 +11,21 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Hub.unity
     guid: 658d2113c7aaa4d4da336bc51af7ec68
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/GPS.unity
     guid: cad1715e319304674b64a7dd0d76ab91
   - enabled: 1
     path: Assets/Scenes/Hubble.unity
-    guid: 858f102d3909c4eaeb8483fe924bb3c9
+    guid: e1c5343db41a644a9917dbbbd9d03970
   - enabled: 1
     path: Assets/Scenes/ISS.unity
     guid: 267ff5f1358974ec1b926e78edca811e
   - enabled: 1
     path: Assets/Scenes/Voyager.unity
-    guid: 19d0bf982d2ee48aebd56c1985f5cf64
+    guid: 1fa8c3d5540774f3faf6b55ab08b53ab
   - enabled: 1
     path: Assets/Scenes/ARHub.unity
-    guid: 19ede42bca0694e918e82fd8fa0533be
+    guid: c1f31d7b614064d3f854170ff97bc6f6
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 6a355e5e4889b4bcfa860d2ca4c70b09, type: 2}

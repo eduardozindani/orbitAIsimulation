@@ -1,10 +1,19 @@
 # ninja log v5
-2	884	1762029841376905835	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	86e6722d36ed278e
-4	888	1762029841380304082	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	8338ad793416c39c
-6	916	1762029841410211847	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	92f5659489b875b8
-0	938	1762029841430575745	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	6e0d2d0e4c05d3ab
-0	941	1762029841435373866	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	36ba9cf421986a6c
-8	1020	1762029841514875878	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	f93b70e0b3d82ede
-4	1079	1762029841574262075	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	8ff1a473ed1e7716
 0	1169	1762029841663679454	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	5a165dd6ab1bfc7b
+4	1079	1762029841574262075	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	8ff1a473ed1e7716
+8	1020	1762029841514875878	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	f93b70e0b3d82ede
+0	938	1762029841430575745	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	6e0d2d0e4c05d3ab
 1169	1273	1762029841768261527	/Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/37p5f4u6/obj/arm64-v8a/libgame.so	bb300147aa321736
+6	916	1762029841410211847	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	92f5659489b875b8
+4	888	1762029841380304082	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	8338ad793416c39c
+0	941	1762029841435373866	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	36ba9cf421986a6c
+2	884	1762029841376905835	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	86e6722d36ed278e
+2	1029	1762111800409178339	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	8338ad793416c39c
+2	1122	1762111800502291268	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	86e6722d36ed278e
+1	1132	1762111800512997295	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	36ba9cf421986a6c
+4	1138	1762111800519941819	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	92f5659489b875b8
+2	1228	1762111800609782813	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	6e0d2d0e4c05d3ab
+6	1259	1762111800641333828	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	f93b70e0b3d82ede
+2	1362	1762111800744500180	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	8ff1a473ed1e7716
+1	1411	1762111800793812534	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	5a165dd6ab1bfc7b
+1412	1632	1762111801010239535	/Users/ezindani/Desktop/ITA/TG/orbitAIsimulation/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/37p5f4u6/obj/arm64-v8a/libgame.so	bb300147aa321736
