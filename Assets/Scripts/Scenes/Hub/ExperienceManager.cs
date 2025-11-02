@@ -48,6 +48,9 @@ namespace Scenes.Hub
         [Tooltip("Voice narration for intro (28.7 seconds)")]
         public AudioClip introNarration;
 
+        [Tooltip("Welcome message for first Hub visit (plays after intro)")]
+        public AudioClip hubWelcome;
+
         [Tooltip("Background music (loops continuously)")]
         public AudioClip backgroundMusic;
 
@@ -74,6 +77,7 @@ namespace Scenes.Hub
 
         private static ExperienceManager _instance;
         private static bool _hasPlayedIntroThisSession = false; // Static flag survives scene reloads and instance recreation
+        private static bool _hasPlayedHubWelcome = false; // Prevents welcome replay on scene reload
 
         // ---------------- Lifecycle ----------------
 
@@ -211,12 +215,6 @@ namespace Scenes.Hub
                 Debug.Log("[ExperienceManager] Camera control returned to user");
             }
 
-            // Enable user input console
-            if (promptConsole != null)
-            {
-                promptConsole.EnableConsole();
-            }
-
             // Stop narration (but keep background music playing!)
             if (_narrationSource != null && _narrationSource.isPlaying)
             {
@@ -229,6 +227,55 @@ namespace Scenes.Hub
             if (introUI != null)
             {
                 introUI.HideIntro();
+            }
+
+            // Play welcome audio on first Hub visit
+            if (!_hasPlayedHubWelcome && hubWelcome != null && _narrationSource != null)
+            {
+                _hasPlayedHubWelcome = true;
+                StartCoroutine(PlayHubWelcomeSequence());
+            }
+            else
+            {
+                // No welcome audio, enable console immediately
+                if (promptConsole != null)
+                {
+                    promptConsole.EnableConsole();
+                }
+                Debug.Log("[ExperienceManager] Hub is now active - user can interact");
+            }
+        }
+
+        /// <summary>
+        /// Play welcome audio and wait for completion before enabling console
+        /// </summary>
+        private IEnumerator PlayHubWelcomeSequence()
+        {
+            Debug.Log("[ExperienceManager] Playing Hub welcome audio...");
+
+            // Enable console but block Space key
+            if (promptConsole != null)
+            {
+                promptConsole.EnableConsole();
+                promptConsole.BlockSpaceKey();
+            }
+
+            // Play welcome audio
+            _narrationSource.clip = hubWelcome;
+            _narrationSource.Play();
+
+            // Wait for audio to finish
+            float duration = hubWelcome.length;
+            Debug.Log($"[ExperienceManager] Waiting {duration:F1}s for welcome audio to complete");
+
+            yield return new WaitForSecondsRealtime(duration);
+
+            // Audio finished - unblock Space key
+            Debug.Log("[ExperienceManager] Welcome audio complete");
+
+            if (promptConsole != null)
+            {
+                promptConsole.UnblockSpaceKey();
             }
 
             Debug.Log("[ExperienceManager] Hub is now active - user can interact");

@@ -80,6 +80,7 @@ public class PromptConsole : MonoBehaviour
     private Core.Config.ElevenLabsSettings _activeVoiceSettings; // Current speaker voice (null = default CAPCOM)
     private string _specialistContext; // Mission-specific knowledge for specialists
     private bool _busy;
+    private bool _spaceKeyBlocked = false; // Blocks Space during welcome audio
     private CancellationTokenSource _cts;
 
     // Voice recording variables
@@ -257,7 +258,7 @@ public class PromptConsole : MonoBehaviour
     private void Update()
     {
         // Handle Space key for voice recording toggle
-        if (Input.GetKeyDown(KeyCode.Space) && !_busy)
+        if (Input.GetKeyDown(KeyCode.Space) && !_busy && !_spaceKeyBlocked)
         {
             if (!_isRecording)
             {
@@ -1042,6 +1043,24 @@ Generate a conversational response:";
         _activeVoiceSettings = null;
         _specialistContext = null;
         Debug.Log("[PromptConsole] Voice and context reset to default (CAPCOM)");
+    }
+
+    /// <summary>
+    /// Block Space key input (used during welcome audio)
+    /// </summary>
+    public void BlockSpaceKey()
+    {
+        _spaceKeyBlocked = true;
+        Debug.Log("[PromptConsole] Space key blocked");
+    }
+
+    /// <summary>
+    /// Unblock Space key input
+    /// </summary>
+    public void UnblockSpaceKey()
+    {
+        _spaceKeyBlocked = false;
+        Debug.Log("[PromptConsole] Space key unblocked");
     }
 
     // ---------------- Experience Manager Integration ----------------
