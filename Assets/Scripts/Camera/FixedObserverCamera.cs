@@ -6,23 +6,26 @@ using UnityEngine.XR;
 #endif
 
 /// <summary>
-/// Chase camera for Mission Spaces - follows target (ISS) from behind.
-/// Camera maintains a fixed offset from the target, perpendicular to its orbit trajectory.
-/// Creates a "following along" perspective where you see the target with Earth in background.
-/// User cannot move position with WASD/arrows, but can rotate view with mouse.
+/// Observer camera for Mission Spaces (ISS, GPS, Voyager, Hubble).
+/// In VR: Positions camera above target satellite, looking down at it with Earth in background.
+/// Camera follows target's orbit, maintaining fixed relative position. Head tracking enabled.
+/// In Desktop: Mouse/arrow keys can rotate view around target.
 /// </summary>
 public class FixedObserverCamera : MonoBehaviour
 {
     [Header("Target")]
-    [Tooltip("What to follow (e.g., ISS_Satellite)")]
+    [Tooltip("Satellite to observe (e.g., ISS_Satellite)")]
     public Transform target;
 
-    [Header("Chase Distance")]
-    [Tooltip("Distance behind target (perpendicular to orbit)")]
-    public float chaseDistance = 1f;  // Increased from 0.2 for better ISS view
-
-    [Tooltip("Height offset above orbital plane")]
-    public float heightOffset = 0.5f;
+    [Header("VR Camera Position")]
+    [Tooltip("Distance above target satellite along radial line (VR mode)")]
+    public float heightAboveTarget = 0.25f;
+    
+    [Tooltip("If the model's pivot is not at its visual center, offset the visual center toward Earth by this amount (meters)")]
+    public float centerOffsetTowardEarth = 0.0f;
+    
+    [Tooltip("Latitude adjustment (meters) moving 'down' along the meridian (toward south). Positive reduces latitude.")]
+    public float latitudeOffset = 0.5f;  // Offset by ~half ISS size to center visual bulk
 
     [Header("Look Around (Mouse & Arrows)")]
     [Tooltip("Allow mouse drag to rotate view")]
@@ -45,32 +48,21 @@ public class FixedObserverCamera : MonoBehaviour
     public float minPitch = -80f;
     public float maxPitch = 80f;
 
-    private float userYaw = 0f;   // User's look-around rotation (desktop mouse or VR thumbstick)
-    private float userPitch = 0f;
-    private Transform cam;
+    private float userYaw = 0f;      // Desktop: User's look-around rotation (mouse/arrows)
+    private float userPitch = 0f;    // Desktop: User's look-around rotation
+    private Transform cam;            // Camera transform reference
     private bool isMouseLooking = false;
-    private Vector3 lastTargetPosition;
+    private Vector3 lastTargetPosition;  // Used to track target movement
     private bool _isVR = false;
-    private bool _debugLoggedOnce = false;
-    private Transform _trackingSpace; // For VR head tracking
-    private int _debugFrameCount = 0; // Log first few frames to diagnose
-    
-    // VR controller input settings
-    private const float THUMBSTICK_DEADZONE = 0.15f;
-    private const float VR_LOOK_SPEED = 60f; // Degrees per second for thumbstick rotation
+    private Transform _trackingSpace;    // VR: OVR TrackingSpace transform
+    private bool _vrCamerasConfigured = false;
+    private int _alignDebugCount = 0;
 
     void Start()
     {
         // Detect VR mode
         #if UNITY_ANDROID || UNITY_STANDALONE
         _isVR = UnityEngine.XR.XRSettings.isDeviceActive;
-        
-        // VR: Ensure chase distance is reasonable (override serialized value if too small)
-        if (_isVR && chaseDistance < 0.5f)
-        {
-            chaseDistance = 1.5f; // Good distance for viewing ISS in VR
-            Debug.Log($"[FixedObserverCamera] VR mode: adjusted chase distance to {chaseDistance}");
-        }
         #endif
 
         // Find camera reference
@@ -88,6 +80,9 @@ public class FixedObserverCamera : MonoBehaviour
                     {
                         cam = ovrCamera.transform;
                     }
+
+                    // Configure VR eye cameras once available
+                    ConfigureVREyeCameras();
                 }
             }
             
@@ -182,8 +177,7 @@ public class FixedObserverCamera : MonoBehaviour
         }
         else
         {
-            // VR: No controller rotation - just head tracking (fixed view of ISS)
-            // User can look around with head movement, but camera stays in fixed position relative to ISS
+            // VR: Position fixed relative to target, only head tracking for view rotation
         }
 
         UpdateCameraPosition();
@@ -194,23 +188,40 @@ public class FixedObserverCamera : MonoBehaviour
         Vector3 targetPos = target.position;
         Vector3 planetCenter = transform.position; // CameraRig is at planet center
 
-        // Vector from planet center to ISS (radial direction - pointing away from Earth)
+        // Calculate radial direction from Earth center to target satellite
         Vector3 radialDirection = (targetPos - planetCenter).normalized;
 
-        // VR: Position camera ABOVE ISS (further from Earth along same radial line)
-        // This puts you at higher altitude, looking down at ISS with Earth in background
-        float heightAboveISS = 1.0f; // Distance above ISS
-        Vector3 desiredPosition = targetPos + (radialDirection * heightAboveISS);
+        // Adjust for model pivot if needed: estimate visual center toward Earth
+        Vector3 targetVisualCenter = targetPos - (radialDirection * centerOffsetTowardEarth);
+
+        // Calculate local north direction (tangent to meridian at this point)
+        Vector3 northDir = Vector3.ProjectOnPlane(Vector3.up, radialDirection);
+        if (northDir.sqrMagnitude < 1e-6f)
+        {
+            // Near poles: derive a stable north from an orthogonal basis
+            Vector3 eastDir = Vector3.Cross(radialDirection, Vector3.forward);
+            if (eastDir.sqrMagnitude < 1e-6f) eastDir = Vector3.right;
+            northDir = Vector3.Cross(eastDir.normalized, radialDirection).normalized;
+        }
+        else
+        {
+            northDir.Normalize();
+        }
+
+        // Calculate desired camera position: above visual center + latitude offset (toward south)
+        Vector3 desiredPosition = targetVisualCenter
+                                 + (radialDirection * heightAboveTarget)
+                                 - (northDir * latitudeOffset);
         
-        // Look toward Earth center (so ISS is between you and Earth)
+        // Calculate look direction: toward Earth center (ISS between camera and Earth)
         Vector3 toEarth = (planetCenter - desiredPosition).normalized;
 
         if (!_isVR)
         {
-            // Desktop: Control camera directly
+            // Desktop: Control camera directly (same positioning logic as VR)
             cam.position = Vector3.Lerp(cam.position, desiredPosition, 1f - followSmoothness);
 
-            // Apply user's look-around rotation
+            // Apply user's look-around rotation (mouse/arrow keys)
             Quaternion userRotation = Quaternion.Euler(userPitch, userYaw, 0f);
             Vector3 rotatedLook = userRotation * toEarth;
 
@@ -228,36 +239,60 @@ public class FixedObserverCamera : MonoBehaviour
 
             if (_trackingSpace != null)
             {
-                // Position TrackingSpace ABOVE ISS (higher altitude, same orbit)
-                _trackingSpace.position = Vector3.Lerp(_trackingSpace.position, desiredPosition, 1f - followSmoothness);
-
-                // Orient TrackingSpace to look DOWN at Earth
-                // Use radial direction as "up" (perpendicular to Earth's surface)
-                // This makes your natural forward view aligned with ISS→Earth line
-                Vector3 cameraUp = radialDirection; // Up = away from Earth (radial)
+                // Calculate camera orientation: look at Earth, with radial direction as "up"
+                // This ensures forward view is aligned with line from camera through ISS to Earth center
+                Vector3 cameraUp = radialDirection;
                 Quaternion lookAtEarth = Quaternion.LookRotation(toEarth, cameraUp);
-                _trackingSpace.rotation = lookAtEarth;
-                
-                // DIAGNOSTIC: Log first 3 frames
-                if (_debugFrameCount < 3)
+
+                // Find eye anchor to get head's local offset within TrackingSpace
+                Transform centerEye = _trackingSpace.Find("CenterEyeAnchor");
+                if (centerEye == null)
                 {
-                    float distToISS = Vector3.Distance(_trackingSpace.position, targetPos);
-                    Vector3 toISS = (targetPos - _trackingSpace.position).normalized;
-                    float dotISS = Vector3.Dot(_trackingSpace.forward, toISS);
-                    float dotEarth = Vector3.Dot(_trackingSpace.forward, toEarth);
-                    
-                    UnityEngine.Debug.LogWarning(
-                        $"[ISS_VR_DEBUG F{_debugFrameCount}] " +
-                        $"ISS=({targetPos.x:F1},{targetPos.y:F1},{targetPos.z:F1}) distEarth={targetPos.magnitude:F1} | " +
-                        $"TrackPos=({_trackingSpace.position.x:F1},{_trackingSpace.position.y:F1},{_trackingSpace.position.z:F1}) distEarth={_trackingSpace.position.magnitude:F1} | " +
-                        $"Dist→ISS={distToISS:F2} | HeightAbove={(desiredPosition - targetPos).magnitude:F2} | " +
-                        $"dot→Earth={dotEarth:F2} dot→ISS={dotISS:F2} | " +
-                        $"LookingAt={(dotEarth > 0.5f ? "EARTH" : "SPACE")}");
-                    
-                    _debugFrameCount++;
+                    centerEye = _trackingSpace.Find("LeftEyeAnchor");
                 }
+                Vector3 headLocalOffset = centerEye != null ? centerEye.localPosition : Vector3.zero;
                 
-                // OVR applies head tracking as local rotations on top of this base orientation
+                // Convert head local offset to world space (relative to TrackingSpace rotation)
+                Vector3 headWorldOffset = lookAtEarth * headLocalOffset;
+
+                // Position TrackingSpace such that head (TrackingSpace + head offset) = desired position
+                // This ensures your eyes are exactly at the calculated position above ISS
+                Vector3 targetTrackingPos = desiredPosition - headWorldOffset;
+                _trackingSpace.position = Vector3.Lerp(_trackingSpace.position, targetTrackingPos, 1f - followSmoothness);
+
+                // Set TrackingSpace rotation - OVR applies head tracking as local rotations on eye anchors
+                _trackingSpace.rotation = lookAtEarth;
+
+                // Ensure VR eye cameras have a small near clip plane to avoid close-up clipping
+                ConfigureVREyeCameras();
+
+                // Alignment diagnostics (first few frames only)
+                if (_alignDebugCount < 3)
+                {
+                    // Build stable local basis at the satellite location
+                    Vector3 eastDir = Vector3.Cross(radialDirection, Vector3.up);
+                    if (eastDir.sqrMagnitude < 1e-6f) eastDir = Vector3.Cross(radialDirection, Vector3.forward);
+                    eastDir.Normalize();
+                    Vector3 northDirDbg = Vector3.Cross(eastDir, radialDirection).normalized;
+
+                    // Visual center after pivot correction
+                    Vector3 targetVisualCenterDbg = targetPos - (radialDirection * centerOffsetTowardEarth);
+
+                    // Compute head world position from current rig pose
+                    Vector3 headWorld = _trackingSpace.position + (_trackingSpace.rotation * headLocalOffset);
+                    Vector3 delta = headWorld - targetVisualCenterDbg;
+
+                    float compRadial = Vector3.Dot(delta, radialDirection);
+                    float compNorth  = Vector3.Dot(delta, northDirDbg);
+                    float compEast   = Vector3.Dot(delta, eastDir);
+
+                    UnityEngine.Debug.Log(
+                        $"[ISS_ALIGN F{_alignDebugCount}] hAbove={heightAboveTarget:F3} latOff={latitudeOffset:F3} centerToward={centerOffsetTowardEarth:F3} | " +
+                        $"rad={compRadial:F3} north={compNorth:F3} east={compEast:F3} | " +
+                        $"head=({headWorld.x:F2},{headWorld.y:F2},{headWorld.z:F2}) visCtr=({targetVisualCenterDbg.x:F2},{targetVisualCenterDbg.y:F2},{targetVisualCenterDbg.z:F2})");
+
+                    _alignDebugCount++;
+                }
             }
             else
             {
@@ -328,5 +363,30 @@ public class FixedObserverCamera : MonoBehaviour
         #endif
 
         return null;
+    }
+
+    /// <summary>
+    /// Configure VR eye cameras (Left/Right/CenterEye) to use a small near clip
+    /// plane so that close-up views of the ISS do not get clipped when the user
+    /// tilts or leans.
+    /// </summary>
+    private void ConfigureVREyeCameras()
+    {
+        if (_vrCamerasConfigured || _trackingSpace == null) return;
+
+        Camera[] eyeCameras = _trackingSpace.GetComponentsInChildren<Camera>(true);
+        if (eyeCameras == null || eyeCameras.Length == 0) return;
+
+        // Use conservative near clip for close-up inspection
+        const float desiredNear = 0.01f; // 1 cm
+        foreach (var c in eyeCameras)
+        {
+            if (c != null && c.nearClipPlane > desiredNear)
+            {
+                c.nearClipPlane = desiredNear;
+            }
+        }
+
+        _vrCamerasConfigured = true;
     }
 }

@@ -47,6 +47,8 @@ public class SceneTransitionManager : MonoBehaviour
     public Sprite hubbleLogo;
 
     private bool isTransitioning = false;
+    private OVRScreenFade screenFade;
+    private bool isVR = false;
 
     void Awake()
     {
@@ -56,6 +58,40 @@ public class SceneTransitionManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Debug.Log("[SceneTransitionManager] Initialized");
+
+            // FORCE RECREATION: Delete any stale UI components from previous versions
+            if (fadeCanvasGroup != null || missionLogoImage != null)
+            {
+                Debug.Log("[SceneTransitionManager] ⚠️ Found existing UI from previous session - forcing recreation for VR compatibility");
+
+                // Find and destroy old TransitionCanvas (try both names)
+                Transform oldCanvas = transform.Find("TransitionOverlayCanvas");
+                if (oldCanvas == null)
+                {
+                    oldCanvas = transform.Find("TransitionCanvas");
+                }
+
+                if (oldCanvas != null)
+                {
+                    Debug.Log($"[SceneTransitionManager] Destroying old canvas: {oldCanvas.name}...");
+                    Destroy(oldCanvas.gameObject);
+                }
+
+                // Find and destroy old OVRScreenFade
+                Transform oldFade = transform.Find("OVRScreenFade");
+                if (oldFade != null)
+                {
+                    Debug.Log("[SceneTransitionManager] Destroying old OVRScreenFade...");
+                    Destroy(oldFade.gameObject);
+                }
+
+                // Clear references to force recreation
+                fadeCanvasGroup = null;
+                missionLogoImage = null;
+                screenFade = null;
+
+                Debug.Log("[SceneTransitionManager] Old UI destroyed, will recreate with VR support");
+            }
 
             // Create persistent transition UI (Canvas with FadeCanvas and MissionLogo)
             CreateTransitionUIIfNeeded();
@@ -95,6 +131,23 @@ public class SceneTransitionManager : MonoBehaviour
         else
         {
             Debug.Log("[SceneTransitionManager] Instance already exists, destroying duplicate");
+
+            // DEBUG: Log what will be destroyed
+            Debug.Log($"[SceneTransitionManager] About to destroy duplicate GameObject: {gameObject.name}");
+            Debug.Log($"[SceneTransitionManager] Duplicate has {transform.childCount} children:");
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                Transform child = transform.GetChild(i);
+                Debug.Log($"[SceneTransitionManager]   Child[{i}]: {child.name} (will be destroyed with parent)");
+            }
+
+            Debug.Log($"[SceneTransitionManager] Persistent Instance has {Instance.transform.childCount} children:");
+            for (int i = 0; i < Instance.transform.childCount; i++)
+            {
+                Transform child = Instance.transform.GetChild(i);
+                Debug.Log($"[SceneTransitionManager]   Instance Child[{i}]: {child.name}");
+            }
+
             Destroy(gameObject);
         }
     }
@@ -104,6 +157,26 @@ public class SceneTransitionManager : MonoBehaviour
     /// </summary>
     public void TransitionToMission(string mission)
     {
+        Debug.Log($"[SceneTransitionManager] ═══════════════════════════════════════");
+        Debug.Log($"[SceneTransitionManager] TRANSITION REQUESTED: {mission}");
+        Debug.Log($"[SceneTransitionManager] isTransitioning: {isTransitioning}");
+        Debug.Log($"[SceneTransitionManager] screenFade exists: {screenFade != null}");
+        Debug.Log($"[SceneTransitionManager] fadeCanvasGroup exists: {fadeCanvasGroup != null}");
+        Debug.Log($"[SceneTransitionManager] missionLogoImage exists: {missionLogoImage != null}");
+
+        if (fadeCanvasGroup != null && fadeCanvasGroup.transform.parent != null)
+        {
+            Transform canvasTransform = fadeCanvasGroup.transform.parent;
+            Debug.Log($"[SceneTransitionManager] Canvas parent: {canvasTransform.name}");
+            Debug.Log($"[SceneTransitionManager] Canvas position: {canvasTransform.position}");
+            Debug.Log($"[SceneTransitionManager] Canvas localPosition: {canvasTransform.localPosition}");
+            if (canvasTransform.parent != null)
+            {
+                Debug.Log($"[SceneTransitionManager] Canvas grandparent: {canvasTransform.parent.name}");
+            }
+        }
+        Debug.Log($"[SceneTransitionManager] ═══════════════════════════════════════");
+
         if (isTransitioning)
         {
             Debug.LogWarning("[SceneTransitionManager] Transition already in progress, ignoring request");
@@ -216,10 +289,36 @@ public class SceneTransitionManager : MonoBehaviour
 
     /// <summary>
     /// Fade from transparent to black
+    /// VR: Uses OVRScreenFade for guaranteed black
+    /// Desktop: Falls back to CanvasGroup alpha
     /// </summary>
     private IEnumerator FadeOut(float duration)
     {
-        Debug.Log($"[SceneTransitionManager] FadeOut() called - fadeCanvasGroup null? {fadeCanvasGroup == null}");
+        Debug.Log($"[SceneTransitionManager] FadeOut() called");
+
+        // ALWAYS use CanvasGroup (black panel) - OVRScreenFade has shader issues on Quest
+        // Re-find reference if lost during scene transition
+        if (fadeCanvasGroup == null)
+        {
+            Debug.LogWarning("[SceneTransitionManager] fadeCanvasGroup reference lost - attempting to re-find...");
+
+            // Try both possible canvas names (TransitionOverlayCanvas from Inspector, TransitionCanvas from code)
+            Transform fadeTransform = transform.Find("TransitionOverlayCanvas/FadeCanvas");
+            if (fadeTransform == null)
+            {
+                fadeTransform = transform.Find("TransitionCanvas/FadeCanvas");
+            }
+
+            if (fadeTransform != null)
+            {
+                fadeCanvasGroup = fadeTransform.GetComponent<CanvasGroup>();
+                Debug.Log($"[SceneTransitionManager] ✓ Re-found fadeCanvasGroup: {(fadeCanvasGroup != null ? "SUCCESS" : "FAILED")}");
+            }
+            else
+            {
+                Debug.LogError("[SceneTransitionManager] ✗ Could not find FadeCanvas in either TransitionOverlayCanvas or TransitionCanvas!");
+            }
+        }
 
         if (fadeCanvasGroup == null)
         {
@@ -227,7 +326,7 @@ public class SceneTransitionManager : MonoBehaviour
             yield break;
         }
 
-        Debug.Log($"[SceneTransitionManager] Starting fade to black from alpha {fadeCanvasGroup.alpha} over {duration}s");
+        Debug.Log($"[SceneTransitionManager] Using CanvasGroup.FadeOut() - black panel fade (alpha {fadeCanvasGroup.alpha} → 1.0 over {duration}s)");
         float elapsed = 0f;
         while (elapsed < duration)
         {
@@ -238,20 +337,49 @@ public class SceneTransitionManager : MonoBehaviour
         }
 
         fadeCanvasGroup.alpha = 1f; // Ensure fully black
-        Debug.Log("[SceneTransitionManager] Fade to black complete - alpha now 1.0");
+        Debug.Log("[SceneTransitionManager] Fade to black complete - alpha now 1.0 (BLACK PANEL VISIBLE)");
     }
 
     /// <summary>
     /// Fade from black to transparent
+    /// VR: Uses OVRScreenFade for guaranteed reveal
+    /// Desktop: Falls back to CanvasGroup alpha
     /// </summary>
     private IEnumerator FadeIn(float duration)
     {
+        Debug.Log($"[SceneTransitionManager] FadeIn() called");
+
+        // ALWAYS use CanvasGroup (black panel) - OVRScreenFade has shader issues on Quest
+        // Re-find reference if lost during scene transition
+        if (fadeCanvasGroup == null)
+        {
+            Debug.LogWarning("[SceneTransitionManager] fadeCanvasGroup reference lost - attempting to re-find...");
+
+            // Try both possible canvas names (TransitionOverlayCanvas from Inspector, TransitionCanvas from code)
+            Transform fadeTransform = transform.Find("TransitionOverlayCanvas/FadeCanvas");
+            if (fadeTransform == null)
+            {
+                fadeTransform = transform.Find("TransitionCanvas/FadeCanvas");
+            }
+
+            if (fadeTransform != null)
+            {
+                fadeCanvasGroup = fadeTransform.GetComponent<CanvasGroup>();
+                Debug.Log($"[SceneTransitionManager] ✓ Re-found fadeCanvasGroup: {(fadeCanvasGroup != null ? "SUCCESS" : "FAILED")}");
+            }
+            else
+            {
+                Debug.LogError("[SceneTransitionManager] ✗ Could not find FadeCanvas in either TransitionOverlayCanvas or TransitionCanvas!");
+            }
+        }
+
         if (fadeCanvasGroup == null)
         {
             Debug.LogWarning("[SceneTransitionManager] FadeCanvasGroup not assigned!");
             yield break;
         }
 
+        Debug.Log($"[SceneTransitionManager] Using CanvasGroup.FadeIn() - black panel fade (alpha {fadeCanvasGroup.alpha} → 0.0 over {duration}s)");
         float elapsed = 0f;
         while (elapsed < duration)
         {
@@ -262,18 +390,74 @@ public class SceneTransitionManager : MonoBehaviour
         }
 
         fadeCanvasGroup.alpha = 0f; // Ensure fully transparent
+        Debug.Log("[SceneTransitionManager] Fade in complete - alpha now 0.0 (BLACK PANEL HIDDEN, SCENE VISIBLE)");
     }
 
     /// <summary>
     /// Fade from black to transparent while fading out the logo faster
     /// Logo fades out in first half of duration to ensure it always has black backing
+    /// VR: Uses OVRScreenFade for black, manual lerp for logo
+    /// Desktop: Uses CanvasGroup for black, manual lerp for logo
     /// </summary>
     private IEnumerator FadeInWithLogo(float duration)
     {
+        Debug.Log($"[SceneTransitionManager] FadeInWithLogo() called - screenFade exists? {screenFade != null}");
+
+        // Re-find references if lost during scene transition
         if (fadeCanvasGroup == null)
         {
-            Debug.LogWarning("[SceneTransitionManager] FadeCanvasGroup not assigned!");
-            yield break;
+            Debug.LogWarning("[SceneTransitionManager] fadeCanvasGroup reference lost - attempting to re-find...");
+
+            // DEBUG: Log all children to see what exists
+            Debug.Log($"[SceneTransitionManager] DEBUG: SceneTransitionManager has {transform.childCount} children:");
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                Transform child = transform.GetChild(i);
+                Debug.Log($"[SceneTransitionManager]   Child[{i}]: {child.name}");
+            }
+
+            // Try both possible canvas names (TransitionOverlayCanvas from Inspector, TransitionCanvas from code)
+            Transform fadeTransform = transform.Find("TransitionOverlayCanvas/FadeCanvas");
+            if (fadeTransform == null)
+            {
+                fadeTransform = transform.Find("TransitionCanvas/FadeCanvas");
+            }
+
+            Debug.Log($"[SceneTransitionManager] transform.Find('FadeCanvas') result: {(fadeTransform != null ? fadeTransform.name : "NULL")}");
+
+            if (fadeTransform != null)
+            {
+                fadeCanvasGroup = fadeTransform.GetComponent<CanvasGroup>();
+                Debug.Log($"[SceneTransitionManager] ✓ Re-found fadeCanvasGroup: {(fadeCanvasGroup != null ? "SUCCESS" : "FAILED")}");
+            }
+            else
+            {
+                Debug.LogError("[SceneTransitionManager] ✗ Could not find FadeCanvas in either TransitionOverlayCanvas or TransitionCanvas!");
+            }
+        }
+
+        if (missionLogoImage == null)
+        {
+            Debug.LogWarning("[SceneTransitionManager] missionLogoImage reference lost - attempting to re-find...");
+
+            // Try both possible canvas names (TransitionOverlayCanvas from Inspector, TransitionCanvas from code)
+            Transform logoTransform = transform.Find("TransitionOverlayCanvas/MissionLogo");
+            if (logoTransform == null)
+            {
+                logoTransform = transform.Find("TransitionCanvas/MissionLogo");
+            }
+
+            Debug.Log($"[SceneTransitionManager] transform.Find('MissionLogo') result: {(logoTransform != null ? logoTransform.name : "NULL")}");
+
+            if (logoTransform != null)
+            {
+                missionLogoImage = logoTransform.GetComponent<Image>();
+                Debug.Log($"[SceneTransitionManager] ✓ Re-found missionLogoImage: {(missionLogoImage != null ? "SUCCESS" : "FAILED")}");
+            }
+            else
+            {
+                Debug.LogError("[SceneTransitionManager] ✗ Could not find MissionLogo in either TransitionOverlayCanvas or TransitionCanvas!");
+            }
         }
 
         // Get the logo's current alpha (should be 1.0 from hold phase)
@@ -285,6 +469,15 @@ public class SceneTransitionManager : MonoBehaviour
 
         // Logo fades out in first half of duration (faster)
         float logoFadeDuration = duration * 0.5f;
+
+        // ALWAYS use CanvasGroup (black panel) with logo fade
+        Debug.Log($"[SceneTransitionManager] Using CanvasGroup with logo fade-out");
+
+        if (fadeCanvasGroup == null)
+        {
+            Debug.LogWarning("[SceneTransitionManager] FadeCanvasGroup not assigned!");
+            yield break;
+        }
 
         float elapsed = 0f;
         while (elapsed < duration)
@@ -309,6 +502,7 @@ public class SceneTransitionManager : MonoBehaviour
 
         // Ensure fully transparent
         fadeCanvasGroup.alpha = 0f;
+        Debug.Log("[SceneTransitionManager] Fade in with logo complete - alpha now 0.0 (BLACK PANEL HIDDEN)");
 
         // Hide logo completely
         if (missionLogoImage != null)
@@ -322,10 +516,29 @@ public class SceneTransitionManager : MonoBehaviour
     /// </summary>
     private void ShowMissionLogo(string mission)
     {
+        // Re-find logo if reference was lost during scene transition
         if (missionLogoImage == null)
         {
-            Debug.LogWarning("[SceneTransitionManager] MissionLogoImage not assigned!");
-            return;
+            Debug.LogWarning("[SceneTransitionManager] MissionLogoImage reference lost - attempting to re-find...");
+
+            // Try both possible canvas names (TransitionOverlayCanvas from Inspector, TransitionCanvas from code)
+            Transform logoTransform = transform.Find("TransitionOverlayCanvas/MissionLogo");
+            if (logoTransform == null)
+            {
+                logoTransform = transform.Find("TransitionCanvas/MissionLogo");
+            }
+
+            if (logoTransform != null)
+            {
+                missionLogoImage = logoTransform.GetComponent<Image>();
+                Debug.Log($"[SceneTransitionManager] ✓ Re-found MissionLogoImage: {(missionLogoImage != null ? "SUCCESS" : "FAILED")}");
+            }
+
+            if (missionLogoImage == null)
+            {
+                Debug.LogError("[SceneTransitionManager] ✗ Could not re-find MissionLogoImage - logo will not be displayed!");
+                return;
+            }
         }
 
         Sprite logo = GetMissionLogo(mission);
@@ -483,7 +696,7 @@ public class SceneTransitionManager : MonoBehaviour
     /// <summary>
     /// Creates persistent transition UI if it doesn't exist
     /// Called in Awake() to ensure UI exists across all scenes
-    /// This creates a Canvas with fade panel and logo as children of SceneTransitionManager
+    /// VR-compatible: Uses OVRScreenFade for black fade + World Space canvas for logo
     /// </summary>
     private void CreateTransitionUIIfNeeded()
     {
@@ -491,27 +704,64 @@ public class SceneTransitionManager : MonoBehaviour
         if (fadeCanvasGroup == null && missionLogoImage == null)
         {
             Debug.Log("[SceneTransitionManager] ╔══════════════════════════════════════════════════════════");
-            Debug.Log("[SceneTransitionManager] ║ CREATING PERSISTENT TRANSITION UI");
+            Debug.Log("[SceneTransitionManager] ║ CREATING PERSISTENT TRANSITION UI (VR-COMPATIBLE)");
             Debug.Log("[SceneTransitionManager] ╚══════════════════════════════════════════════════════════");
 
-            // Create root Canvas as child of SceneTransitionManager
+            // Detect VR mode
+            isVR = UnityEngine.XR.XRSettings.isDeviceActive;
+            Debug.Log($"[SceneTransitionManager] ═══ VR DETECTION ═══");
+            Debug.Log($"[SceneTransitionManager] XRSettings.isDeviceActive: {UnityEngine.XR.XRSettings.isDeviceActive}");
+            Debug.Log($"[SceneTransitionManager] XRSettings.loadedDeviceName: '{UnityEngine.XR.XRSettings.loadedDeviceName}'");
+            Debug.Log($"[SceneTransitionManager] isVR: {isVR}");
+            Debug.Log($"[SceneTransitionManager] Platform: {Application.platform}");
+            Debug.Log($"[SceneTransitionManager] Running in Editor: {Application.isEditor}");
+            Debug.Log($"[SceneTransitionManager] ══════════════════════");
+
+            // === 1. Create OVRScreenFade for guaranteed black fade ===
+            GameObject fadeObj = new GameObject("OVRScreenFade");
+            fadeObj.transform.SetParent(transform, false);
+            screenFade = fadeObj.AddComponent<OVRScreenFade>();
+
+            // Configure BEFORE Start() runs
+            screenFade.fadeTime = fadeDuration;
+            screenFade.fadeColor = new Color(0.0f, 0.0f, 0.0f, 1.0f); // Pure black, full alpha
+            screenFade.fadeOnStart = false; // We control it manually
+            screenFade.renderQueue = 5000; // Ensure it renders on top
+
+            Debug.Log($"[SceneTransitionManager] ✓ Created OVRScreenFade");
+            Debug.Log($"[SceneTransitionManager]   - fadeTime: {screenFade.fadeTime}s");
+            Debug.Log($"[SceneTransitionManager]   - fadeColor: RGBA({screenFade.fadeColor.r}, {screenFade.fadeColor.g}, {screenFade.fadeColor.b}, {screenFade.fadeColor.a})");
+            Debug.Log($"[SceneTransitionManager]   - renderQueue: {screenFade.renderQueue}");
+
+            // === 2. Create World Space Canvas for logo ===
             GameObject canvasObj = new GameObject("TransitionCanvas");
             canvasObj.transform.SetParent(transform, false);
 
             Canvas canvas = canvasObj.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 1000; // Render on top of everything
+            canvas.renderMode = RenderMode.WorldSpace;
+            canvas.sortingOrder = 100; // Render on top of OVRScreenFade
 
-            CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Set world space canvas size (2m x 2m)
+            RectTransform canvasRect = canvasObj.GetComponent<RectTransform>();
+            canvasRect.sizeDelta = new Vector2(2f, 2f);
 
-            canvasObj.AddComponent<GraphicRaycaster>();
+            Debug.Log("[SceneTransitionManager] ✓ Created TransitionCanvas (WorldSpace, 2m x 2m, SortOrder: 100)");
 
-            Debug.Log("[SceneTransitionManager] ✓ Created TransitionCanvas (ScreenSpace-Overlay, SortOrder: 1000)");
+            // === 3. Parent canvas to camera (VR: CenterEyeAnchor, Desktop: Camera.main) ===
+            Transform cameraAnchor = FindCameraAnchor();
+            if (cameraAnchor != null)
+            {
+                canvasObj.transform.SetParent(cameraAnchor, false);
+                canvasObj.transform.localPosition = new Vector3(0, 0, 1f); // 1m in front of camera
+                canvasObj.transform.localRotation = Quaternion.identity;
+                Debug.Log($"[SceneTransitionManager] ✓ Parented canvas to camera anchor: {cameraAnchor.name} (1m forward)");
+            }
+            else
+            {
+                Debug.LogWarning("[SceneTransitionManager] Camera anchor not found, canvas will not follow camera");
+            }
 
-            // Create Fade Panel (full screen black overlay)
+            // === 4. Create full-screen black panel (for desktop fallback) ===
             GameObject fadePanelObj = new GameObject("FadeCanvas");
             fadePanelObj.transform.SetParent(canvasObj.transform, false);
 
@@ -530,9 +780,9 @@ public class SceneTransitionManager : MonoBehaviour
             fadeRect.offsetMin = Vector2.zero;
             fadeRect.offsetMax = Vector2.zero;
 
-            Debug.Log($"[SceneTransitionManager] ✓ Created FadeCanvas (CanvasGroup, alpha: {fadeCanvasGroup.alpha})");
+            Debug.Log($"[SceneTransitionManager] ✓ Created FadeCanvas (CanvasGroup fallback, alpha: {fadeCanvasGroup.alpha})");
 
-            // Create Mission Logo (centered image)
+            // === 5. Create Mission Logo (centered image) ===
             GameObject logoObj = new GameObject("MissionLogo");
             logoObj.transform.SetParent(canvasObj.transform, false);
 
@@ -552,14 +802,57 @@ public class SceneTransitionManager : MonoBehaviour
             Debug.Log("[SceneTransitionManager] ✓ Created MissionLogo (Image, 512x512, centered, hidden)");
 
             Debug.Log("[SceneTransitionManager] ╔══════════════════════════════════════════════════════════");
-            Debug.Log("[SceneTransitionManager] ║ PERSISTENT UI CREATION COMPLETE");
-            Debug.Log("[SceneTransitionManager] ║ This UI will persist across all scene transitions");
+            Debug.Log("[SceneTransitionManager] ║ PERSISTENT UI CREATION COMPLETE (VR + DESKTOP COMPATIBLE)");
+            Debug.Log("[SceneTransitionManager] ║ OVRScreenFade: Black fade (VR-optimized)");
+            Debug.Log("[SceneTransitionManager] ║ World Space Canvas: Logo display (1m from camera)");
             Debug.Log("[SceneTransitionManager] ╚══════════════════════════════════════════════════════════");
         }
         else
         {
             Debug.Log($"[SceneTransitionManager] Persistent UI already exists (fadeCanvasGroup: {fadeCanvasGroup != null}, missionLogoImage: {missionLogoImage != null})");
         }
+    }
+
+    /// <summary>
+    /// Find camera anchor for World Space canvas parenting
+    /// VR: Returns OVRCameraRig.centerEyeAnchor
+    /// Desktop: Returns Camera.main.transform
+    /// </summary>
+    private Transform FindCameraAnchor()
+    {
+        Debug.Log($"[SceneTransitionManager] ═══ FINDING CAMERA ANCHOR ═══");
+
+        // Try to find OVRCameraRig component
+        Debug.Log($"[SceneTransitionManager] Searching for OVRCameraRig with FindObjectOfType...");
+        OVRCameraRig rig = FindObjectOfType<OVRCameraRig>();
+        Debug.Log($"[SceneTransitionManager] FindObjectOfType<OVRCameraRig>() result: {(rig != null ? rig.name : "NULL")}");
+
+        if (rig != null)
+        {
+            Debug.Log($"[SceneTransitionManager] OVRCameraRig found! Checking centerEyeAnchor...");
+            Debug.Log($"[SceneTransitionManager] centerEyeAnchor: {(rig.centerEyeAnchor != null ? rig.centerEyeAnchor.name : "NULL")}");
+
+            if (rig.centerEyeAnchor != null)
+            {
+                Debug.Log($"[SceneTransitionManager] ✓ Using centerEyeAnchor at position: {rig.centerEyeAnchor.position}");
+                Debug.Log($"[SceneTransitionManager] ═══════════════════════════════");
+                return rig.centerEyeAnchor;
+            }
+        }
+
+        // Fallback to Camera.main for desktop
+        Debug.Log($"[SceneTransitionManager] OVRCameraRig not found or no centerEyeAnchor, falling back to Camera.main...");
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            Debug.Log($"[SceneTransitionManager] ✓ Using Camera.main: {mainCam.name} at position: {mainCam.transform.position}");
+            Debug.Log($"[SceneTransitionManager] ═══════════════════════════════");
+            return mainCam.transform;
+        }
+
+        Debug.LogError("[SceneTransitionManager] ✗ No camera anchor found!");
+        Debug.Log($"[SceneTransitionManager] ═══════════════════════════════");
+        return null;
     }
 
     // ---------------- Public Fade Methods ----------------
