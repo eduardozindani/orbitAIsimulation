@@ -1,5 +1,10 @@
 using UnityEngine;
 
+// XR Input support for Quest controllers
+#if UNITY_ANDROID || UNITY_STANDALONE
+using UnityEngine.XR;
+#endif
+
 /// <summary>
 /// Simple spherical camera controller: starts at a given pitch and radius,
 /// then allows arrow-key orbit and mouse-wheel zoom.
@@ -59,20 +64,18 @@ public class CameraSphereController : MonoBehaviour
         // Only handle user input if not being controlled externally
         if (!allowExternalRadiusControl)
         {
-            // input
-            float h = Input.GetKey(KeyCode.RightArrow) ?  1f :
-                      Input.GetKey(KeyCode.LeftArrow)  ? -1f : 0f;
-            float v = Input.GetKey(KeyCode.UpArrow)    ?  1f :
-                      Input.GetKey(KeyCode.DownArrow)  ? -1f : 0f;
+            // Get input from keyboard OR Quest controllers
+            float h = GetHorizontalInput();  // Yaw (left/right spin)
+            float v = GetVerticalInput();    // Pitch (up/down to poles)
 
             // Use unscaledDeltaTime so camera controls are NOT affected by Time.timeScale
             yaw   += h * yawSpeed   * Time.unscaledDeltaTime;
             pitch += v * pitchSpeed * Time.unscaledDeltaTime;
             pitch  = Mathf.Clamp(pitch, minPitch, maxPitch);
 
-            // zoom
-            float scroll = Input.mouseScrollDelta.y;
-            radius = Mathf.Clamp(radius - scroll * zoomSpeed, minRadius, maxRadius);
+            // Zoom from mouse wheel OR left thumbstick
+            float zoomDelta = GetZoomInput();
+            radius = Mathf.Clamp(radius - zoomDelta, minRadius, maxRadius);
         }
 
         // Always update camera position (even during external control)
@@ -103,5 +106,121 @@ public class CameraSphereController : MonoBehaviour
     public float GetTargetRadius()
     {
         return startRadius;
+    }
+
+    // ---------------- Input Methods (Desktop + VR) ----------------
+
+    private const float THUMBSTICK_DEADZONE = 0.15f;
+
+    /// <summary>
+    /// Get horizontal input for yaw rotation (left/right).
+    /// Checks keyboard arrow keys OR Quest right thumbstick X-axis.
+    /// </summary>
+    private float GetHorizontalInput()
+    {
+        // Desktop keyboard input
+        float keyboard = Input.GetKey(KeyCode.RightArrow) ?  1f :
+                         Input.GetKey(KeyCode.LeftArrow)  ? -1f : 0f;
+
+        // If keyboard input detected, use it (takes priority)
+        if (Mathf.Abs(keyboard) > 0.01f)
+            return keyboard;
+
+        #if UNITY_ANDROID || UNITY_STANDALONE
+        // Quest controller - right thumbstick X-axis
+        if (UnityEngine.XR.XRSettings.isDeviceActive)
+        {
+            InputDevice rightController = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+            if (rightController.isValid)
+            {
+                Vector2 thumbstick;
+                if (rightController.TryGetFeatureValue(CommonUsages.primary2DAxis, out thumbstick))
+                {
+                    // Apply deadzone to prevent drift
+                    if (Mathf.Abs(thumbstick.x) > THUMBSTICK_DEADZONE)
+                    {
+                        return -thumbstick.x;  // Inverted: left → left, right → right
+                    }
+                }
+            }
+        }
+        #endif
+
+        return 0f;
+    }
+
+    /// <summary>
+    /// Get vertical input for pitch rotation (up/down).
+    /// Checks keyboard arrow keys OR Quest right thumbstick Y-axis.
+    /// </summary>
+    private float GetVerticalInput()
+    {
+        // Desktop keyboard input
+        float keyboard = Input.GetKey(KeyCode.UpArrow)   ?  1f :
+                         Input.GetKey(KeyCode.DownArrow) ? -1f : 0f;
+
+        // If keyboard input detected, use it (takes priority)
+        if (Mathf.Abs(keyboard) > 0.01f)
+            return keyboard;
+
+        #if UNITY_ANDROID || UNITY_STANDALONE
+        // Quest controller - right thumbstick Y-axis
+        if (UnityEngine.XR.XRSettings.isDeviceActive)
+        {
+            InputDevice rightController = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+            if (rightController.isValid)
+            {
+                Vector2 thumbstick;
+                if (rightController.TryGetFeatureValue(CommonUsages.primary2DAxis, out thumbstick))
+                {
+                    // Apply deadzone to prevent drift
+                    if (Mathf.Abs(thumbstick.y) > THUMBSTICK_DEADZONE)
+                    {
+                        return thumbstick.y;
+                    }
+                }
+            }
+        }
+        #endif
+
+        return 0f;
+    }
+
+    /// <summary>
+    /// Get zoom input (in/out).
+    /// Checks mouse scroll wheel OR Quest left thumbstick Y-axis.
+    /// Returns zoom delta (positive = zoom in, negative = zoom out).
+    /// </summary>
+    private float GetZoomInput()
+    {
+        // Desktop mouse scroll wheel (discrete ticks)
+        float scroll = Input.mouseScrollDelta.y;
+
+        // If scroll detected, use it (takes priority)
+        if (Mathf.Abs(scroll) > 0.01f)
+            return scroll * zoomSpeed; // Already scaled by zoomSpeed
+
+        #if UNITY_ANDROID || UNITY_STANDALONE
+        // Quest controller - left thumbstick Y-axis (continuous)
+        if (UnityEngine.XR.XRSettings.isDeviceActive)
+        {
+            InputDevice leftController = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+            if (leftController.isValid)
+            {
+                Vector2 thumbstick;
+                if (leftController.TryGetFeatureValue(CommonUsages.primary2DAxis, out thumbstick))
+                {
+                    // Apply deadzone to prevent drift
+                    if (Mathf.Abs(thumbstick.y) > THUMBSTICK_DEADZONE)
+                    {
+                        // Continuous input: scale by zoomSpeed and deltaTime
+                        return thumbstick.y * zoomSpeed * Time.unscaledDeltaTime;
+                    }
+                }
+            }
+        }
+        #endif
+
+        return 0f;
     }
 }
