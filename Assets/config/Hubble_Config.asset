@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56a9736bab75b42a497cd6a8d363734b, type: 3}
+  m_Name: Hubble_Config
+  m_EditorClassIdentifier: 
+  missionId: Hubble
+  missionName: Hubble Space Telescope
+  category: 0
+  specialistName: Dr. Harrison
+  specialistPersonality: Veteran aerospace engineer - technical, experienced, proud of Hubble's legacy, explains complex optics and orbital mechanics with wisdom
+  knowledgeDomain: "Hubble orbits at 540 km altitude with 28.5\xB0 inclination. This altitude was chosen to be accessible by Space Shuttle for servicing missions while staying above atmospheric drag. Period: ~95 minutes (15 orbits per day). Purpose: Deep space imaging and spectroscopy with no atmospheric distortion. Hubble revolutionized astronomy with its crystal-clear view of the universe."
+  specialistVoice: {fileID: 11400000, guid: 8a9c2f4e7b1d3e5f9c6a8b2d4e6f8a9c, type: 2}
+  orbitType: 0
+  altitudeKm: 540
+  periapsisKm: 200
+  apoapsisKm: 35786
+  inclinationDeg: 28.5
+  missionLogo: {fileID: 21300000, guid: 2cbe2105848c34281aef3ce8bea822fb, type: 3}
+  missionColor: {r: 0.6, g: 0.3, b: 0.9, a: 1}
+  missionDescription: The Hubble Space Telescope is NASA's flagship observatory, orbiting Earth since 1990 and providing unprecedented views of distant galaxies, nebulae, and cosmic phenomena.
+  relatedMissions: []
+
