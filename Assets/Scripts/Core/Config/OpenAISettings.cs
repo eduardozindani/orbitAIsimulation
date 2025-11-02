@@ -1,7 +1,9 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "OpenAISettings", menuName = "Config/OpenAI Settings")]
-public class OpenAISettings : ScriptableObject
+namespace Core.Config
+{
+    [CreateAssetMenu(fileName = "OpenAISettings", menuName = "Config/OpenAI Settings")]
+    public class OpenAISettings : ScriptableObject
 {
     [Header("Auth")]
     [Tooltip("Paste your API key here for local testing ONLY. Do not commit this asset.")]
@@ -20,4 +22,5 @@ public class OpenAISettings : ScriptableObject
     public string NormalizedBaseUrl => string.IsNullOrWhiteSpace(BaseUrl)
         ? "https://api.openai.com/v1"
         : BaseUrl.TrimEnd('/');
+}
 }

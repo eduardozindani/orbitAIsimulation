@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Agents.Tools
+namespace AI.Tools
 {
     /// <summary>
     /// Loads and manages tool schemas from JSON configuration.

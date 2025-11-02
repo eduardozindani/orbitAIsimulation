@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using Prompts;
-using Agents.Tools;
-using Agents.Core;
-using Agents.Services;
+using AI.Tools;
+using AI.Conversation;
+using AI.Services;
+using Core.Config;
 using Newtonsoft.Json.Linq;
 
 /// <summary>
@@ -27,7 +28,7 @@ public class PromptConsole : MonoBehaviour
     public TMP_Text OutputText;
 
     [Tooltip("ScriptableObject holding API key/model/base URL.")]
-    public OpenAISettings Settings;
+    public Core.Config.OpenAISettings Settings;
 
     [Header("Behavior")]
     [Tooltip("If true, pressing Enter while the input is focused will submit.")]
@@ -63,11 +64,11 @@ public class PromptConsole : MonoBehaviour
 
     [Header("Audio Response")]
     [Tooltip("ElevenLabs settings for text-to-speech audio responses")]
-    public ElevenLabsSettings elevenLabsSettings;
+    public Core.Config.ElevenLabsSettings elevenLabsSettings;
 
     [Header("Prompt Configuration")]
     [Tooltip("Centralized prompt settings (all AI prompts editable in Inspector)")]
-    public Agents.Config.PromptSettings promptSettings;
+    public Core.Config.PromptSettings promptSettings;
 
     private OpenAIClient _client;
     private ToolRegistry _toolRegistry;
@@ -76,7 +77,7 @@ public class PromptConsole : MonoBehaviour
     private ToolExecutor _specialistToolExecutor; // For mission specialists navigation
     private ElevenLabsClient _elevenLabsClient;
     private AudioSource _responseAudioSource;
-    private ElevenLabsSettings _activeVoiceSettings; // Current speaker voice (null = default CAPCOM)
+    private Core.Config.ElevenLabsSettings _activeVoiceSettings; // Current speaker voice (null = default CAPCOM)
     private string _specialistContext; // Mission-specific knowledge for specialists
     private bool _busy;
     private CancellationTokenSource _cts;
@@ -876,7 +877,7 @@ Generate a conversational response:";
     /// Generate and play specialist introduction with context awareness
     /// Called by MissionSpaceController when entering a mission space
     /// </summary>
-    public async Task GenerateSpecialistIntroductionAsync(string introPrompt, ElevenLabsSettings specialistVoice, CancellationToken ct)
+    public async Task GenerateSpecialistIntroductionAsync(string introPrompt, Core.Config.ElevenLabsSettings specialistVoice, CancellationToken ct)
     {
         if (_busy)
         {
@@ -928,7 +929,7 @@ Generate a conversational response:";
     /// <summary>
     /// Play audio using specialist-specific voice settings
     /// </summary>
-    private async Task PlaySpecialistAudioAsync(string text, ElevenLabsSettings specialistVoice, CancellationToken ct)
+    private async Task PlaySpecialistAudioAsync(string text, Core.Config.ElevenLabsSettings specialistVoice, CancellationToken ct)
     {
         if (_responseAudioSource == null)
         {
@@ -991,7 +992,7 @@ Generate a conversational response:";
     /// <summary>
     /// Set the active voice for responses (e.g., specialist voice in mission spaces)
     /// </summary>
-    public void SetActiveVoice(ElevenLabsSettings voiceSettings)
+    public void SetActiveVoice(Core.Config.ElevenLabsSettings voiceSettings)
     {
         _activeVoiceSettings = voiceSettings;
         string voiceId = voiceSettings?.voiceId ?? "null";

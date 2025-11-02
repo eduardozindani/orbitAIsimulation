@@ -1,12 +1,14 @@
 using UnityEngine;
 
-/// <summary>
-/// ScriptableObject configuration for mission-specific settings.
-/// Centralizes all mission data (specialist info, orbit params, voice settings) in one editable asset.
-/// Enables rapid mission creation without scene configuration.
-/// </summary>
-[CreateAssetMenu(fileName = "NewMission", menuName = "Orbital Missions/Mission Config", order = 1)]
-public class MissionConfig : ScriptableObject
+namespace Core.Config
+{
+    /// <summary>
+    /// ScriptableObject configuration for mission-specific settings.
+    /// Centralizes all mission data (specialist info, orbit params, voice settings) in one editable asset.
+    /// Enables rapid mission creation without scene configuration.
+    /// </summary>
+    [CreateAssetMenu(fileName = "NewMission", menuName = "Orbital Missions/Mission Config", order = 1)]
+    public class MissionConfig : ScriptableObject
 {
     [Header("Mission Identity")]
     [Tooltip("Mission identifier (e.g., ISS, GPS, Voyager, Hubble)")]
@@ -91,23 +93,24 @@ Purpose: Crewed operations, microgravity research, Earth observation.";
     }
 }
 
-/// <summary>
-/// Mission categories for grouping and filtering
-/// </summary>
-public enum MissionCategory
-{
-    LEO,            // Low Earth Orbit (160-2000 km)
-    MEO,            // Medium Earth Orbit (2000-35786 km)
-    GEO,            // Geostationary Orbit (35786 km)
-    HEO,            // Highly Elliptical Orbit
-    Interplanetary  // Beyond Earth orbit
-}
+    /// <summary>
+    /// Mission categories for grouping and filtering
+    /// </summary>
+    public enum MissionCategory
+    {
+        LEO,            // Low Earth Orbit (160-2000 km)
+        MEO,            // Medium Earth Orbit (2000-35786 km)
+        GEO,            // Geostationary Orbit (35786 km)
+        HEO,            // Highly Elliptical Orbit
+        Interplanetary  // Beyond Earth orbit
+    }
 
-/// <summary>
-/// Orbit type configuration
-/// </summary>
-public enum OrbitType
-{
-    Circular,
-    Elliptical
+    /// <summary>
+    /// Orbit type configuration
+    /// </summary>
+    public enum OrbitType
+    {
+        Circular,
+        Elliptical
+    }
 }

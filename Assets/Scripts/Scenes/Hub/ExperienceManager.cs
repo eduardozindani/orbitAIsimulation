@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UI;
 
-namespace Core
+namespace Scenes.Hub
 {
     /// <summary>
     /// Manages the application state and orchestrates transitions between

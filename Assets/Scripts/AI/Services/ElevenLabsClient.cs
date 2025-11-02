@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
+using Core.Config;
 
-namespace Agents.Services
+namespace AI.Services
 {
     /// <summary>
     /// Client for ElevenLabs text-to-speech API.

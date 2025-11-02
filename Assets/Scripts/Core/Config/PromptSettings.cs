@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Agents.Config
+namespace Core.Config
 {
     /// <summary>
     /// Centralized configuration for all AI prompts in the system.

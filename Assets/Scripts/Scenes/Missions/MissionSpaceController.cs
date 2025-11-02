@@ -1,13 +1,16 @@
 using System.Collections;
 using UnityEngine;
+using Core.Config;
 
-/// <summary>
-/// Controls a Mission Space scene.
-/// Sets up pre-built orbit configuration and triggers specialist introduction.
-/// Each Mission Space (ISS, GPS, Voyager, Hubble) has one of these components.
-/// REQUIRES: MissionConfig ScriptableObject must be assigned in Inspector.
-/// </summary>
-public class MissionSpaceController : MonoBehaviour
+namespace Scenes.Missions
+{
+    /// <summary>
+    /// Controls a Mission Space scene.
+    /// Sets up pre-built orbit configuration and triggers specialist introduction.
+    /// Each Mission Space (ISS, GPS, Voyager, Hubble) has one of these components.
+    /// REQUIRES: MissionConfig ScriptableObject must be assigned in Inspector.
+    /// </summary>
+    public class MissionSpaceController : MonoBehaviour
 {
     [Header("Mission Configuration")]
     [Tooltip("REQUIRED: Mission configuration ScriptableObject (all mission settings)")]
@@ -216,4 +219,5 @@ RESPONSE STYLE
 - Patient with questions
 - Keep responses conversational (2-4 sentences)";
     }
+}
 }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Agents.Tools
+namespace AI.Tools
 {
     /// <summary>
     /// Executes tool calls by invoking the corresponding Unity C# methods.

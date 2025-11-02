@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace Agents.Core
+namespace AI.Conversation
 {
     /// <summary>
     /// Manages conversation history between user and agent.

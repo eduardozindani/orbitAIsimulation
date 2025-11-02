@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Core.Config;
 
 /// <summary>
 /// Singleton registry for all available missions.

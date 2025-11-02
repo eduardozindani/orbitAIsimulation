@@ -1,11 +1,13 @@
 using UnityEngine;
 
-/// <summary>
-/// Configuration for ElevenLabs text-to-speech API.
-/// Stores API credentials and voice settings for audio response generation.
-/// </summary>
-[CreateAssetMenu(fileName = "ElevenLabsSettings", menuName = "Agents/ElevenLabs Settings", order = 2)]
-public class ElevenLabsSettings : ScriptableObject
+namespace Core.Config
+{
+    /// <summary>
+    /// Configuration for ElevenLabs text-to-speech API.
+    /// Stores API credentials and voice settings for audio response generation.
+    /// </summary>
+    [CreateAssetMenu(fileName = "ElevenLabsSettings", menuName = "Agents/ElevenLabs Settings", order = 2)]
+    public class ElevenLabsSettings : ScriptableObject
 {
     [Header("API Configuration")]
     [Tooltip("ElevenLabs API key")]
@@ -33,4 +35,5 @@ public class ElevenLabsSettings : ScriptableObject
     [Header("Advanced")]
     [Tooltip("API endpoint base URL")]
     public string baseUrl = "https://api.elevenlabs.io/v1";
+}
 }
