@@ -1268,11 +1268,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentState: 0
-  introDuration: 32
+  introDuration: 35
   skipIntro: 1
   skipHubWelcome: 1
   introCameraStartRadius: 50
-  cameraZoomDuration: 32
+  cameraZoomDuration: 35
   cameraZoomCurve:
     serializedVersion: 2
     m_Curve:
