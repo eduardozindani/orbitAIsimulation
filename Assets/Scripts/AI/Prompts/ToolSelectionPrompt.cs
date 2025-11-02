@@ -36,7 +36,7 @@ You can call exactly EIGHT tools:
 4. set_simulation_speed
    - Use when: User mentions ""simulation"", ""time"", or multiplier (5x, 20x)
    - Parameters:
-     * speed_multiplier (required): 1-100
+     * speed_multiplier (required): 1-500
    - IMPORTANT: Controls TIME FLOW, not orbital velocity!
 
 5. pause_simulation

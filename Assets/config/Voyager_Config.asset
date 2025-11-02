@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56a9736bab75b42a497cd6a8d363734b, type: 3}
+  m_Name: Voyager_Config
+  m_EditorClassIdentifier:
+  missionId: Voyager
+  missionName: Voyager Interplanetary Probe
+  category: 4
+  specialistName: Karl
+  specialistPersonality: Philosophical scientist and cosmic poet - contemplative, poetic, awe-inspiring. Speaks with wonder about humanity's place in the cosmos. Draws connections between orbital mechanics and the grander narrative of human exploration beyond Earth's cradle. Patient, wise, and deeply enthusiastic about deep space missions.
+  knowledgeDomain: "Voyager 1 launched in 1977 on a trajectory to escape Earth's orbit and explore the outer solar system. Unlike satellites that orbit Earth, Voyager needed enough velocity to overcome Earth's gravitational pull completely - this is called an escape trajectory. The spacecraft traveled in a highly elliptical path that became hyperbolic as it gained speed through gravitational assists from Jupiter and Saturn.\n\nVoyager's escape velocity was approximately 11.2 km/s from Earth's surface. The trajectory was carefully designed to use planetary alignments (the \"Grand Tour\") to boost velocity through gravity assists. This is fundamentally different from circular or elliptical Earth orbits - Voyager was never meant to return.\n\nToday, Voyager 1 is over 24 billion kilometers from Earth, in interstellar space, carrying the Golden Record - a message from humanity to the cosmos. It represents our first steps beyond the solar system."
+  specialistVoice: {fileID: 11400000, guid: bdd4b876800024a89b5991fdbf351582, type: 2}
+  orbitType: 1
+  altitudeKm: 420
+  periapsisKm: 200
+  apoapsisKm: 800000
+  inclinationDeg: 30
+  missionLogo: {fileID: 21300000, guid: ff2bf350d24f44d92a1af042a4746e57, type: 3}
+  missionColor: {r: 1, g: 0.647, b: 0, a: 1}
+  missionDescription: Voyager 1 is humanity's most distant spacecraft, launched in 1977 to explore the outer solar system and beyond. Its escape trajectory represents our first steps into interstellar space.
+  relatedMissions:
+  - ISS
+  - Hubble

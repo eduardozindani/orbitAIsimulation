@@ -33,7 +33,7 @@ RenderSettings:
   m_HaloTexture: {fileID: 0}
   m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
   m_DefaultReflectionMode: 0
-  m_DefaultReflectionResolution: 1024
+  m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
@@ -94,7 +94,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: 6f770b465abd8493a89f7b298baa6a7b, type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 433ea19f6aca9484a80d0f5f29363b78, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -129,7 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 14240195}
   m_Layer: 0
-  m_Name: ISS_Visual
+  m_Name: Voyager_Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -143,14 +143,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 14240194}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0.02, y: 0.07, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: -0.42261827, w: 0.9063079}
+  m_LocalPosition: {x: -30, y: 0, z: -255}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1132352055}
+  - {fileID: 601469115}
   m_Father: {fileID: 866791774}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -50}
 --- !u!1001 &86143664
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -251,15 +251,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8609351499600420483, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
-      propertyPath: promptSettings
-      value: 
-      objectReference: {fileID: 11400000, guid: 41d3265356581437b89483e62f97a900, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
+--- !u!114 &86143665 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8609351499600420483, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
+  m_PrefabInstance: {fileID: 86143664}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58cfca84cf4e74d849645010387651f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &133937304 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3495054044478215450, guid: 4b48209f24ad14d22beca3309a49a043, type: 3}
@@ -278,7 +285,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 866791774}
-  chaseDistance: 0.2
+  chaseDistance: 0.5
   heightOffset: 0.3
   allowMouseLook: 1
   mouseSensitivity: 2
@@ -339,39 +346,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: SceneTransitionManager
       objectReference: {fileID: 0}
-    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
-      propertyPath: gpsLogo
-      value: 
-      objectReference: {fileID: 21300000, guid: 1307c1bfb76804a71aa1ade8f8120dc6, type: 3}
-    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
-      propertyPath: hubLogo
-      value: 
-      objectReference: {fileID: 21300000, guid: 793309c49ece74b08acfa40be8a0f658, type: 3}
-    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
-      propertyPath: issLogo
-      value: 
-      objectReference: {fileID: 21300000, guid: fc8e228d1e85c44749d08e5f0e96668c, type: 3}
-    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
-      propertyPath: hubbleLogo
-      value: 
-      objectReference: {fileID: 21300000, guid: 2cbe2105848c34281aef3ce8bea822fb, type: 3}
-    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
-      propertyPath: voyagerLogo
-      value: 
-      objectReference: {fileID: 21300000, guid: ff2bf350d24f44d92a1af042a4746e57, type: 3}
-    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
-      propertyPath: fadeCanvasGroup
-      value: 
-      objectReference: {fileID: 1082812435}
-    - target: {fileID: 3411996501498738973, guid: f258d802688f84d40b209357845750e8, type: 3}
-      propertyPath: missionLogoImage
-      value: 
-      objectReference: {fileID: 881702189}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f258d802688f84d40b209357845750e8, type: 3}
+--- !u!4 &601469115 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4441979597424013110, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
+  m_PrefabInstance: {fileID: 1022039586}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &627432383
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -595,25 +579,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: CameraRig
       objectReference: {fileID: 0}
-    - target: {fileID: 5795000516643317526, guid: 4b48209f24ad14d22beca3309a49a043, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7707407873440234590, guid: 4b48209f24ad14d22beca3309a49a043, type: 3}
-      propertyPath: field of view
-      value: 60.000004
-      objectReference: {fileID: 0}
-    - target: {fileID: 7707407873440234590, guid: 4b48209f24ad14d22beca3309a49a043, type: 3}
-      propertyPath: m_FocalLength
-      value: 20.78461
-      objectReference: {fileID: 0}
-    - target: {fileID: 7707407873440234590, guid: 4b48209f24ad14d22beca3309a49a043, type: 3}
-      propertyPath: m_projectionMatrixMode
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 8325255563373306493, guid: 4b48209f24ad14d22beca3309a49a043, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 250
       objectReference: {fileID: 0}
     - target: {fileID: 8325255563373306493, guid: 4b48209f24ad14d22beca3309a49a043, type: 3}
       propertyPath: m_LocalPosition.y
@@ -763,7 +731,7 @@ GameObject:
   - component: {fileID: 866791774}
   - component: {fileID: 866791773}
   m_Layer: 0
-  m_Name: ISS_Satellite
+  m_Name: Voyager_Satellite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -802,17 +770,6 @@ Transform:
   - {fileID: 14240195}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &881702189 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4997700579210291043, guid: f088c757a77ad4e96b447273f3285662, type: 3}
-  m_PrefabInstance: {fileID: 791793612}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &1022039586
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -821,55 +778,55 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 14240195}
     m_Modifications:
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalRotation.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: -8679921383154817045, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 9144996507200027298, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+    - target: {fileID: 919132149155446097, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
       propertyPath: m_Name
-      value: ISS
+      value: Voyager
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
+  m_SourcePrefab: {fileID: 100100000, guid: af9cfecd757ec4da58717668eaae7964, type: 3}
 --- !u!1001 &1043614292
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -984,17 +941,7 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af46308ff817e4b93a628b821e9d89d0, type: 3}
---- !u!225 &1082812435 stripped
-CanvasGroup:
-  m_CorrespondingSourceObject: {fileID: 6703631858371352270, guid: f088c757a77ad4e96b447273f3285662, type: 3}
-  m_PrefabInstance: {fileID: 791793612}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1132352055 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8476440194506563608, guid: 93ed2485472cf45ec9f6bebd2d610b58, type: 3}
-  m_PrefabInstance: {fileID: 1022039586}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1177890661
+--- !u!1 &1714446007
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1002,8 +949,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1177890663}
-  - component: {fileID: 1177890662}
+  - component: {fileID: 1714446009}
+  - component: {fileID: 1714446008}
   m_Layer: 0
   m_Name: MissionController
   m_TagString: Untagged
@@ -1011,48 +958,37 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1177890662
+--- !u!114 &1714446008
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1177890661}
+  m_GameObject: {fileID: 1714446007}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c1910c4f410c474c82a42805d84ef8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  missionConfig: {fileID: 11400000, guid: 276f8bd181e1a4c70b535c2147145bc8, type: 2}
+  missionConfig: {fileID: 11400000, guid: 58571a4b00af84daca3ae4bdfd19deb6, type: 2}
   orbitController: {fileID: 843278018}
-  promptConsole: {fileID: 1344970599}
-  introDelay: 0
---- !u!4 &1177890663
+  promptConsole: {fileID: 86143665}
+  introDelay: 2.5
+--- !u!4 &1714446009
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1177890661}
+  m_GameObject: {fileID: 1714446007}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 5.319886, y: 0, z: 0.0026040673}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1344970599 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8609351499600420483, guid: f05d8b932961c4e588b18dffdb409520, type: 3}
-  m_PrefabInstance: {fileID: 86143664}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58cfca84cf4e74d849645010387651f7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1066,5 +1002,5 @@ SceneRoots:
   - {fileID: 791793612}
   - {fileID: 627432383}
   - {fileID: 1055072998}
-  - {fileID: 1177890663}
+  - {fileID: 1714446009}
   - {fileID: 866791774}

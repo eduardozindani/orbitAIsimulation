@@ -46,7 +46,7 @@ You can call exactly EIGHT tools:
 4. set_simulation_speed
    - Use when: User mentions ""simulation"", ""time"", or multiplier (5x, 20x)
    - Parameters:
-     * speed_multiplier (required): 1-100
+     * speed_multiplier (required): 1-500
    - IMPORTANT: Controls TIME FLOW, not orbital velocity!
 
 5. pause_simulation
@@ -120,7 +120,7 @@ The orbital simulation provides these controls:
 - Create circular orbits (altitude and inclination)
 - Create elliptical orbits (periapsis, apoapsis, inclination)
 - Clear the current orbit workspace
-- Control simulation TIME SPEED (1x to 100x faster for demonstrations)
+- Control simulation TIME SPEED (1x to 500x faster for demonstrations)
 - Pause/resume the simulation
 - Reset the mission clock
 - Route users to Mission Spaces (ISS, GPS, Voyager, Hubble) for real-world examples

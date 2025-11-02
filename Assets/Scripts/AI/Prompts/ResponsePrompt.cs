@@ -14,7 +14,7 @@ The orbital simulation provides these controls:
 - Create circular orbits (altitude and inclination)
 - Create elliptical orbits (periapsis, apoapsis, inclination)
 - Clear the current orbit workspace
-- Control simulation TIME SPEED (1x to 100x faster for demonstrations)
+- Control simulation TIME SPEED (1x to 500x faster for demonstrations)
 - Pause/resume the simulation
 - Reset the mission clock
 - Route users to Mission Spaces (ISS, GPS, Voyager, Hubble) for real-world examples

@@ -73,9 +73,9 @@
       "parameters": {
         "speed_multiplier": {
           "type": "number",
-          "description": "Time multiplier: 1 = real-time, 10 = 10x faster time flow, 50 = 50x faster",
+          "description": "Time multiplier: 1 = real-time, 10 = 10x faster time flow, 50 = 50x faster, up to 500x maximum",
           "min": 0.1,
-          "max": 100,
+          "max": 500,
           "required": true
         }
       },

@@ -310,7 +310,7 @@ public class OrbitController : MonoBehaviour
 
         // Validate altitudes
         periapsis_km = Mathf.Clamp(periapsis_km, minAltitudeKm, maxAltitudeKm);
-        apoapsis_km = Mathf.Clamp(apoapsis_km, periapsis_km + 1f, 100000f); // Ensure apoapsis > periapsis
+        apoapsis_km = Mathf.Clamp(apoapsis_km, periapsis_km + 1f, 1000000f); // Allow up to 1 million km for escape trajectories
 
         // Calculate semi-major axis (average of periapsis and apoapsis radii)
         float rp_km = earthRadiusKm + periapsis_km;  // Periapsis radius from Earth center
