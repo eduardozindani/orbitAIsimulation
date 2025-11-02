@@ -37,9 +37,6 @@ public class SceneTransitionManager : MonoBehaviour
     [Tooltip("Logo for ISS Mission Space")]
     public Sprite issLogo;
 
-    [Tooltip("Logo for GPS Mission Space")]
-    public Sprite gpsLogo;
-
     [Tooltip("Logo for Voyager Mission Space")]
     public Sprite voyagerLogo;
 
@@ -49,6 +46,8 @@ public class SceneTransitionManager : MonoBehaviour
     private bool isTransitioning = false;
     private OVRScreenFade screenFade;
     private bool isVR = false;
+    private Transform cachedCameraAnchor;
+    private Transform transitionCanvasTransform;
 
     void Awake()
     {
@@ -152,8 +151,36 @@ public class SceneTransitionManager : MonoBehaviour
         }
     }
 
+    void LateUpdate()
+    {
+        // Position the TransitionCanvas 1m in front of the camera each frame
+        // This ensures it follows the camera across scene changes without being parented to scene-specific objects
+
+        // Cache canvas transform if not already cached
+        if (transitionCanvasTransform == null)
+        {
+            transitionCanvasTransform = transform.Find("TransitionCanvas");
+        }
+
+        if (transitionCanvasTransform != null)
+        {
+            // Re-find camera anchor if null (scene changed) or if the current one was destroyed
+            if (cachedCameraAnchor == null)
+            {
+                cachedCameraAnchor = FindCameraAnchor();
+            }
+
+            if (cachedCameraAnchor != null)
+            {
+                // Position 1m in front of camera, facing the camera
+                transitionCanvasTransform.position = cachedCameraAnchor.position + cachedCameraAnchor.forward * 1f;
+                transitionCanvasTransform.rotation = cachedCameraAnchor.rotation;
+            }
+        }
+    }
+
     /// <summary>
-    /// Transition to a mission space (ISS, GPS, Voyager, Hubble)
+    /// Transition to a mission space (ISS, Voyager, Hubble)
     /// </summary>
     public void TransitionToMission(string mission)
     {
@@ -574,7 +601,6 @@ public class SceneTransitionManager : MonoBehaviour
         return mission switch
         {
             "ISS" => "ISS",
-            "GPS" => "GPS",
             "Voyager" => "Voyager",
             "Hubble" => "Hubble",
             "Hub" => "Hub",
@@ -591,7 +617,6 @@ public class SceneTransitionManager : MonoBehaviour
         {
             "Hub" => hubLogo,
             "ISS" => issLogo,
-            "GPS" => gpsLogo,
             "Voyager" => voyagerLogo,
             "Hubble" => hubbleLogo,
             _ => null
@@ -736,6 +761,7 @@ public class SceneTransitionManager : MonoBehaviour
             // === 2. Create World Space Canvas for logo ===
             GameObject canvasObj = new GameObject("TransitionCanvas");
             canvasObj.transform.SetParent(transform, false);
+            transitionCanvasTransform = canvasObj.transform; // Cache for LateUpdate()
 
             Canvas canvas = canvasObj.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
@@ -747,19 +773,14 @@ public class SceneTransitionManager : MonoBehaviour
 
             Debug.Log("[SceneTransitionManager] ✓ Created TransitionCanvas (WorldSpace, 2m x 2m, SortOrder: 100)");
 
-            // === 3. Parent canvas to camera (VR: CenterEyeAnchor, Desktop: Camera.main) ===
-            Transform cameraAnchor = FindCameraAnchor();
-            if (cameraAnchor != null)
-            {
-                canvasObj.transform.SetParent(cameraAnchor, false);
-                canvasObj.transform.localPosition = new Vector3(0, 0, 1f); // 1m in front of camera
-                canvasObj.transform.localRotation = Quaternion.identity;
-                Debug.Log($"[SceneTransitionManager] ✓ Parented canvas to camera anchor: {cameraAnchor.name} (1m forward)");
-            }
-            else
-            {
-                Debug.LogWarning("[SceneTransitionManager] Camera anchor not found, canvas will not follow camera");
-            }
+            // === 3. Keep canvas parented to persistent SceneTransitionManager ===
+            // NOTE: We do NOT parent to CenterEyeAnchor because it gets destroyed on scene changes!
+            // Instead, we'll position it manually in LateUpdate() to follow the camera
+            Debug.Log("[SceneTransitionManager] ✓ Canvas remains child of persistent SceneTransitionManager (will follow camera via LateUpdate)");
+
+            // Position it initially at world origin
+            canvasObj.transform.position = Vector3.zero;
+            canvasObj.transform.rotation = Quaternion.identity;
 
             // === 4. Create full-screen black panel (for desktop fallback) ===
             GameObject fadePanelObj = new GameObject("FadeCanvas");

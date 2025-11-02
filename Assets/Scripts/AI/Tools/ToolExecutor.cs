@@ -349,10 +349,10 @@ namespace AI.Tools
             }
 
             // Validate mission name
-            if (mission != "ISS" && mission != "GPS" && mission != "Voyager" && mission != "Hubble")
+            if (mission != "ISS" && mission != "Voyager" && mission != "Hubble")
             {
                 result.success = false;
-                result.errorMessage = $"Unknown mission: {mission}. Valid missions: ISS, GPS, Voyager, Hubble";
+                result.errorMessage = $"Unknown mission: {mission}. Valid missions: ISS, Voyager, Hubble";
                 Debug.LogWarning($"[ToolExecutor] {result.errorMessage}");
                 return false;
             }

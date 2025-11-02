@@ -11,7 +11,7 @@ public class MissionContext : MonoBehaviour
     public static MissionContext Instance { get; private set; }
 
     [Header("Current State")]
-    [Tooltip("Current location: Hub, ISS, GPS, Voyager, or Hubble")]
+    [Tooltip("Current location: Hub, ISS, Voyager, or Hubble")]
     public string currentLocation = "Hub";
 
     [Tooltip("Why was user routed to current location?")]

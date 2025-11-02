@@ -7,7 +7,7 @@ namespace Scenes.Missions
     /// <summary>
     /// Controls a Mission Space scene.
     /// Sets up pre-built orbit configuration and triggers specialist introduction.
-    /// Each Mission Space (ISS, GPS, Voyager, Hubble) has one of these components.
+    /// Each Mission Space (ISS, Voyager, Hubble) has one of these components.
     /// REQUIRES: MissionConfig ScriptableObject must be assigned in Inspector.
     /// </summary>
     public class MissionSpaceController : MonoBehaviour

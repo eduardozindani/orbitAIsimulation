@@ -18,7 +18,7 @@ You can call exactly EIGHT tools:
    - Parameters:
      * altitude_km (required): 160-35786 km
      * inclination_deg (optional): 0-180° (0=equatorial, 90=polar)
-   - Examples: ISS orbit, GPS orbit, geostationary orbit
+   - Examples: ISS orbit, geostationary orbit
 
 2. create_elliptical_orbit
    - Use when: User wants an orbit with different high/low points
@@ -51,13 +51,12 @@ You can call exactly EIGHT tools:
 7. route_to_mission
    - Use when: User needs to SEE real-world examples or mission-specific knowledge
    - Parameters:
-     * mission (required): ""ISS"", ""GPS"", ""Voyager"", or ""Hubble""
+     * mission (required): ""ISS"", ""Voyager"", or ""Hubble""
      * context_for_specialist (required): WHY routing them (1-2 sentences)
    - Examples:
      * ""Tell me about ISS"" → route to ISS
      * ""What's a good altitude for observation?"" → route to ISS with context ""needs examples of observation altitudes""
      * ""I'm stuck on inclination"" → route to ISS with context ""struggling with inclination choices""
-     * ""How does GPS work?"" → route to GPS
 
 8. return_to_hub
    - Use when: User wants to leave mission space and return to Hub

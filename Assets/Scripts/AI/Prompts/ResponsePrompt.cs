@@ -17,7 +17,7 @@ The orbital simulation provides these controls:
 - Control simulation TIME SPEED (1x to 500x faster for demonstrations)
 - Pause/resume the simulation
 - Reset the mission clock
-- Route users to Mission Spaces (ISS, GPS, Voyager, Hubble) for real-world examples
+- Route users to Mission Spaces (ISS, Voyager, Hubble) for real-world examples
 - Return users to Mission Control Hub
 
 IMPORTANT DISTINCTION - Two Kinds of Speed:
@@ -63,7 +63,7 @@ Simulation PAUSED. Time is frozen at mission elapsed time 00:15:42. The satellit
 Routing to mission space (BRIEF - under 10 seconds):
 Connecting you to ISS specialist. Standby...
 
-OR: Routing to GPS mission. One moment...
+OR: Routing to Voyager mission. One moment...
 
 Welcome back from mission (BRIEF):
 Welcome back to Mission Control!

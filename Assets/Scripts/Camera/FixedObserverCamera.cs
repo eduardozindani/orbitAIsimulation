@@ -6,7 +6,7 @@ using UnityEngine.XR;
 #endif
 
 /// <summary>
-/// Observer camera for Mission Spaces (ISS, GPS, Voyager, Hubble).
+/// Observer camera for Mission Spaces (ISS, Voyager, Hubble).
 /// In VR: Positions camera above target satellite, looking down at it with Earth in background.
 /// Camera follows target's orbit, maintaining fixed relative position. Head tracking enabled.
 /// In Desktop: Mouse/arrow keys can rotate view around target.

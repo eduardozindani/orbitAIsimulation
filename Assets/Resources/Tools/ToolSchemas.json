@@ -3,7 +3,7 @@
     {
       "id": "create_circular_orbit",
       "name": "Circular Orbit Design",
-      "description": "Creates a perfectly circular orbit at specified altitude and inclination. Used for standard orbital configurations like ISS, GPS, and geostationary satellites.",
+      "description": "Creates a perfectly circular orbit at specified altitude and inclination. Used for standard orbital configurations like ISS and geostationary satellites.",
       "parameters": {
         "altitude_km": {
           "type": "number",
@@ -110,17 +110,17 @@
     {
       "id": "route_to_mission",
       "name": "Route to Mission Specialist",
-      "description": "Route user to a Mission Space to explore historical missions and learn from real-world examples. Use when: (1) user explicitly asks about ISS, GPS, Voyager, or Hubble missions, (2) user asks vague questions that need concrete examples (e.g., 'what's a good altitude?'), (3) user is exploring and would benefit from seeing actual mission configurations, (4) user seems stuck on design choices and needs inspiration. Mission Spaces show pre-built orbits that cannot be modified - they are for learning and understanding only.",
+      "description": "Route user to a Mission Space to explore historical missions and learn from real-world examples. Use when: (1) user explicitly asks about ISS, Voyager, or Hubble missions, (2) user asks vague questions that need concrete examples (e.g., 'what's a good altitude?'), (3) user is exploring and would benefit from seeing actual mission configurations, (4) user seems stuck on design choices and needs inspiration. Mission Spaces show pre-built orbits that cannot be modified - they are for learning and understanding only.",
       "parameters": {
         "mission": {
           "type": "string",
-          "description": "Which mission specialist to connect with: ISS (LEO observation), GPS (MEO constellation), Voyager (interplanetary escape), Hubble (LEO telescope)",
-          "enum": ["ISS", "GPS", "Voyager", "Hubble"],
+          "description": "Which mission specialist to connect with: ISS (LEO observation), Voyager (interplanetary escape), Hubble (LEO telescope)",
+          "enum": ["ISS", "Voyager", "Hubble"],
           "required": true
         },
         "context_for_specialist": {
           "type": "string",
-          "description": "Brief context (1-2 sentences) explaining WHY user is being routed. This helps the specialist tailor their introduction and guidance. Examples: 'wants to understand LEO observation altitudes', 'struggling with inclination choices', 'curious about GPS constellation design', 'exploring interplanetary trajectories'",
+          "description": "Brief context (1-2 sentences) explaining WHY user is being routed. This helps the specialist tailor their introduction and guidance. Examples: 'wants to understand LEO observation altitudes', 'struggling with inclination choices', 'exploring interplanetary trajectories'",
           "required": true
         }
       },
@@ -144,12 +144,6 @@
       "altitude_km": 420,
       "inclination_deg": 51.6,
       "description": "International Space Station orbit"
-    },
-    "GPS": {
-      "tool": "create_circular_orbit",
-      "altitude_km": 20200,
-      "inclination_deg": 55,
-      "description": "GPS satellite constellation orbit"
     },
     "GEO": {
       "tool": "create_circular_orbit",

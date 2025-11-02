@@ -11,7 +11,7 @@ namespace Core.Config
     public class MissionConfig : ScriptableObject
 {
     [Header("Mission Identity")]
-    [Tooltip("Mission identifier (e.g., ISS, GPS, Voyager, Hubble)")]
+    [Tooltip("Mission identifier (e.g., ISS, Voyager, Hubble)")]
     public string missionId = "ISS";
 
     [Tooltip("Full mission name displayed to user")]
@@ -21,7 +21,7 @@ namespace Core.Config
     public MissionCategory category = MissionCategory.LEO;
 
     [Header("Specialist Configuration")]
-    [Tooltip("Specialist's name or role (e.g., ISS Flight Engineer, GPS Operations Manager)")]
+    [Tooltip("Specialist's name or role (e.g., ISS Flight Engineer, Voyager Navigation Officer)")]
     public string specialistName = "ISS Flight Engineer";
 
     [Tooltip("Specialist personality traits and tone (brief description)")]

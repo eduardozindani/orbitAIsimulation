@@ -19,7 +19,7 @@ MonoBehaviour:
     TOOLS\nYou can call exactly EIGHT tools:\n\n1. create_circular_orbit\n   - Use
     when: User wants a simple orbit at one altitude\n   - Parameters:\n     * altitude_km
     (required): 160-35786 km\n     * inclination_deg (optional): 0-180\xB0 (0=equatorial,
-    90=polar)\n   - Examples: ISS orbit, GPS orbit, geostationary orbit\n\n2. create_elliptical_orbit\n  
+    90=polar)\n   - Examples: ISS orbit, geostationary orbit\n\n2. create_elliptical_orbit\n
     - Use when: User wants an orbit with different high/low points\n   - Parameters:\n    
     * periapsis_km (required): 160-35786 km\n     * apoapsis_km (required): Must
     be > periapsis_km\n     * inclination_deg (optional): 0-180\xB0\n   - Examples:
@@ -32,13 +32,13 @@ MonoBehaviour:
     or unfreeze time\n   - Parameters:\n     * pause (required): true to pause, false
     to resume\n\n6. reset_simulation_time\n   - Use when: User wants to reset mission
     clock to zero\n   - Parameters: None\n\n7. route_to_mission\n   - Use when: User
-    needs to SEE real-world examples or mission-specific knowledge\n   - Parameters:\n    
-    * mission (required): \"ISS\", \"GPS\", \"Voyager\", or \"Hubble\"\n     * context_for_specialist
+    needs to SEE real-world examples or mission-specific knowledge\n   - Parameters:\n
+    * mission (required): \"ISS\", \"Voyager\", or \"Hubble\"\n     * context_for_specialist
     (required): WHY routing them (1-2 sentences)\n   - Examples:\n     * \"Tell me
     about ISS\" \u2192 route to ISS\n     * \"What's a good altitude for observation?\"
-    \u2192 route to ISS with context \"needs examples of observation altitudes\"\n    
+    \u2192 route to ISS with context \"needs examples of observation altitudes\"\n
     * \"I'm stuck on inclination\" \u2192 route to ISS with context \"struggling
-    with inclination choices\"\n     * \"How does GPS work?\" \u2192 route to GPS\n\n8.
+    with inclination choices\"\n\n8.
     return_to_hub\n   - Use when: User wants to leave mission space and return to
     Hub\n   - Parameters: None\n   - Examples: \"go back\", \"return to mission control\",
     \"I'm done here\"\n\nOUTPUT FORMAT (strict JSON only)\n{\n  \"intent\": \"execute_tool\"
@@ -93,7 +93,7 @@ MonoBehaviour:
     - Reset
     the mission clock
 
-    - Route users to Mission Spaces (ISS, GPS, Voyager, Hubble)
+    - Route users to Mission Spaces (ISS, Voyager, Hubble)
     for real-world examples
 
     - Return users to Mission Control Hub
@@ -209,7 +209,7 @@ MonoBehaviour:
 
 
     OR: Routing
-    to GPS mission. One moment...
+    to Voyager mission. One moment...
 
 
     Welcome back from mission (BRIEF):
@@ -349,7 +349,7 @@ MonoBehaviour:
     covered by another mission, suggest visiting that specialist
 
     - Example:
-    "That is more GPS specialty - they can show you MEO constellation design"
+    "That's more in Voyager's specialty - they can show you interplanetary trajectories"
 
     -
     Guide users to the right specialist for their learning goals

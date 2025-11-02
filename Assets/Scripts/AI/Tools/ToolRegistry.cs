@@ -135,7 +135,7 @@ namespace AI.Tools
         }
 
         /// <summary>
-        /// Get a preset orbit definition by name (e.g., "ISS", "GPS")
+        /// Get a preset orbit definition by name (e.g., "ISS", "GEO")
         /// </summary>
         public CommonOrbitDefinition GetCommonOrbit(string name)
         {
