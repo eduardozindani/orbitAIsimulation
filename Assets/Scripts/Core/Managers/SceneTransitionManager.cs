@@ -254,6 +254,7 @@ public class SceneTransitionManager : MonoBehaviour
 
         // === PHASE 4: Logo Fade-In Animation ===
         // Smooth fade-in: 0% → 100% over 2 seconds
+        Debug.Log($"[SceneTransitionManager] Phase 4: Fading in logo (0→1 over 2s), logo active: {(missionLogoImage != null && missionLogoImage.gameObject.activeSelf)}");
         float fadeInDuration = 2f;
         float elapsed = 0f;
 
@@ -271,6 +272,8 @@ public class SceneTransitionManager : MonoBehaviour
 
             yield return null;
         }
+
+        Debug.Log($"[SceneTransitionManager] Phase 4 complete: Logo should be at 100% opacity, actual alpha: {(missionLogoImage != null ? missionLogoImage.color.a.ToString() : "NULL")}");
 
         // === PHASE 5: Hold Logo Visible (Scene Loading) ===
         // Hold at 100% opacity while scene loads
@@ -574,11 +577,11 @@ public class SceneTransitionManager : MonoBehaviour
             missionLogoImage.sprite = logo;
             missionLogoImage.gameObject.SetActive(true);
             missionLogoImage.color = new Color(1f, 1f, 1f, 0f); // Start transparent
-            Debug.Log($"[SceneTransitionManager] Showing {mission} logo");
+            Debug.Log($"[SceneTransitionManager] ✓ Showing {mission} logo (sprite: {logo.name}, active: {missionLogoImage.gameObject.activeSelf}, alpha: 0)");
         }
         else
         {
-            Debug.LogWarning($"[SceneTransitionManager] No logo found for mission: {mission}");
+            Debug.LogWarning($"[SceneTransitionManager] ✗ No logo sprite found for mission: {mission}");
         }
     }
 
