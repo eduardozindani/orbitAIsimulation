@@ -148,6 +148,16 @@ The Unity project is configured for Meta Quest 3 deployment, enabling the applic
 
 The platform can be tested locally during development and deployed for demonstrations. The modular architecture ensures the same conversational AI and orbital physics work identically whether running on desktop for testing or in VR for the full experience.
 
+\subsubsection*{Mixed Reality Modality Selection}
+
+The Meta Quest 3 is fundamentally a mixed reality device, supporting both fully immersive VR and camera-passthrough AR experiences. The platform's architecture accommodates both modes, but the demonstration and primary user experience emphasize immersive VR for several pedagogical reasons.
+
+Orbital mechanics concepts involve scales and distances far beyond human perception—satellites orbit hundreds to thousands of kilometers above Earth. Anchoring these visualizations to a user's physical living room through AR passthrough, while technically feasible, introduces cognitive dissonance between the intimate scale of domestic space and the vastness of orbital space. Users may struggle to maintain the conceptual frame when a satellite path appears to pass through their ceiling or furniture.
+
+In contrast, immersive VR places users \textit{in space itself}, creating a coherent perceptual context where Earth floats before them and orbital paths exist in their natural domain. This environmental consistency supports the mental model we aim to build: understanding orbits as three-dimensional phenomena around a central body, unencumbered by the visual and cognitive interference of unrelated physical surroundings.
+
+The platform's modular architecture ensures AR passthrough mode remains a viable option for specific use cases—such as collaborative demonstrations where multiple users need to maintain awareness of shared physical space, or installations in planetariums and museums where spatial anchoring to exhibits adds value. The core simulation and agent systems function identically across both modalities.
+
 \subsubsection*{Spatial Interaction Design}
 
 In VR, interface elements exist in three-dimensional space rather than on flat screens. Orbital parameters float near their corresponding trajectories. Mission briefings appear as spatial panels that remain fixed in the environment. Controllers enable direct interaction through pointing and selection.

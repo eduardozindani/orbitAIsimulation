@@ -1,7 +1,7 @@
 \section{Design Philosophy and Approach}
 \label{sec:design_philosophy}
 
-The development of this project is fundamentally an exploratory research endeavour into a new paradigm of human-computer interaction for educational purposes. Given the innovative and complex nature of integrating generative AI, augmented reality, and embodied interfaces, a rigid, waterfall-style development plan would be inappropriate. Instead, the methodology is guided by a philosophy that embraces iteration and modularity to navigate the technical challenges and discovery process inherent in such work.
+The development of this project is fundamentally an exploratory research endeavour into a new paradigm of human-computer interaction for educational purposes. Given the innovative and complex nature of integrating generative AI, immersive mixed reality, and embodied interfaces, a rigid, waterfall-style development plan would be inappropriate. Instead, the methodology is guided by a philosophy that embraces iteration and modularity to navigate the technical challenges and discovery process inherent in such work.
 
 The approach is defined by three core principles:
 \begin{itemize}
@@ -25,11 +25,44 @@ The architecture separates conversational intelligence from spatial visualizatio
 
 User interactions follow a continuous conversational loop. The user speaks a request—perhaps asking to see a specific orbit or questioning why certain parameters produce particular behaviors. The agent, powered by OpenAI's language models, interprets this natural language input and determines the appropriate response, whether that means creating a visualization, explaining a concept, or routing the user to a relevant learning resource.
 
-When visualization is needed, the agent communicates with the Unity-based simulation engine to generate the requested orbital trajectory. The simulation calculates physically accurate paths using astrodynamics principles and renders them in the virtual reality environment. The user sees the orbit appear in space, anchored to their surroundings through the Meta Quest 3 headset.
+When visualization is needed, the agent communicates with the Unity-based simulation engine to generate the requested orbital trajectory. The simulation calculates physically accurate paths using astrodynamics principles and renders them in the immersive mixed reality environment. Through the Meta Quest 3 headset, the user sees the orbit materialize in space, experiencing the trajectory from within the orbital environment itself.
 
 The agent then provides spoken feedback via ElevenLabs voice synthesis, confirming what was created and offering educational context. This completes one cycle of the interaction loop, with the user free to ask follow-up questions, request modifications, or explore new concepts.
 
 This architecture enables seamless integration between abstract physics concepts and tangible spatial representations, allowing users to learn through the natural combination of conversation and visual exploration.
+
+\section{Mixed Reality Design Rationale: VR Immersion for Orbital Learning}
+\label{sec:mr_rationale}
+
+The Meta Quest 3 headset is a mixed reality platform capable of both fully immersive virtual reality and camera-passthrough augmented reality experiences. While this project's architecture supports both modalities, the demonstrated implementation and user experience emphasizes immersive VR. This section explains the pedagogical and perceptual reasoning behind this design choice.
+
+\subsection{Scale and Context Challenges in AR Passthrough}
+
+Orbital mechanics operates at scales fundamentally disconnected from human spatial experience. The International Space Station orbits 420 kilometers above Earth's surface—a distance beyond direct perceptual comprehension. Geostationary satellites sit at 35,786 kilometers. Even when scaled for visualization, these orbital paths span dozens of meters in virtual space.
+
+Rendering such trajectories as AR overlays in a user's physical environment creates perceptual and cognitive friction. A low Earth orbit might appear to pass through the user's walls, furniture, and ceiling. While technically accurate to the scaled model, this visual collision between domestic space and orbital space disrupts the conceptual framework needed for learning. Users must constantly reconcile two incompatible spatial contexts: the intimate scale of their room and the cosmic scale of orbital mechanics.
+
+\subsection{Immersive VR as Coherent Learning Environment}
+
+Immersive virtual reality resolves this tension by placing users \textit{within the orbital environment}. When the headset's view shows only space—a starfield surrounding Earth with glowing trajectories arcing through the void—users inhabit a coherent perceptual world. There is no conceptual conflict because the environment matches the phenomena being studied.
+
+This environmental consistency supports the mental models we aim to develop. Users learn to see orbits as three-dimensional curves through space, understand Earth as the central body those curves encircle, and grasp how orbital parameters shape these paths. The immersive context makes these relationships visceral and intuitive rather than abstract.
+
+\subsection{AR Passthrough as Complementary Mode}
+
+This emphasis on VR immersion does not preclude AR passthrough applications. The platform's modular architecture ensures the same orbital simulation and conversational agent function identically regardless of rendering mode. AR passthrough may prove valuable for specific contexts:
+
+\begin{itemize}
+    \item \textbf{Collaborative Learning:} Multiple users sharing physical space may benefit from maintaining visual awareness of each other while exploring shared orbital visualizations
+    \item \textbf{Museum and Planetarium Installations:} Physical exhibits (globe models, mission artifacts) could be enhanced with anchored AR orbital overlays
+    \item \textbf{Classroom Demonstrations:} Instructors might anchor orbital visualizations to physical teaching aids for hybrid digital-physical presentations
+\end{itemize}
+
+These use cases leverage AR's strength—connecting digital content to physical objects and shared spaces—rather than forcing it into contexts where VR's environmental isolation better serves learning objectives.
+
+\subsection{Design Decision Summary}
+
+The choice to demonstrate and emphasize immersive VR represents a deliberate pedagogical decision informed by the perceptual and cognitive demands of learning orbital mechanics. The platform delivers AR capability through the Quest 3's mixed reality features, but optimizes the primary user experience for the modality best suited to the educational content: placing learners inside the environment they seek to understand.
 
 \section{Core Component Implementation}
 \label{sec:core_components}
@@ -47,13 +80,25 @@ This component must interpret ambiguous user intent—understanding whether "sho
 
 The agent embodies different characters depending on context: Mission Control in the Hub, or mission specialists in the educational spaces. Each character has distinct personality and expertise, created through careful prompt design that defines their communication style, knowledge domain, and educational approach.
 
+The platform features three distinct mission specialists, each embodying a different perspective on orbital mechanics through their character design:
+
+\begin{itemize}
+    \item \textbf{ISS Specialist:} Represents the perspective of an astronaut crew member living and working aboard the International Space Station. This character communicates with the practical, operational focus of someone who experiences LEO firsthand, explaining how orbital parameters affect daily life in space, Earth observation capabilities, and operational considerations.
+
+    \item \textbf{Hubble Specialist:} Embodies an engineer who participated in the telescope's design and deployment. This character brings technical precision to discussions of orbital requirements driven by mission needs—explaining why Hubble orbits at 540 km with 28.5° inclination, how orbital maintenance works, and the engineering constraints that shaped the mission design.
+
+    \item \textbf{Voyager Specialist:} Channels the communicative style of Carl Sagan, approaching interplanetary trajectories with philosophical wonder and poetic clarity. This character guides users through concepts of escape velocity, gravity assists, and deep space navigation with the same contemplative enthusiasm that made Sagan's explanations memorable.
+\end{itemize}
+
+Each specialist provides not just technical knowledge but a distinct educational voice, helping users understand that orbital mechanics manifests differently depending on mission type and operational context.
+
 \paragraph{Technical Foundation}
 
 The agent's reasoning capabilities are powered by OpenAI's language models, which provide natural language understanding and generation. Voice synthesis through ElevenLabs transforms text responses into spoken dialogue with character-specific voices, creating the auditory personality that makes each character feel distinct and engaging.
 
 The conversational intelligence operates by interpreting user requests, determining appropriate actions (creating orbits, explaining concepts, routing to specialists), and generating educational responses that contextualize what the user sees. This reasoning process must balance precision—ensuring orbital parameters are physically valid—with flexibility to handle the natural variability of spoken language.
 
-\subsection{The Simulation and AR Visualisation (The "World")}
+\subsection{The Simulation and Mixed Reality Visualisation (The "World")}
 \label{subsec:simulation}
 
 \paragraph{Purpose and Responsibility}
@@ -62,13 +107,13 @@ The simulation component translates abstract orbital mechanics into tangible vis
 
 This component must render physically accurate orbital paths while presenting them in ways that are visually comprehensible and educationally meaningful. The orbits must be mathematically correct according to astrodynamics principles, yet scaled and styled for effective learning rather than literal representation.
 
-The visualization creates the spatial context where learning happens. By anchoring orbital trajectories to the user's physical environment through augmented reality, or placing users inside immersive virtual space, the component transforms orbital mechanics from equations on paper into three-dimensional phenomena users can walk around, observe from multiple angles, and genuinely inhabit.
+The visualization creates the spatial context where learning happens. By placing users inside an immersive virtual environment where they inhabit space alongside Earth and orbital trajectories, the component transforms orbital mechanics from equations on paper into three-dimensional phenomena users can observe from multiple angles and genuinely experience.
 
 \paragraph{Technical Foundation}
 
 The simulation is built using Unity, a 3D development engine that provides the tools for calculating orbital trajectories and rendering them in virtual and augmented reality. The physics implementation, written in C\#, applies fundamental astrodynamics equations—primarily the two-body problem—to compute satellite positions and velocities over time.
 
-Deployment targets the Meta Quest 3 headset, which enables both immersive VR experiences and AR visualizations through its passthrough camera system. This hardware choice provides standalone wireless operation and sufficient processing power for real-time orbital calculations and high-quality rendering, allowing users to engage with the simulation untethered and freely mobile.
+Deployment targets the Meta Quest 3, a mixed reality headset that supports both fully immersive VR environments and AR passthrough modes. While the platform architecture supports both modalities, the primary experience utilizes immersive VR for the pedagogical reasons detailed in Section \ref{sec:mr_rationale}. This hardware choice provides standalone wireless operation and sufficient processing power for real-time orbital calculations and high-quality rendering, allowing users to engage with the simulation untethered and freely mobile.
 
 \section{Development and Version Control}
 \label{sec:version_control}
@@ -84,14 +129,14 @@ The platform's ultimate value lies in its real-world application by educators, s
 
 \subsection{Demonstration Video}
 
-To showcase the platform's capabilities and interaction paradigm, a comprehensive demonstration video will be produced. This walkthrough presents the core features and user experience across multiple mission scenarios, illustrating how natural language dialogue seamlessly controls orbital simulations in augmented reality.
+To showcase the platform's capabilities and interaction paradigm, a comprehensive demonstration video will be produced. This walkthrough presents the core features and user experience across multiple mission scenarios, illustrating how natural language dialogue seamlessly controls orbital simulations in the Quest 3's immersive virtual reality environment.
 
 The demonstration includes:
 \begin{itemize}
-    \item \textbf{Interaction Flow:} A complete cycle from voice command input through agent interpretation to AR visualization and auditory feedback
-    \item \textbf{Mission Showcase:} Examples from different mission contexts (ISS, GPS constellation, Hubble telescope, Voyager deep space) demonstrating the system's versatility
-    \item \textbf{Educational Scenarios:} Representative tasks such as creating circular and elliptical orbits, adjusting simulation parameters, and exploring orbital mechanics concepts through conversational guidance
-    \item \textbf{Technical Capabilities:} Display of the platform's physically accurate trajectory calculations, spatial anchoring, and real-time responsiveness
+    \item \textbf{Interaction Flow:} A complete cycle from voice command input through agent interpretation to immersive visualization and auditory feedback
+    \item \textbf{Mission Showcase:} Examples from different mission contexts (ISS, Hubble telescope, Voyager deep space) demonstrating the system's versatility and the distinct specialist characters
+    \item \textbf{Educational Scenarios:} Representative tasks such as creating circular and elliptical orbits, navigating between Hub and Mission Spaces, adjusting simulation parameters, and exploring orbital mechanics concepts through conversational guidance
+    \item \textbf{Technical Capabilities:} Display of the platform's physically accurate trajectory calculations, immersive spatial visualization, and real-time responsiveness
 \end{itemize}
 
 This demonstration serves both as documentation of the functional prototype and as a reference for potential users and contributors to understand the system's design and capabilities before engaging with the codebase.
