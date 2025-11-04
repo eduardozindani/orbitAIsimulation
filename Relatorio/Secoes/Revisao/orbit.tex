@@ -1,47 +1,110 @@
 \section{Orbital Mechanics: The Physics of Celestial Motion}
 \label{sec:orbital_mechanics}
 
-The intuitive, visual understanding of orbital motion is a primary objective of this project. While the generative agent will handle the underlying calculations, a firm grasp of the governing principles is essential to frame the simulation's logic and appreciate its educational value. Orbital mechanics is the study of the motion of bodies under the influence of gravity. For missions in Earth's orbit and for most interplanetary transfers, the foundational principles discovered by Isaac Newton and Johannes Kepler provide a remarkably accurate framework for describing and predicting these celestial paths. This section outlines the core concepts that form the physical basis of the simulation system.
+The intuitive, visual understanding of orbital motion is a primary objective of this project. While the generative agent handles the underlying calculations, a firm grasp of the governing principles is essential to frame the simulation's logic and appreciate its educational value. Orbital mechanics is the study of the motion of bodies under the influence of gravity. For missions in Earth's orbit and for interplanetary trajectories, the foundational principles discovered by Isaac Newton and Johannes Kepler provide a remarkably accurate framework for describing and predicting these celestial paths. This section outlines the core concepts that form the physical and mathematical basis of the simulation system, focusing on the specific orbital regimes and parameters that the platform enables users to explore: circular orbits, elliptical orbits, and escape trajectories.
 
-\subsection{The Fundamental Law: Gravity and the Two-Body Problem}
+\subsection{Newtonian Gravity and the Two-Body Problem}
 
 At the heart of all orbital motion lies gravity. In the 17th century, Sir Isaac Newton formulated the Law of Universal Gravitation, stating that any two bodies attract each other with a force proportional to the product of their masses and inversely proportional to the square of the distance between them \cite{Curtis2020}. This is expressed mathematically as:
 $$ F = G \frac{m_1 m_2}{r^2} $$
-where $F$ is the gravitational force, $G$ is the gravitational constant, $m_1$ and $m_2$ are the masses of the two bodies, and $r$ is the distance between their centers.
+where $F$ is the gravitational force, $G$ is the gravitational constant ($6.674 \times 10^{-11}$ N·m²/kg²), $m_1$ and $m_2$ are the masses of the two bodies, and $r$ is the distance between their centers.
 
-When applied to a satellite orbiting a celestial body like Earth, this law simplifies into the cornerstone of astrodynamics: the \textbf{two-body problem}. This model makes a critical assumption: it considers only the gravitational force between the satellite and the primary body (e.g., Earth), ignoring all other perturbations such as atmospheric drag, solar radiation pressure, and the gravitational pull from other bodies like the Moon or the Sun \cite{Vallado2013}. While these forces are significant for high-precision, long-term trajectory prediction, the two-body model provides an elegant and highly accurate approximation for most foundational analysis and educational purposes. The resulting equation of motion is:
+When applied to a satellite orbiting a celestial body like Earth, this law forms the foundation of the \textbf{two-body problem}. This model makes a critical simplifying assumption: it considers only the gravitational force between the satellite and the primary body (e.g., Earth), ignoring perturbations such as atmospheric drag, solar radiation pressure, and gravitational influences from other bodies like the Moon or the Sun \cite{Vallado2013}. While these forces are significant for high-precision, long-term trajectory prediction, the two-body model provides an elegant and highly accurate approximation for foundational analysis and educational purposes. The resulting equation of motion is:
 $$ \ddot{\vec{r}} + \frac{\mu}{r^3}\vec{r} = 0 $$
-Here, $\vec{r}$ is the position vector of the satellite relative to the primary body, $\ddot{\vec{r}}$ is its acceleration, and $\mu$ (mu) is the standard gravitational parameter of the system ($\mu = G(m_1 + m_2)$). The solution to this equation reveals that the satellite's path must be a conic section: a circle, ellipse, parabola, or hyperbola \cite{Curtis2020}. For a satellite captured in orbit, its path will be an ellipse, or a circle as a special case of an ellipse.
+Here, $\vec{r}$ is the position vector of the satellite relative to the primary body, $\ddot{\vec{r}}$ is its acceleration, and $\mu$ (mu) is the standard gravitational parameter of the system. For Earth-orbiting satellites, $\mu = GM_{\text{Earth}} \approx 398{,}600$ km³/s², where $M_{\text{Earth}}$ is Earth's mass.
 
-\subsection{The Language of Orbits: The Classical Orbital Elements}
+The solution to this differential equation reveals a profound geometric truth: under the inverse-square law of gravity, the satellite's path must be a \textbf{conic section}—a circle, ellipse, parabola, or hyperbola \cite{Curtis2020}. Which conic section results depends on the satellite's energy and angular momentum. This elegant mathematical result means that all orbital trajectories, from the circular path of the ISS to the hyperbolic escape of Voyager, are governed by the same fundamental physics expressed through different geometric shapes.
 
-While the equation of motion describes the physics, it does not provide an intuitive description of an orbit's path. To define the size, shape, and orientation of an orbit in three-dimensional space, a set of six parameters, known as the \textbf{classical Keplerian orbital elements}, is used. These elements provide a unique and static description of the orbit that results from solving the two-body problem \cite{Bate1971}. They serve as the precise, non-ambiguous instruction set that a generative agent can use to calculate and render any given orbit within the simulation.
+\subsection{Kepler's Laws and Orbital Geometry}
 
-The six elements are \cite{Curtis2020}:
+Johannes Kepler, working in the early 17th century with observational data from Tycho Brahe, empirically discovered three laws of planetary motion that would later be shown to be direct consequences of Newtonian gravity. These laws provide the geometric and temporal framework for understanding orbits \cite{Bate1971}:
+
+\begin{enumerate}
+    \item \textbf{First Law (Law of Orbits):} The orbit of a planet (or satellite) around the Sun (or Earth) is an ellipse, with the central body at one focus. A circle is the special case of an ellipse where both foci coincide.
+
+    \item \textbf{Second Law (Law of Areas):} A line connecting the satellite to the central body sweeps out equal areas in equal times. This means the satellite moves faster when closer to the central body (at periapsis) and slower when farther away (at apoapsis).
+
+    \item \textbf{Third Law (Law of Periods):} The square of the orbital period is proportional to the cube of the semi-major axis. Mathematically: $T^2 \propto a^3$, or more precisely, $T^2 = \frac{4\pi^2}{\mu} a^3$. This law directly relates orbital size to orbital period, explaining why the ISS at 420 km altitude completes an orbit in 92.8 minutes while the Hubble Space Telescope at 540 km takes slightly longer at approximately 95 minutes.
+\end{enumerate}
+
+Kepler's laws were empirical observations that Newton later proved mathematically from first principles. Together, they provide both the geometric intuition (ellipses, not circles, are the general case) and quantitative relationships (period depends on altitude) that govern orbital motion.
+
+\subsection{Orbital Regimes: Circular, Elliptical, and Hyperbolic Trajectories}
+
+The shape of an orbit is determined by the satellite's total mechanical energy—the sum of its kinetic energy (from motion) and gravitational potential energy (from position in the gravity field). This energy dictates which conic section describes the trajectory. The platform's simulation implements three fundamental orbital regimes, each representing a different energy state and mission application.
+
+\subsubsection{Circular Orbits: Stable Operational Platforms}
+
+A \textbf{circular orbit} occurs when the satellite's velocity is precisely calibrated so that the centripetal acceleration required for circular motion exactly matches the gravitational acceleration at that altitude. This is the special case where eccentricity $e = 0$.
+
+For a circular orbit at radius $r$ from Earth's center (altitude $h = r - R_{\text{Earth}}$), the required orbital velocity is given by:
+$$ v_{\text{circular}} = \sqrt{\frac{\mu}{r}} $$
+
+This relationship shows that orbital speed decreases with altitude: satellites in low Earth orbit (LEO) travel faster than those in higher orbits. For example, the ISS at 420 km altitude orbits at approximately 7.66 km/s, while the Hubble Space Telescope at 540 km altitude travels at approximately 7.59 km/s—slightly slower due to its higher altitude.
+
+Circular orbits are preferred for operational missions requiring predictable, repeating ground tracks and stable altitude. The International Space Station (420 km, 51.6° inclination) and Hubble Space Telescope (540 km, 28.5° inclination) both use circular orbits because their missions benefit from the stability and predictability of constant altitude and speed.
+
+Kepler's Third Law directly determines the orbital period for circular orbits:
+$$ T = 2\pi \sqrt{\frac{r^3}{\mu}} $$
+
+This equation explains the relationship between altitude and period. The ISS at 420 km completes 15.5 orbits per day, providing frequent revisit times for Earth observation and crew operations. Hubble at 540 km has a slightly longer period, chosen to balance orbital stability with minimizing atmospheric drag while providing optimal viewing conditions for astronomical observations.
+
+\subsubsection{Elliptical Orbits: Variable Altitude Trajectories}
+
+An \textbf{elliptical orbit} occurs when $0 < e < 1$, where $e$ is the eccentricity. The satellite's altitude and speed vary continuously as it moves around the ellipse. The closest point to Earth is called \textbf{periapsis} (or perigee for Earth orbits), and the farthest point is \textbf{apoapsis} (or apogee). The size of the ellipse is characterized by the \textbf{semi-major axis} $a$, which is half the longest diameter of the ellipse.
+
+The relationship between the semi-major axis, periapsis radius $r_p$, and apoapsis radius $r_a$ is:
+$$ a = \frac{r_p + r_a}{2} $$
+
+The eccentricity quantifies how elongated the ellipse is:
+$$ e = \frac{r_a - r_p}{r_a + r_p} $$
+
+When $e = 0$, the ellipse becomes a circle ($r_p = r_a$). As $e$ approaches 1, the ellipse becomes increasingly elongated.
+
+The satellite's speed at any point in an elliptical orbit is given by the \textbf{vis-viva equation}, one of the most fundamental relationships in orbital mechanics \cite{Curtis2020}:
+$$ v = \sqrt{\mu \left( \frac{2}{r} - \frac{1}{a} \right)} $$
+
+This equation reveals that orbital speed depends on both the current position $r$ and the orbit's overall size $a$. At periapsis, where $r$ is smallest, the satellite moves fastest. At apoapsis, where $r$ is largest, it moves slowest. This speed variation is a direct consequence of Kepler's Second Law: the satellite must move faster when closer to Earth to sweep equal areas in equal times.
+
+Elliptical orbits have important applications. Highly Elliptical Orbits (HEO) are used for communications satellites serving high-latitude regions, as the satellite spends most of its time near apoapsis with excellent visibility over polar regions. Transfer orbits between circular orbits are also elliptical, with the initial circular orbit at periapsis and the target circular orbit at apoapsis.
+
+\subsubsection{Hyperbolic Trajectories: Escaping Earth's Gravity}
+
+A \textbf{hyperbolic trajectory} occurs when $e \geq 1$. Unlike elliptical orbits, which are closed and periodic, hyperbolic trajectories are open curves—the spacecraft approaches Earth, swings around it, and departs, never to return. This regime represents escape from Earth's gravitational influence.
+
+The minimum speed required to achieve escape from Earth's surface is the \textbf{escape velocity}:
+$$ v_{\text{escape}} = \sqrt{\frac{2\mu}{r}} $$
+
+At Earth's surface ($r = R_{\text{Earth}} = 6371$ km), this yields approximately 11.2 km/s. Notice that escape velocity is exactly $\sqrt{2}$ times the circular orbital velocity at the same radius—this factor of $\sqrt{2}$ represents the energy difference between a bound circular orbit and an unbound escape trajectory.
+
+For a hyperbolic trajectory, the spacecraft's velocity at any distance is given by a modified vis-viva equation:
+$$ v = \sqrt{\mu \left( \frac{2}{r} + \frac{1}{a} \right)} $$
+
+Note the sign change: for hyperbolic orbits, the semi-major axis $a$ is defined as negative, reflecting the fact that the orbit is unbound with positive total energy.
+
+The Voyager spacecraft exemplify hyperbolic escape trajectories. After launch and acceleration to sufficient velocity, they followed hyperbolic paths that carried them beyond Earth's sphere of influence and into interplanetary space. The platform uses Voyager's trajectory to demonstrate the transition from bound elliptical motion to unbound hyperbolic escape, illustrating the fundamental energy threshold that separates orbiting from departing.
+
+\subsection{Orbital Orientation: Inclination and Coverage}
+
+While the size and shape of an orbit (determined by $a$ and $e$) govern its energy and geometry, the \textbf{inclination} determines the orbit's orientation in three-dimensional space. Inclination $i$ is the angle between the orbital plane and a reference plane, typically Earth's equatorial plane. An inclination of $0°$ defines an equatorial orbit, while $90°$ defines a polar orbit that passes directly over both poles.
+
+Inclination is not arbitrary—it is fundamentally constrained by the launch site's latitude and the physics of rotation. When a rocket launches eastward (prograde), it benefits from Earth's rotational velocity, which is maximum at the equator (~465 m/s) and decreases toward the poles. The minimum achievable inclination from a launch site is approximately equal to the site's latitude. For example, launches from Kennedy Space Center (28.5°N) can achieve inclinations of 28.5° or greater, but reaching lower inclinations would require the rocket to perform an energetically expensive plane change maneuver.
+
+This launch constraint explains many mission orbital parameters:
 \begin{itemize}
-    \item \textbf{Semimajor Axis ($a$):} Defines the size of the orbit. It is half of the longest diameter of the ellipse.
-    \item \textbf{Eccentricity ($e$):} Defines the shape of the orbit. For a bound orbit, $e$ ranges from $0$ for a perfect circle to less than $1$ for an ellipse.
-    \item \textbf{Inclination ($i$):} Defines the tilt of the orbital plane with respect to a reference plane (typically Earth's equatorial plane). An inclination of $0^\circ$ is an equatorial orbit, while $90^\circ$ is a polar orbit.
-    \item \textbf{Right Ascension of the Ascending Node ($\Omega$):} Defines the orientation, or swivel, of the orbital plane in space. It is the angle measured in the reference plane from a reference direction (the vernal equinox) to the point where the satellite crosses the equator from south to north (the ascending node).
-    \item \textbf{Argument of Perigee ($\omega$):} Defines the orientation of the ellipse within its orbital plane. It is the angle measured from the ascending node to the orbit's point of closest approach to the primary body (the perigee).
-    \item \textbf{True Anomaly ($\nu$):} Defines the position of the satellite along its elliptical path at a specific time. It is the angle from the perigee to the satellite's current position vector.
+    \item \textbf{ISS (51.6° inclination):} Designed to be accessible from both Kennedy Space Center and the Baikonur Cosmodrome in Kazakhstan (45.6°N). The 51.6° inclination allows Russian Soyuz launches from Baikonur while remaining within reasonable energy budgets for US launches.
+
+    \item \textbf{Hubble (28.5° inclination):} Launched from Kennedy Space Center at the minimum possible inclination, maximizing the rotational velocity assist and minimizing fuel requirements. This low inclination also provides good sky coverage for astronomical observations while avoiding prolonged periods in Earth's shadow.
 \end{itemize}
 
-\subsection{Changing Orbits: Impulsive Maneuvers and Delta-V}
+Inclination also determines ground track coverage. An equatorial orbit ($i = 0°$) never passes over polar regions. A polar orbit ($i = 90°$) eventually covers the entire surface as Earth rotates beneath it. Intermediate inclinations provide a balance between coverage and launch efficiency. The platform's mission-specific implementations demonstrate how operational requirements (crew access for ISS, astronomical visibility for Hubble) drive inclination choices.
 
-Orbits are not always static. To move a satellite from one orbit to another—for example, from a low parking orbit to a higher operational orbit—it must change its velocity vector ($\vec{v}$). In practice, this is achieved by firing a thruster. For mission planning and simulation, these burns are often modeled as \textbf{impulsive maneuvers}, which are assumed to be instantaneous changes in velocity \cite{Bate1971}. This simplification is highly effective when the burn time is short compared to the orbital period.
+\subsection{The Educational Foundation for Interactive Exploration}
 
-The "cost" of performing such a maneuver is measured by \textbf{delta-v} ($\Delta v$), which is the total change in velocity required. Delta-v is the fundamental currency of spaceflight; every orbital maneuver has a $\Delta v$ budget, which ultimately dictates the amount of propellant required \cite{Vallado2013}.
+The physics and mathematics outlined in this section—Newtonian gravity, Kepler's laws, the vis-viva equation, and the geometric properties of conic sections—form the computational foundation of the simulation platform. More importantly, they represent the conceptual framework that users explore through embodied interaction in virtual reality.
 
-A classic and highly efficient example of an orbital maneuver is the \textbf{Hohmann transfer}, used to move between two circular, coplanar orbits. It consists of two impulsive maneuvers:
-\begin{enumerate}
-    \item A first burn ($\Delta v_1$) is performed to increase the satellite's speed, placing it into an elliptical transfer orbit that is tangent to both the initial and final orbits.
-    \item Upon reaching the highest point of the transfer orbit (apoapsis), a second burn ($\Delta v_2$) is performed to increase speed again, circularizing the path into the final, higher orbit.
-\end{enumerate}
-This is precisely the type of task an agent could execute in the simulation: a user could request a transfer between two orbits, and the agent would calculate the required $\Delta v$ and visualize the two-burn Hohmann transfer trajectory.
+Traditional orbital mechanics education presents these concepts through equations on paper and two-dimensional diagrams. Students memorize formulas and solve problems numerically, but the intuitive, spatial understanding of why the ISS orbits at 7.66 km/s or why the Hubble telescope requires a specific altitude and inclination often remains elusive. The three-dimensional geometry of an inclined orbit, the speed variation along an ellipse, and the meaning of escape velocity are fundamentally spatial phenomena that are difficult to internalize from textbooks alone.
 
-\subsection{The Initial Step: From Surface to Orbit}
+The platform's approach inverts this pedagogy. Users begin not with equations but with questions and curiosity: "Show me the ISS orbit." "Why does Hubble orbit where it does?" "How did Voyager leave Earth?" The generative agent translates these natural language queries into the precise orbital parameters described in this section—altitude, eccentricity, inclination—and the Unity simulation engine renders the resulting trajectories as visible, three-dimensional curves in space. Users inhabit the orbital environment, observing how the ISS's 420 km circular orbit compares to Hubble's 540 km orbit, seeing the ellipse stretch as eccentricity increases, watching the hyperbolic escape path diverge from closed elliptical motion.
 
-Before a satellite can orbit, it must first get there. The launch phase involves a complex journey through the atmosphere to achieve the required altitude and velocity for orbit insertion. The fundamental challenge is to provide the launch vehicle with enough energy to overcome two primary obstacles: Earth's gravitational pull and atmospheric drag.
-
-Conceptually, a launch can be viewed as a process of gaining both vertical and horizontal velocity. The vehicle must ascend vertically to clear the densest part of the atmosphere, after which it performs a "gravity turn" to begin building horizontal speed. The objective is to reach a target altitude with a velocity vector that is nearly horizontal and has a magnitude equal to that required for a stable orbit. At this point, known as orbit insertion, the engines cut off, and the spacecraft begins its free-fall journey governed by the principles of orbital mechanics. For the purpose of this simulation, the complex atmospheric ascent can be abstracted, with the interactive experience beginning at the moment of orbit insertion, allowing the user to focus on the orbital dynamics that follow.
+This section has established the theoretical foundation that makes such exploration both accurate and meaningful. The circular orbits users create are governed by $v = \sqrt{\mu/r}$. The elliptical orbits follow the vis-viva equation. The hyperbolic escapes exceed $v_{\text{escape}} = \sqrt{2\mu/r}$. The platform's educational value rests on this foundation: it translates rigorous astrodynamics into intuitive visual experience, enabling users to build genuine understanding of orbital mechanics through guided exploration rather than rote memorization.

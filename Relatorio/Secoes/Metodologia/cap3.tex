@@ -10,154 +10,50 @@ The approach is defined by three core principles:
     \item \textbf{Modular Architecture:} The system is designed as a collection of distinct yet interconnected modules: the generative agent (the "brain") and the simulation and visualisation engine (the "world"). This modularity, a key objective of this project, makes the complex system manageable, facilitates parallel development and testing of components, and ensures the final architecture is extensible for future work.
 \end{itemize}
 
+These principles guided a four-phase development strategy. Phase 1 established the conversational agent in the Hub environment with circular and elliptical orbit creation capabilities. Phase 2 implemented three Mission Spaces (ISS, Hubble, Voyager) with specialist agents and scene transition tools. Phase 3 integrated bidirectional voice through ElevenLabs (Scribe v2 for speech-to-text, TTS for character synthesis). Phase 4 deployed the complete system to Meta Quest 3 with immersive VR visualization. Each phase produced a testable, working system that integrated seamlessly with subsequent development without requiring architectural changes.
+
 \section{System Architecture and Data Flow}
 \label{sec:system_architecture}
 
-This section describes the system's architecture and how information flows between the user, the conversational agent, and the visualization engine to create an integrated educational experience.
+The platform architecture comprises two integrated spaces: the "Hub" (Mission Control) where users create custom orbits through conversation, and "Mission Spaces" (ISS, Hubble, Voyager) where specialists demonstrate real missions. Users navigate between these environments via voice commands (\texttt{route\_to\_mission}, \texttt{return\_to\_hub}), with conversational context preserved across transitions.
 
-\paragraph{Architectural Philosophy}
+The system separates conversational intelligence (OpenAI GPT-4.1) from spatial visualization (Unity 3D), connected through a tool-calling interface. The agent interprets natural language, selects appropriate tools (\texttt{create\_circular\_orbit}, \texttt{create\_elliptical\_orbit}, \texttt{set\_simulation\_speed}, \texttt{pause\_simulation}, \texttt{reset\_simulation\_time}, \texttt{clear\_orbit}, \texttt{route\_to\_mission}, \texttt{return\_to\_hub}), and Unity executes the corresponding physics calculations and rendering.
 
-The system is designed around voice-first interaction because spoken dialogue is the most natural way humans seek and share knowledge. Rather than requiring users to learn complex interfaces or command syntax, the platform allows them to simply ask questions and request visualizations as they would when speaking with a knowledgeable instructor.
+\subsection{Interaction Flow}
+\label{subsec:interaction_flow}
 
-The architecture separates conversational intelligence from spatial visualization, enabling each component to excel at its specific purpose. The agent interprets intent, reasons about orbital mechanics, and guides learning through dialogue. The simulation engine translates these conversations into visual demonstrations, rendering orbital trajectories in three-dimensional space where users can observe and explore them.
+Each user interaction follows a nine-step cycle from speech input to audio output:
 
-\paragraph{Interaction Flow}
+\begin{enumerate}
+    \item User speaks request via Quest 3 microphone
+    \item ElevenLabs Scribe v2 transcribes audio to text
+    \item OpenAI GPT-4.1 interprets intent and selects appropriate tool
+    \item Unity's \texttt{ToolExecutor} validates parameters and invokes corresponding C\# method
+    \item \texttt{SceneTransitionManager} loads Mission Space (for \texttt{route\_to\_mission}); \texttt{OrbitController} calculates trajectory using vis-viva equation and renders visualization (for orbit creation)
+    \item Tool execution result returns to LLM as feedback
+    \item Agent generates educational response based on tool result and conversation context
+    \item ElevenLabs TTS synthesizes character-specific voice (Mission Control's authority, ISS specialist's precision, Voyager specialist's Sagan-like wonder)
+    \item Audio plays through Quest 3 spatial audio system
+\end{enumerate}
 
-User interactions follow a continuous conversational loop. The user speaks a request—perhaps asking to see a specific orbit or questioning why certain parameters produce particular behaviors. The agent, powered by OpenAI's language models, interprets this natural language input and determines the appropriate response, whether that means creating a visualization, explaining a concept, or routing the user to a relevant learning resource.
+Conversation history is maintained across turns and scene transitions, enabling contextual dialogue. Users control all aspects—orbit creation, mission navigation, simulation parameters—through voice alone.
 
-When visualization is needed, the agent communicates with the Unity-based simulation engine to generate the requested orbital trajectory. The simulation calculates physically accurate paths using astrodynamics principles and renders them in the immersive mixed reality environment. Through the Meta Quest 3 headset, the user sees the orbit materialize in space, experiencing the trajectory from within the orbital environment itself.
-
-The agent then provides spoken feedback via ElevenLabs voice synthesis, confirming what was created and offering educational context. This completes one cycle of the interaction loop, with the user free to ask follow-up questions, request modifications, or explore new concepts.
-
-This architecture enables seamless integration between abstract physics concepts and tangible spatial representations, allowing users to learn through the natural combination of conversation and visual exploration.
-
-\section{Mixed Reality Design Rationale: VR Immersion for Orbital Learning}
+\section{Mixed Reality Design Rationale}
 \label{sec:mr_rationale}
 
-The Meta Quest 3 headset is a mixed reality platform capable of both fully immersive virtual reality and camera-passthrough augmented reality experiences. While this project's architecture supports both modalities, the demonstrated implementation and user experience emphasizes immersive VR. This section explains the pedagogical and perceptual reasoning behind this design choice.
+While the Quest 3 supports both VR and AR passthrough, the platform emphasizes immersive VR for pedagogical reasons. Orbital mechanics involves scales (420 km for ISS, 35,786 km for geostationary orbit) incompatible with domestic spaces—AR overlays would show trajectories passing through walls and furniture, creating perceptual friction between room-scale and cosmic-scale contexts. VR isolation places users within the orbital environment itself, establishing coherent spatial context where Earth floats in space and trajectories exist in their natural domain. The architecture supports AR passthrough for collaborative learning, museum installations, or classroom demonstrations where physical anchoring adds value, but the primary experience prioritizes the modality best suited to the content.
 
-\subsection{Scale and Context Challenges in AR Passthrough}
-
-Orbital mechanics operates at scales fundamentally disconnected from human spatial experience. The International Space Station orbits 420 kilometers above Earth's surface—a distance beyond direct perceptual comprehension. Geostationary satellites sit at 35,786 kilometers. Even when scaled for visualization, these orbital paths span dozens of meters in virtual space.
-
-Rendering such trajectories as AR overlays in a user's physical environment creates perceptual and cognitive friction. A low Earth orbit might appear to pass through the user's walls, furniture, and ceiling. While technically accurate to the scaled model, this visual collision between domestic space and orbital space disrupts the conceptual framework needed for learning. Users must constantly reconcile two incompatible spatial contexts: the intimate scale of their room and the cosmic scale of orbital mechanics.
-
-\subsection{Immersive VR as Coherent Learning Environment}
-
-Immersive virtual reality resolves this tension by placing users \textit{within the orbital environment}. When the headset's view shows only space—a starfield surrounding Earth with glowing trajectories arcing through the void—users inhabit a coherent perceptual world. There is no conceptual conflict because the environment matches the phenomena being studied.
-
-This environmental consistency supports the mental models we aim to develop. Users learn to see orbits as three-dimensional curves through space, understand Earth as the central body those curves encircle, and grasp how orbital parameters shape these paths. The immersive context makes these relationships visceral and intuitive rather than abstract.
-
-\subsection{AR Passthrough as Complementary Mode}
-
-This emphasis on VR immersion does not preclude AR passthrough applications. The platform's modular architecture ensures the same orbital simulation and conversational agent function identically regardless of rendering mode. AR passthrough may prove valuable for specific contexts:
-
-\begin{itemize}
-    \item \textbf{Collaborative Learning:} Multiple users sharing physical space may benefit from maintaining visual awareness of each other while exploring shared orbital visualizations
-    \item \textbf{Museum and Planetarium Installations:} Physical exhibits (globe models, mission artifacts) could be enhanced with anchored AR orbital overlays
-    \item \textbf{Classroom Demonstrations:} Instructors might anchor orbital visualizations to physical teaching aids for hybrid digital-physical presentations
-\end{itemize}
-
-These use cases leverage AR's strength—connecting digital content to physical objects and shared spaces—rather than forcing it into contexts where VR's environmental isolation better serves learning objectives.
-
-\subsection{Design Decision Summary}
-
-The choice to demonstrate and emphasize immersive VR represents a deliberate pedagogical decision informed by the perceptual and cognitive demands of learning orbital mechanics. The platform delivers AR capability through the Quest 3's mixed reality features, but optimizes the primary user experience for the modality best suited to the educational content: placing learners inside the environment they seek to understand.
-
-\section{Core Component Implementation}
+\section{Technical Implementation}
 \label{sec:core_components}
 
-The system architecture is realized through two distinct yet deeply integrated components. This separation enables each component to focus on its core responsibility while working together to create the complete educational experience.
-
-\subsection{The Generative Agent (The "Brain")}
-\label{subsec:agent}
-
-\paragraph{Purpose and Responsibility}
-
-The conversational agent serves as the educational intelligence of the platform. Its fundamental purpose is to bridge the gap between natural human communication and precise simulation commands, transforming vague or exploratory questions into specific orbital visualizations and educational explanations.
-
-This component must interpret ambiguous user intent—understanding whether "show me how satellites work" should produce a specific orbit example, route to a mission specialist, or provide a conceptual explanation. It maintains conversational context across multiple turns, remembers what has been discussed, and adapts its guidance to match the user's demonstrated knowledge level.
-
-The agent embodies different characters depending on context: Mission Control in the Hub, or mission specialists in the educational spaces. Each character has distinct personality and expertise, created through careful prompt design that defines their communication style, knowledge domain, and educational approach.
-
-The platform features three distinct mission specialists, each embodying a different perspective on orbital mechanics through their character design:
-
-\begin{itemize}
-    \item \textbf{ISS Specialist:} Represents the perspective of an astronaut crew member living and working aboard the International Space Station. This character communicates with the practical, operational focus of someone who experiences LEO firsthand, explaining how orbital parameters affect daily life in space, Earth observation capabilities, and operational considerations.
-
-    \item \textbf{Hubble Specialist:} Embodies an engineer who participated in the telescope's design and deployment. This character brings technical precision to discussions of orbital requirements driven by mission needs—explaining why Hubble orbits at 540 km with 28.5° inclination, how orbital maintenance works, and the engineering constraints that shaped the mission design.
-
-    \item \textbf{Voyager Specialist:} Channels the communicative style of Carl Sagan, approaching interplanetary trajectories with philosophical wonder and poetic clarity. This character guides users through concepts of escape velocity, gravity assists, and deep space navigation with the same contemplative enthusiasm that made Sagan's explanations memorable.
-\end{itemize}
-
-Each specialist provides not just technical knowledge but a distinct educational voice, helping users understand that orbital mechanics manifests differently depending on mission type and operational context.
-
-\paragraph{Technical Foundation}
-
-The agent's reasoning capabilities are powered by OpenAI's language models, which provide natural language understanding and generation. Voice synthesis through ElevenLabs transforms text responses into spoken dialogue with character-specific voices, creating the auditory personality that makes each character feel distinct and engaging.
-
-The conversational intelligence operates by interpreting user requests, determining appropriate actions (creating orbits, explaining concepts, routing to specialists), and generating educational responses that contextualize what the user sees. This reasoning process must balance precision—ensuring orbital parameters are physically valid—with flexibility to handle the natural variability of spoken language.
-
-\subsection{The Simulation and Mixed Reality Visualisation (The "World")}
-\label{subsec:simulation}
-
-\paragraph{Purpose and Responsibility}
-
-The simulation component translates abstract orbital mechanics into tangible visual experiences. Its fundamental purpose is to make invisible physics visible—showing users what a 400 km orbit actually looks like in space, how inclination affects ground coverage, and how different mission requirements manifest as specific trajectory shapes.
-
-This component must render physically accurate orbital paths while presenting them in ways that are visually comprehensible and educationally meaningful. The orbits must be mathematically correct according to astrodynamics principles, yet scaled and styled for effective learning rather than literal representation.
-
-The visualization creates the spatial context where learning happens. By placing users inside an immersive virtual environment where they inhabit space alongside Earth and orbital trajectories, the component transforms orbital mechanics from equations on paper into three-dimensional phenomena users can observe from multiple angles and genuinely experience.
-
-\paragraph{Technical Foundation}
-
-The simulation is built using Unity, a 3D development engine that provides the tools for calculating orbital trajectories and rendering them in virtual and augmented reality. The physics implementation, written in C\#, applies fundamental astrodynamics equations—primarily the two-body problem—to compute satellite positions and velocities over time.
-
-Deployment targets the Meta Quest 3, a mixed reality headset that supports both fully immersive VR environments and AR passthrough modes. While the platform architecture supports both modalities, the primary experience utilizes immersive VR for the pedagogical reasons detailed in Section \ref{sec:mr_rationale}. This hardware choice provides standalone wireless operation and sufficient processing power for real-time orbital calculations and high-quality rendering, allowing users to engage with the simulation untethered and freely mobile.
+The system implements conversational AI (OpenAI GPT-4.1 for reasoning, ElevenLabs for voice synthesis/transcription) interfaced with Unity 3D physics simulation. The agent embodies four characters—Mission Control in the Hub, plus three mission specialists (ISS crew perspective for LEO operations, Hubble engineer for telescope mission design, Voyager/Sagan persona for interplanetary trajectories)—each with distinct voice profiles and expertise areas. Unity implements two-body orbital physics in C\#, calculates trajectories via vis-viva equation, and renders visualizations on Quest 3. The platform supports circular orbit creation (160-35,786 km altitude) and elliptical orbit creation (periapsis/apoapsis 160-100,000 km), with inclination constrained to 0-180°.
 
 \section{Development and Version Control}
 \label{sec:version_control}
 
 The project follows systematic development practices using GitHub for version control. All source code—including Unity C\# scripts, prompt templates, and configuration files—is tracked in a central repository, providing complete history of changes and enabling experimental work through branching without compromising the main project stability. This systematic approach aligns with the iterative development philosophy, where each development cycle's progress is documented and preserved.
 
-\section{Demonstration and Release Strategy}
+\section{Validation and Dissemination Strategy}
 \label{sec:evaluation_plan}
 
-\paragraph{Community-Driven Validation Rationale}
-
-The platform's ultimate value lies in its real-world application by educators, students, and developers across diverse contexts. Rather than limiting validation to a controlled study, this work adopts a demonstration and open-source release strategy designed to enable broader community engagement, adaptation, and extension. This approach allows the system to be tested and refined through authentic use cases while inviting collaboration from those who can benefit from and contribute to its development.
-
-\subsection{Demonstration Video}
-
-To showcase the platform's capabilities and interaction paradigm, a comprehensive demonstration video will be produced. This walkthrough presents the core features and user experience across multiple mission scenarios, illustrating how natural language dialogue seamlessly controls orbital simulations in the Quest 3's immersive virtual reality environment.
-
-The demonstration includes:
-\begin{itemize}
-    \item \textbf{Interaction Flow:} A complete cycle from voice command input through agent interpretation to immersive visualization and auditory feedback
-    \item \textbf{Mission Showcase:} Examples from different mission contexts (ISS, Hubble telescope, Voyager deep space) demonstrating the system's versatility and the distinct specialist characters
-    \item \textbf{Educational Scenarios:} Representative tasks such as creating circular and elliptical orbits, navigating between Hub and Mission Spaces, adjusting simulation parameters, and exploring orbital mechanics concepts through conversational guidance
-    \item \textbf{Technical Capabilities:} Display of the platform's physically accurate trajectory calculations, immersive spatial visualization, and real-time responsiveness
-\end{itemize}
-
-This demonstration serves both as documentation of the functional prototype and as a reference for potential users and contributors to understand the system's design and capabilities before engaging with the codebase.
-
-\subsection{Open-Source Release}
-
-The platform will be released as open-source software on GitHub, making the complete implementation—Unity project, C\# scripts, agent prompts, configuration templates, and documentation—publicly accessible. This release strategy serves multiple strategic objectives:
-
-\begin{itemize}
-    \item \textbf{Community Validation:} Educators, students, and developers can test the platform in their own contexts, providing authentic feedback on its educational effectiveness and technical robustness
-    \item \textbf{Accessibility and Extensibility:} Users can adapt the system for different educational levels, add new mission scenarios, integrate alternative celestial bodies, or extend the agent's capabilities to suit specific pedagogical goals
-    \item \textbf{Collaborative Development:} The open-source model invites contributions from the community, enabling iterative improvement and evolution beyond the scope of this initial work
-    \item \textbf{Transparent Implementation:} Full access to source code allows technical review, replication of results, and learning from the implementation itself as an educational resource
-\end{itemize}
-
-\paragraph{User Configuration}
-
-To maintain accessibility while respecting API service constraints, users provide their own API keys for OpenAI (language model) and ElevenLabs (text-to-speech) services. This approach ensures that the platform remains available to anyone interested in exploring or adapting it without imposing unsustainable service costs, while also giving users control over their model selection and usage limits.
-
-\paragraph{Documentation and Support}
-
-The repository includes comprehensive setup instructions, architectural documentation, and usage guidelines to lower the barrier for community adoption and contribution. This documentation covers Unity environment configuration, Meta Quest 3 deployment procedures, API integration, and the modular system architecture that facilitates extension.
-
-This demonstration and release strategy transforms the platform from a single-instance prototype into a foundation for ongoing exploration and refinement by the broader educational technology and aerospace communities.
+The platform's educational effectiveness and technical implementation are validated through demonstration of complete interaction scenarios across all mission spaces. The validation approach prioritizes real-world usage patterns: users exploring orbital mechanics through natural conversation, navigating between Hub and Mission Spaces, and experiencing the full voice-driven VR workflow. The complete implementation is released open-source on GitHub, enabling community validation, adaptation, and extension. Users provide their own API keys for OpenAI and ElevenLabs services, ensuring accessibility without imposed service costs. Comprehensive documentation covers Unity configuration, Quest 3 deployment, and integration procedures.

@@ -1,1 +1,163 @@
-...
+\chapter{Agent System Implementation}
+\label{app:agent_implementation}
+
+This appendix provides detailed technical implementation specifications for the conversational agent system described in Section~\ref{subsec:agent_implementation}. All class names, method signatures, file paths, and code excerpts are verified against the Unity project source code.
+
+\section{Prompt Architecture}
+\label{app:agent_prompts}
+
+The agent system operates through structured prompts stored in the \texttt{PromptSettings} ScriptableObject configuration asset. Table~\ref{tab:prompt_specifications} summarizes the prompt components and their purposes.
+
+\begin{table}[h]
+\centering
+\caption{Agent Prompt Component Specifications}
+\label{tab:prompt_specifications}
+\begin{tabular}{lrl}
+\hline
+\textbf{Prompt Component} & \textbf{Size} & \textbf{Purpose} \\
+\hline
+\texttt{toolSelectionPrompt} & 460 lines & Interprets user intent, returns tool JSON \\
+\texttt{responsePrompt} & 270 lines & Generates natural language responses \\
+\texttt{specialistSystemPrompt} & 412 lines & Frames mission specialist character \\
+\texttt{nonToolResponseTemplate} & --- & Handles conversational interactions \\
+\texttt{toolResponseTemplate} & --- & Formats tool execution feedback \\
+\texttt{specialistIntroTemplate} & --- & Generates 40-word greetings \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Hub Agent: Three-Tier Prompt System}
+
+The Hub agent (Mission Control) uses three coordinated prompts:
+
+\paragraph{Tool Selection Prompt (460 lines)} Instructs GPT-4.1 to analyze user natural language input and return structured JSON identifying which tool to invoke. The prompt explicitly defines eight available tools:
+
+\begin{itemize}
+\item \textbf{Orbit Creation}: \texttt{create\_circular\_orbit}, \texttt{create\_elliptical\_orbit}
+\item \textbf{Simulation Control}: \texttt{set\_simulation\_speed}, \texttt{pause\_simulation}, \texttt{reset\_simulation\_time}
+\item \textbf{Workspace Management}: \texttt{clear\_orbit}
+\item \textbf{Navigation}: \texttt{route\_to\_mission}, \texttt{return\_to\_hub}
+\end{itemize}
+
+\paragraph{Response Prompt (270 lines)} Generates natural language explanations of tool execution results. Includes explicit disambiguation guidance to prevent confusion between:
+\begin{itemize}
+\item \textbf{Orbital velocity} (physics-calculated, 7.66 km/s for ISS)
+\item \textbf{Simulation time speed} (user-controllable playback multiplier)
+\end{itemize}
+
+\paragraph{Non-Tool Response Template} Handles conversational interactions that do not require tool execution, such as greetings (``Hello, I'm Mission Control''), capability inquiries (``What can you do?''), and educational questions.
+
+\subsection{Mission Specialist Prompts}
+
+Mission Space specialists (ISS, Hubble, Voyager) use the \texttt{specialistSystemPrompt} (412 lines) which frames the agent as an enthusiastic mission expert focused on education rather than simulation control. Character configuration occurs through \texttt{MissionConfig} ScriptableObject assets:
+
+\begin{itemize}
+\item \texttt{ISS\_Config.asset}: Character name ``Anastasia'', personality ``Professional engineer - clear, technical, friendly''
+\item \texttt{Hubble\_Config.asset}: Hubble Space Telescope mission specialist
+\item \texttt{Voyager\_Config.asset}: Voyager interplanetary mission specialist
+\end{itemize}
+
+The \texttt{specialistIntroTemplate} generates concise 40-word, 10-15 second greetings acknowledging the routing context from \texttt{route\_to\_mission}.
+
+\section{Tool Schema and Validation}
+\label{app:agent_tools}
+
+The eight tools are defined in \texttt{ToolSchemas.json} (169 lines) with complete JSON Schema specifications. Table~\ref{tab:tool_constraints} documents parameter constraints enforced by the \texttt{ToolRegistry} validation system.
+
+\begin{table}[h]
+\centering
+\caption{Tool Parameter Constraints}
+\label{tab:tool_constraints}
+\begin{tabular}{llr}
+\hline
+\textbf{Tool} & \textbf{Parameter} & \textbf{Constraint} \\
+\hline
+\texttt{create\_circular\_orbit} & \texttt{altitude\_km} & 160--35,786 km \\
+\texttt{create\_circular\_orbit} & \texttt{inclination\_deg} & 0--180° \\
+\texttt{create\_elliptical\_orbit} & \texttt{periapsis\_km} & 160--35,786 km \\
+\texttt{create\_elliptical\_orbit} & \texttt{apoapsis\_km} & 160--100,000 km \\
+\texttt{create\_elliptical\_orbit} & \texttt{inclination\_deg} & 0--180° \\
+\texttt{set\_simulation\_speed} & \texttt{speed\_multiplier} & 0.1--100× \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Tool Execution Pipeline}
+
+The \texttt{ToolExecutor} class receives validated tool calls from the agent system and invokes corresponding C\# methods:
+
+\begin{itemize}
+\item \textbf{Orbit Tools} $\rightarrow$ \texttt{OrbitController.CreateCircularOrbit()}, \texttt{CreateEllipticalOrbit()}
+\item \textbf{Time Controls} $\rightarrow$ \texttt{TimeController.SetSpeed()}, \texttt{Pause()}, \texttt{ResetTime()}
+\item \textbf{Navigation Tools} $\rightarrow$ \texttt{SceneTransitionManager.TransitionToMission()}, \texttt{TransitionToHub()}
+\item \textbf{Workspace} $\rightarrow$ \texttt{OrbitController.ClearOrbit()}
+\end{itemize}
+
+Execution results—success status, generated orbital parameters, error messages—feed back into the LLM response generation cycle through the response prompt template.
+
+\section{Conversation Context Management}
+\label{app:agent_context}
+
+The \texttt{ConversationHistory} class maintains conversation continuity across multi-turn dialogues and scene transitions. Table~\ref{tab:context_structure} documents the exchange data structure.
+
+\begin{table}[h]
+\centering
+\caption{Conversation Exchange Data Structure}
+\label{tab:context_structure}
+\begin{tabular}{ll}
+\hline
+\textbf{Field} & \textbf{Content} \\
+\hline
+\texttt{timestamp} & DateTime of exchange \\
+\texttt{userMessage} & User's natural language input \\
+\texttt{agentResponse} & Agent's generated response \\
+\texttt{toolExecuted} & Tool name (or null if conversational) \\
+\texttt{location} & Current scene (Hub, ISS, Hubble, Voyager) \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Context Window Management}
+
+The system maintains a sliding window of the last 10 exchanges (\texttt{maxHistorySize = 10}). Two methods provide context injection into prompts:
+
+\begin{itemize}
+\item \texttt{GetFormattedHistory(lastNExchanges = 5)}: Returns detailed history with timestamps, locations, and tool executions for the last 5 exchanges
+\item \texttt{GetContextSummary(lastNExchanges = 3)}: Returns condensed 3-exchange summary optimized for token efficiency
+\end{itemize}
+
+\subsection{Cross-Scene Persistence}
+
+Scene transitions preserve conversation history through Unity's \texttt{DontDestroyOnLoad} mechanism. The \texttt{PromptConsole} GameObject, containing the \texttt{ConversationHistory} component, persists across scene unloading when users invoke \texttt{route\_to\_mission} or \texttt{return\_to\_hub} tools. This ensures unbroken dialogue continuity: a user can ask ``What was the ISS orbit altitude I created in the Hub?'' after transitioning to the ISS Mission Space.
+
+\section{API Integration}
+\label{app:agent_api}
+
+The \texttt{OpenAIClient} class (150 lines) implements asynchronous HTTP communication with OpenAI's Responses API endpoint (\texttt{https://api.openai.com/v1/responses}).
+
+\subsection{Request Structure}
+
+Requests to the \texttt{/responses} endpoint include:
+
+\begin{itemize}
+\item \textbf{Model}: \texttt{"gpt-4.1"}
+\item \textbf{Input}: User's natural language message
+\item \textbf{Instructions}: Concatenated system prompt + conversation history + tool schemas
+\end{itemize}
+
+The \texttt{CompleteAsync()} method constructs JSON payloads using Unity's \texttt{UnityWebRequest} for async/await compatibility.
+
+\subsection{Response Parsing}
+
+The client extracts assistant text from JSON responses through a two-stage fallback:
+
+\begin{enumerate}
+\item \textbf{Primary}: Extract \texttt{output\_text} convenience field (if present)
+\item \textbf{Fallback}: Concatenate all \texttt{output[].content[].text} arrays
+\end{enumerate}
+
+Tool call JSON undergoes validation by \texttt{ToolRegistry} before execution. Results format back into natural language through the response prompt template system, generating contextual explanations like: ``I've created a circular orbit at 420 km altitude with 51.6° inclination. The orbital velocity is 7.66 km/s, matching the ISS configuration.''
+
+\subsection{Mission-Specific Configuration}
+
+Each Mission Space scene loads scene-specific \texttt{OpenAISettings} ScriptableObject assets that override the default system prompt, enabling character switching when users transition from Hub (Mission Control) to Mission Spaces (specialist agents).
