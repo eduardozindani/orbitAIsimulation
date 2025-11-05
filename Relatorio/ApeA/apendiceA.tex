@@ -1,7 +1,7 @@
 \chapter{Agent System Implementation}
 \label{app:agent_implementation}
 
-This appendix provides detailed technical implementation specifications for the conversational agent system described in Section~\ref{subsec:agent_implementation}. All class names, method signatures, file paths, and code excerpts are verified against the Unity project source code.
+This appendix provides detailed technical implementation specifications for the conversational agent system described in Section~\ref{subsec:agent_implementation}, implementing the tool-calling architecture and memory management principles outlined in Section~\ref{sec:generative-agents}. All class names, method signatures, file paths, and code excerpts are verified against the Unity project source code.
 
 \section{Prompt Architecture}
 \label{app:agent_prompts}
@@ -12,16 +12,16 @@ The agent system operates through structured prompts stored in the \texttt{Promp
 \centering
 \caption{Agent Prompt Component Specifications}
 \label{tab:prompt_specifications}
-\begin{tabular}{lrl}
+\begin{tabular}{ll}
 \hline
-\textbf{Prompt Component} & \textbf{Size} & \textbf{Purpose} \\
+\textbf{Prompt Component} & \textbf{Purpose} \\
 \hline
-\texttt{toolSelectionPrompt} & 460 lines & Interprets user intent, returns tool JSON \\
-\texttt{responsePrompt} & 270 lines & Generates natural language responses \\
-\texttt{specialistSystemPrompt} & 412 lines & Frames mission specialist character \\
-\texttt{nonToolResponseTemplate} & --- & Handles conversational interactions \\
-\texttt{toolResponseTemplate} & --- & Formats tool execution feedback \\
-\texttt{specialistIntroTemplate} & --- & Generates 40-word greetings \\
+\texttt{toolSelectionPrompt} & Interprets user intent, returns tool JSON \\
+\texttt{responsePrompt} & Generates natural language responses \\
+\texttt{specialistSystemPrompt} & Frames mission specialist character \\
+\texttt{nonToolResponseTemplate} & Handles conversational interactions \\
+\texttt{toolResponseTemplate} & Formats tool execution feedback \\
+\texttt{specialistIntroTemplate} & Generates 40-word greetings \\
 \hline
 \end{tabular}
 \end{table}
@@ -30,7 +30,7 @@ The agent system operates through structured prompts stored in the \texttt{Promp
 
 The Hub agent (Mission Control) uses three coordinated prompts:
 
-\paragraph{Tool Selection Prompt (460 lines)} Instructs GPT-4.1 to analyze user natural language input and return structured JSON identifying which tool to invoke. The prompt explicitly defines eight available tools:
+\subsubsection*{Tool Selection Prompt (460 lines)} Instructs GPT-4.1 to analyze user natural language input and return structured JSON identifying which tool to invoke. The prompt explicitly defines eight available tools:
 
 \begin{itemize}
 \item \textbf{Orbit Creation}: \texttt{create\_circular\_orbit}, \texttt{create\_elliptical\_orbit}
@@ -39,13 +39,13 @@ The Hub agent (Mission Control) uses three coordinated prompts:
 \item \textbf{Navigation}: \texttt{route\_to\_mission}, \texttt{return\_to\_hub}
 \end{itemize}
 
-\paragraph{Response Prompt (270 lines)} Generates natural language explanations of tool execution results. Includes explicit disambiguation guidance to prevent confusion between:
+\subsubsection*{Response Prompt (270 lines)} Generates natural language explanations of tool execution results. Includes explicit disambiguation guidance to prevent confusion between:
 \begin{itemize}
 \item \textbf{Orbital velocity} (physics-calculated, 7.66 km/s for ISS)
 \item \textbf{Simulation time speed} (user-controllable playback multiplier)
 \end{itemize}
 
-\paragraph{Non-Tool Response Template} Handles conversational interactions that do not require tool execution, such as greetings (``Hello, I'm Mission Control''), capability inquiries (``What can you do?''), and educational questions.
+\subsubsection*{Non-Tool Response Template} Handles conversational interactions that do not require tool execution, such as greetings (``Hello, I'm Mission Control''), capability inquiries (``What can you do?''), and educational questions.
 
 \subsection{Mission Specialist Prompts}
 

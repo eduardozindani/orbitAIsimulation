@@ -1,0 +1,39 @@
+The complete platform source code, including Unity C\# scripts, conversational agent prompts, configuration assets, and Quest 3 deployment settings, is publicly available on GitHub, fulfilling Objective \#6 from Section~\ref{sec:objetivos}. The repository provides comprehensive documentation covering system architecture, Unity configuration procedures, and Quest 3 build instructions, enabling community validation, adaptation, and extension.
+
+\subsection{Repository Structure}
+
+[STUB: GitHub repository organization - Assets/, Relatorio/, documentation]
+
+[STUB: Key files documented: PromptSettings.asset, OrbitController.cs, ElevenLabsClient.cs, etc.]
+
+\subsection{User API Key Configuration}
+
+Users provide their own OpenAI and ElevenLabs API keys through Unity Inspector configuration, ensuring platform accessibility without imposed service costs. The documentation guides users through:
+
+\begin{itemize}
+    \item Obtaining OpenAI API key for GPT-4.1 access
+    \item Configuring ElevenLabs API key for voice synthesis/transcription
+    \item Setting voice IDs for character customization
+    \item Adjusting prompt templates for educational customization
+\end{itemize}
+
+\subsection{Quest 3 Deployment Documentation}
+
+[STUB: Build configuration instructions - Android SDK, Unity XR packages, Oculus integration]
+
+[STUB: Step-by-step deployment guide from Unity to Quest 3 device]
+
+\subsection{Extensibility Demonstrations}
+
+The modular architecture (Objective \#5) enables straightforward extensions:
+
+\begin{itemize}
+    \item Adding new mission specialists by creating MissionConfig ScriptableObject assets
+    \item Extending tool suite with new orbit types or celestial bodies
+    \item Customizing educational prompts for different learning contexts
+    \item Adapting voice characters for different languages or audiences
+\end{itemize}
+
+[STUB: Example - Adding Mars mission would require Mars\_Config.asset + Mars.unity scene]
+
+This open-source delivery validates the platform's educational accessibility and community extensibility objectives established in the thesis motivation (Section~\ref{sec:motivation}).

@@ -1,7 +1,7 @@
 \chapter{Orbital Physics Implementation}
 \label{app:physics_implementation}
 
-This appendix provides detailed technical specifications for the orbital physics simulation engine described in Section~\ref{subsec:physics_implementation}. All equations, algorithms, class methods, and numerical values are verified against the Unity project physics implementation.
+This appendix provides detailed technical specifications for the orbital physics simulation engine described in Section~\ref{subsec:physics_implementation}, implementing the two-body Keplerian mechanics and vis-viva equation principles outlined in Section~\ref{sec:orbital_mechanics}. All equations, algorithms, class methods, and numerical values are verified against the Unity project physics implementation.
 
 \section{Two-Body Keplerian Mechanics}
 \label{app:physics_keplerian}
@@ -49,7 +49,7 @@ v_{\text{circular}} = \sqrt{\frac{\mu}{r}}
 
 where $r = R_\oplus + h$ is the orbital radius from Earth's center, and $h$ is the altitude above Earth's surface.
 
-\paragraph{Implementation Method} The \texttt{OrbitController.CreateCircularOrbit()} method (lines 229--290) accepts altitude in kilometers and automatically calculates orbital velocity, eliminating user confusion between altitude and speed parameters. Algorithm~\ref{alg:circular_orbit} documents the calculation sequence.
+\subsubsection*{Implementation Method} The \texttt{OrbitController.CreateCircularOrbit()} method (lines 229--290) accepts altitude in kilometers and automatically calculates orbital velocity, eliminating user confusion between altitude and speed parameters. Algorithm~\ref{alg:circular_orbit} documents the calculation sequence.
 
 \begin{table}[h]
 \centering
@@ -68,12 +68,12 @@ where $r = R_\oplus + h$ is the orbital radius from Earth's center, and $h$ is t
 \end{tabular}
 \end{table}
 
-\paragraph{Example: ISS Orbital Velocity} For the International Space Station at $h = 420$ km altitude:
+\subsubsection*{Example: ISS Orbital Velocity} For the International Space Station at $h = 420$ km altitude:
 
 \begin{align}
 r &= 6{,}371 + 420 = 6{,}791 \text{ km} \\
 v &= \sqrt{\frac{398{,}600}{6{,}791}} = 7.66 \text{ km/s} \\
-\omega &= \frac{7.66 \times 0.000785}{5 + (420 \times 0.000785)} = 0.00111 \text{ rad/s}
+\omega &= \frac{7.66 \times 0.000785}{5 + (420 \times 0.000785)} = 0.00113 \text{ rad/s}
 \end{align}
 
 This matches the real ISS orbital velocity of approximately 7.66 km/s.
@@ -89,7 +89,7 @@ v = \sqrt{\mu \left(\frac{2}{r} - \frac{1}{a}\right)}
 
 where $a$ is the semi-major axis and $r$ is the instantaneous distance from Earth's center.
 
-\paragraph{Orbital Elements Derivation} Given periapsis altitude $h_p$ and apoapsis altitude $h_a$:
+\subsubsection*{Orbital Elements Derivation} Given periapsis altitude $h_p$ and apoapsis altitude $h_a$:
 
 \begin{align}
 r_p &= R_\oplus + h_p \quad \text{(periapsis radius)} \\
@@ -98,7 +98,7 @@ a &= \frac{r_p + r_a}{2} \quad \text{(semi-major axis)} \\
 e &= \frac{r_a - r_p}{r_a + r_p} \quad \text{(eccentricity)}
 \end{align}
 
-\paragraph{Implementation Method} The \texttt{OrbitController.CreateEllipticalOrbit()} method (lines 300--367) computes velocity at periapsis using Equation~\ref{eq:visviva_full} with $r = r_p$:
+\subsubsection*{Implementation Method} The \texttt{OrbitController.CreateEllipticalOrbit()} method (lines 300--367) computes velocity at periapsis using Equation~\ref{eq:visviva_full} with $r = r_p$:
 
 \begin{equation}
 v_p = \sqrt{\mu \left(\frac{2}{r_p} - \frac{1}{a}\right)}
@@ -136,7 +136,7 @@ Earth's physical radius (6,371 km) maps to 5 Unity units:
 k = \frac{R_{\text{Unity}}}{R_\oplus} = \frac{5}{6{,}371} = 0.000785 \text{ Unity units/km}
 \end{equation}
 
-\paragraph{Example Mappings} Table~\ref{tab:scale_examples} shows real-world altitudes mapped to Unity rendering coordinates.
+\subsubsection*{Example Mappings} Table~\ref{tab:scale_examples} shows real-world altitudes mapped to Unity rendering coordinates.
 
 \begin{table}[h]
 \centering
@@ -195,7 +195,7 @@ z &= r \sin(\theta + \omega)
 
 where $\omega$ is the argument of periapsis (orientation of the ellipse major axis in the orbital plane).
 
-\paragraph{Inclination Transformation} The resulting planar coordinates undergo rotation by inclination angle $i$ via rotation matrix:
+\subsubsection*{Inclination Transformation} The resulting planar coordinates undergo rotation by inclination angle $i$ via rotation matrix:
 
 \begin{equation}
 \mathbf{R}_i = \begin{bmatrix}
@@ -229,7 +229,7 @@ Loop closure & Enabled (connects point 127 to point 0) \\
 \end{tabular}
 \end{table}
 
-\paragraph{Special Cases}
+\subsubsection*{Special Cases}
 
 \begin{itemize}
 \item \textbf{Circular orbits} ($e = 0$): Simplify to constant radius $r = a$, producing perfect circles

@@ -1,14 +1,14 @@
 \chapter{Voice Pipeline Implementation}
 \label{app:voice_implementation}
 
-This appendix provides detailed technical specifications for the bidirectional voice system described in Section~\ref{subsec:voice_implementation}. All API endpoints, audio formats, class methods, and processing parameters are verified against the Unity project voice integration code.
+This appendix provides detailed technical specifications for the bidirectional voice system described in Section~\ref{subsec:voice_implementation}, implementing voice interaction as a hands-free modality for immersive VR environments outlined in Section~\ref{sec:ar_vr_review}. All API endpoints, audio formats, class methods, and processing parameters are verified against the Unity project voice integration code.
 
 \section{System Architecture}
 \label{app:voice_architecture}
 
 The voice pipeline implements bidirectional audio through ElevenLabs cloud APIs, enabling natural spoken interaction with the agent system. Figure~\ref{fig:voice_dataflow} conceptually illustrates the data flow (implementation in code).
 
-\paragraph{Component Responsibilities}
+\subsubsection*{Component Responsibilities}
 
 \begin{itemize}
 \item \textbf{PromptConsole}: Manages microphone capture, push-to-talk input detection, and audio playback
@@ -45,14 +45,14 @@ Model & \texttt{scribe\_v1} \\
 
 Voice recording activates through push-to-talk button press. The \texttt{PromptConsole.Update()} method (lines 281--323) implements platform-specific input detection with debouncing to prevent accidental double-triggers.
 
-\paragraph{Input Source Detection}
+\subsubsection*{Input Source Detection}
 
 \begin{itemize}
 \item \textbf{Desktop testing}: Space key via \texttt{Input.GetKeyDown(KeyCode.Space)}
 \item \textbf{VR deployment}: Quest 3 right controller A button via \texttt{OVRInput.Get(OVRInput.Button.One, OVRInput.Controller.RTouch)}
 \end{itemize}
 
-\paragraph{State Machine} Table~\ref{tab:recording_states} documents the recording state transitions.
+\subsubsection*{State Machine} Table~\ref{tab:recording_states} documents the recording state transitions.
 
 \begin{table}[h]
 \centering
@@ -75,7 +75,7 @@ During the Recording state, a red visual indicator displays ``Listening...'' to 
 
 The \texttt{StartRecording()} method initiates Unity's \texttt{Microphone.Start()} with the specifications in Table~\ref{tab:stt_specs}. When the user releases the button, \texttt{StopRecordingAndTranscribe()} processes the captured audio.
 
-\paragraph{WAV Conversion Algorithm} The \texttt{ConvertAudioClipToWav()} method (lines 322--368) converts Unity's \texttt{AudioClip} format to WAV for API transmission:
+\subsubsection*{WAV Conversion Algorithm} The \texttt{ConvertAudioClipToWav()} method (lines 322--368) converts Unity's \texttt{AudioClip} format to WAV for API transmission:
 
 \begin{enumerate}
 \item Extract float samples from \texttt{AudioClip.GetData()}
@@ -198,9 +198,9 @@ Each agent character uses a distinct ElevenLabs voice ID configured in \texttt{M
 \textbf{Character} & \textbf{Voice ID} & \textbf{Characteristics} \\
 \hline
 Mission Control & \texttt{NOpBlnGInO9m6vDvFkFC} & Authoritative, encouraging, professional \\
-ISS Specialist (Anastasia) & [Scene-configured] & Professional engineer, clear, technical, friendly \\
-Hubble Specialist & [Scene-configured] & [Character-specific] \\
-Voyager Specialist & [Scene-configured] & [Character-specific] \\
+Anastasia (ISS Specialist) & \texttt{ZF6FPAbjXT4488VcRRnw} & Professional engineer - clear, technical, friendly \\
+Dr. Harrison (Hubble Specialist) & \texttt{M4zkunnpRihDKTNF0D7f} & Veteran aerospace engineer - technical, experienced, proud of Hubble's legacy \\
+Karl (Voyager Specialist) & \texttt{t1oG32lG6Z6edP2XJLiz} & Philosophical scientist and cosmic poet - contemplative, poetic, awe-inspiring \\
 \hline
 \end{tabular}
 \end{table}
@@ -226,7 +226,7 @@ The \texttt{ElevenLabsClient} caches the current \texttt{ElevenLabsSettings} ref
 
 The voice pipeline implements robust error handling for network failures and API timeouts:
 
-\paragraph{Speech-to-Text Errors}
+\subsubsection*{Speech-to-Text Errors}
 
 \begin{itemize}
 \item \textbf{Microphone unavailable}: Display error message, fall back to text input
@@ -234,7 +234,7 @@ The voice pipeline implements robust error handling for network failures and API
 \item \textbf{Low confidence score}: Accept transcription but log warning
 \end{itemize}
 
-\paragraph{Text-to-Speech Errors}
+\subsubsection*{Text-to-Speech Errors}
 
 \begin{itemize}
 \item \textbf{API timeout}: Display text response without audio

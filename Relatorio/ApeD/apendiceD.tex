@@ -1,7 +1,7 @@
 \chapter{VR Deployment Configuration}
 \label{app:vr_implementation}
 
-This appendix provides detailed technical specifications for the Meta Quest 3 virtual reality deployment described in Section~\ref{subsec:vr_implementation}. All build settings, input mappings, rendering configurations, and scene architecture details are verified against the Unity project configuration files.
+This appendix provides detailed technical specifications for the Meta Quest 3 virtual reality deployment described in Section~\ref{subsec:vr_implementation}, implementing the spatial learning and immersive presence principles outlined in Section~\ref{sec:ar_vr_review}. All build settings, input mappings, rendering configurations, and scene architecture details are verified against the Unity project configuration files.
 
 \section{Quest 3 Android Build Configuration}
 \label{app:vr_android}
@@ -103,7 +103,7 @@ bool aButtonPressed = OVRInput.Get(
 );
 \end{verbatim}
 
-\paragraph{State Debouncing} The system tracks previous button state (\texttt{\_previousAButtonState}) to detect rising edge transitions, preventing accidental double-triggers from single button presses. This ensures one recording session per button press/release cycle.
+\subsubsection*{State Debouncing} The system tracks previous button state (\texttt{\_previousAButtonState}) to detect rising edge transitions, preventing accidental double-triggers from single button presses. This ensures one recording session per button press/release cycle.
 
 \subsection{Desktop Testing Mode}
 
@@ -204,7 +204,7 @@ The \texttt{MissionClockUI} class (74 lines) demonstrates the spatial UI pattern
 
 The \texttt{SceneTransitionManager.CreateTransitionUIIfNeeded()} method (lines 729--838) constructs the transition overlay procedurally:
 
-\paragraph{Canvas Construction}
+\subsubsection*{Canvas Construction}
 
 \begin{verbatim}
 Canvas canvas = canvasObj.AddComponent<Canvas>();
@@ -215,7 +215,7 @@ RectTransform canvasRect = canvasObj.GetComponent<RectTransform>();
 canvasRect.sizeDelta = new Vector2(2f, 2f); // 2m × 2m
 \end{verbatim}
 
-\paragraph{Dynamic Positioning} The \texttt{LateUpdate()} method (lines 154--180) repositions the canvas 1 meter in front of the camera each frame:
+\subsubsection*{Dynamic Positioning} The \texttt{LateUpdate()} method (lines 154--180) repositions the canvas 1 meter in front of the camera each frame:
 
 \begin{verbatim}
 transitionCanvasTransform.position =
