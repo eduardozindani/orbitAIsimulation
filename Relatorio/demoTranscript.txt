@@ -1,0 +1,75 @@
+Cast / Agent IDs
+USER — player
+
+
+CAPCOM — Mission Control guide
+
+
+ISS_CREW (ANASTASIA) — astronaut on ISS
+
+
+HUBBLE_ENGINEER (DR_HARRISON) — Hubble specialist
+
+
+VOYAGER_SPECIALIST (CARL) — Voyager / deep-space specialist
+
+
+SIM — non-diegetic sim/system messages (time warp, routing, etc.)
+
+
+Transcript (final naming, light copy-edits)
+CUT SCENE
+NARRATOR: Above us, thousands of satellites trace perfect arcs—testaments to gravity, velocity, and the geometry of motion. You’re about to join that tradition. I’ll guide the physics; you’ll design the orbits. Together, we’ll explore how spacecraft navigate the cosmos.
+INTRO
+CAPCOM: Welcome to Mission Control. You’re floating above Earth. Use your controllers to drift closer. Circle around and watch the continents slide beneath you, oceans catching light, night falling while dawn breaks on the other side. I’m Capcom. We can design orbits together, build trajectories, see how satellites actually move—or I can route you to three specialists:
+• a crew member aboard the ISS who lives this work every day,
+• an engineer who built Hubble to see what we couldn’t from down here,
+• and a space enthusiast who dreams about what Voyager means beyond everything.
+When you’re ready to speak, press A on your right controller. I’ll be listening. Enjoy the view— that blue marble beneath you is home.
+
+USER: Hey, Capcom. I see we have a satellite here. Is this the satellite that we can build?
+CAPCOM: [Music] Hello from Mission Control. Yes—this is your simulation satellite. We can build orbits by setting circular or elliptical paths. Tell me either the altitude for circular, or periapsis and apoapsis for elliptical, and I’ll get it launched.
+USER: Cool. Let’s start with a circular orbit. I need an altitude—but what’s a good altitude? What determines a good altitude?
+CAPCOM: [Music] Connecting you to the ISS mission for real-world examples. Stand by.
+SIM: [ROUTING → ISS_CREW]
+ISS_CREW (ANASTASIA): [Music] Hello from the ISS. For circular LEO orbits, engineers balance drag, launch energy, accessibility, and mission needs. The ISS flies around ~420 km—high enough to limit atmospheric drag so we don’t slow down too quickly, but not so high that crew/cargo launches become inefficient. It’s also reachable from multiple launch sites. Too low: frequent reboosts. Too high: launches get harder and more expensive.
+USER: Would it be absurd to choose the same altitude as the ISS?
+ISS_CREW (ANASTASIA): Not absurd at all—quite sensible. ~420 km is a proven compromise. Many Earth-observation and crewed missions use similar altitudes for the same reasons. You’d be following decades of flight heritage.
+USER: Is the ISS circular?
+ISS_CREW (ANASTASIA): Nearly. The path is close to circular with small variations (drag, gravity field). We keep it tight with periodic reboosts. Near-circular simplifies rendezvous and ops.
+USER: What was the altitude again? Please route me back to the hub.
+ISS_CREW (ANASTASIA): ~420 km. Handing you back. Safe travels.
+SIM: [RETURN → CAPCOM]
+USER: I’ll build a circular orbit at 422 km.
+CAPCOM: Copy. Circular orbit set at 422 km, inclination 0° (equatorial). Orbital speed ~7.66 km/s—like the ISS, but over the equator.
+USER: Can I choose the speed?
+CAPCOM: In this sim, speed is derived from altitude by physics. At 422 km, you need ~7.66 km/s for a stable circular orbit. If you want a different speed, pick a different altitude.
+USER: How long does one lap take? It looks fast, but Earth is massive.
+CAPCOM: Routing you to the ISS for orbital period context.
+SIM: [ROUTING → ISS_CREW]
+ISS_CREW (ANASTASIA): At ~420 km, the ISS completes a lap in ~92.8 minutes—about 15 orbits/day. Higher altitude → slower speed → longer period. That’s why we see a sunrise/sunset ~every 45 minutes.
+USER: Thanks—back to the hub, please.
+SIM: [RETURN → CAPCOM]
+USER: With our current orbit (~92 minutes), can we speed up the simulation so I can see it go around?
+CAPCOM: Time acceleration: 10×. You’ll see the ~92-minute trip much faster.
+USER: Great. I built a circular orbit. What’s an elliptical orbit?
+CAPCOM: Perfect question for Hubble—routing.
+SIM: [ROUTING → HUBBLE_ENGINEER]
+HUBBLE_ENGINEER (DR_HARRISON): [Music] Circular means constant distance and speed—like Hubble (≈540 km) for steady imaging and predictable servicing. Elliptical stretches the path: closer at periapsis (faster), farther at apoapsis (slower). Some science missions pick elliptical to linger where conditions are best or to avoid interference (e.g., high apogee above the radiation belts).
+USER: Why choose elliptical if circular is simpler?
+HUBBLE_ENGINEER (DR_HARRISON): To optimize time in a region. Example: Chandra uses a highly elliptical orbit to spend long stretches far from Earth’s radiation belts for cleaner X-ray observations. Trade-off: more complex tracking/operations.
+USER: Back to Mission Control so I can build one.
+SIM: [RETURN → CAPCOM]
+USER: Please build an elliptical orbit—anything interesting so I can compare.
+CAPCOM: Elliptical orbit set: periapsis 400 km, apoapsis 2,000 km, inclination 0°. Watch it speed up near Earth and slow down far away.
+USER: Can we run at maximum sim speed?
+CAPCOM: Time acceleration: 100×. Ellipticity will be very clear.
+USER: Make it more elliptical; it still looks circular.
+CAPCOM: Roger. New orbit: periapsis 200 km, apoapsis 1,000 km, inclination 0°. The speed contrast will be much more dramatic.
+USER: Speed to maximum… oh, it already is.
+CAPCOM: Confirmed—100× time. Enjoy the fast-forward view.
+USER: Wow—huge difference between near and far. For deep-space missions, I assume there aren’t circular orbits at all. Is everything elliptical?
+CAPCOM: Routing to Voyager for escape-trajectory talk.
+SIM: [ROUTING → VOYAGER_SPECIALIST]
+VOYAGER_SPECIALIST (CARL): [Music] Great question. To leave Earth, you don’t stay in an Earth orbit. Voyager 1 began in a near-circular parking orbit briefly, then received a final boost to a hyperbolic escape trajectory—no longer bound to Earth. Satellites around Earth use circular/elliptical to remain nearby; escape missions transition from a staging orbit to hyperbolic and head out—past Earth, past the Sun’s planets, toward interstellar space.
+
