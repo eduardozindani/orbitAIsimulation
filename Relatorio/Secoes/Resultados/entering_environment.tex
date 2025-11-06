@@ -1,0 +1,141 @@
+This section demonstrates the user's first contact with the platform: entering the virtual reality environment, understanding the spatial context, and meeting the conversational agent. These initial moments establish the foundation for immersive learning by combining VR spatial presence (Section~\ref{sec:ar_vr_review}), voice-based interaction (Section~\ref{subsec:voice_implementation}), and agent introduction (Section~\ref{subsec:agent_implementation}).
+
+\subsection{Opening Sequence: Narrator Introduction}
+\label{subsec:opening_sequence}
+
+The experience begins with an introductory cutscene that frames the educational purpose and establishes thematic context. The user's perspective starts in deep space, viewing Earth from a distance while a narrator provides orientation:
+
+\begin{quote}
+\textit{NARRATOR:} Above us, thousands of satellites trace perfect arcs—testaments to gravity, velocity, and the geometry of motion. You're about to join that tradition. I'll guide the physics; you'll design the orbits. Together, we'll explore how spacecraft navigate the cosmos.
+\end{quote}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{Imagens/cut_scene.png}
+\caption{Opening cutscene frame showing Earth from deep space. The camera position establishes the scale relationship between the user's eventual orbital workspace and Earth's global context. This initial framing helps learners understand that orbital mechanics operates at planetary scales, not human-sized environments.}
+\label{fig:cut_scene}
+\end{figure}
+
+The narrator's voice, synthesized through ElevenLabs TTS (Appendix~\ref{app:voice_implementation}), plays as the camera slowly approaches Earth. This 28.7-second sequence serves multiple pedagogical purposes:
+\begin{itemize}
+    \item \textbf{Establishes scale and context}: By starting from deep space, the learner immediately understands the cosmic scale of orbital motion
+    \item \textbf{Frames the learning paradigm}: The phrase ``I'll guide the physics; you'll design the orbits'' signals an active, exploratory role rather than passive observation
+    \item \textbf{Tests audio system}: Confirms that voice synthesis and Quest 3 spatial audio (Appendix~\ref{app:vr_implementation}) are functioning before user interaction begins
+\end{itemize}
+
+During this sequence, the \texttt{ExperienceManager} (Section~\ref{sec:system_architecture}) coordinates the camera zoom animation from deep space coordinates to Hub orbital position, utilizing Unity's Cinemachine system for smooth interpolation. The scene transition occurs asynchronously while audio continues, demonstrating the real-time integration described in Objective~\#4 (Section~\ref{sec:objetivos}).
+
+\subsection{Hub Environment Arrival: Spatial Presence and Agent Welcome}
+\label{subsec:hub_arrival}
+
+After the cutscene completes, the user arrives at the Hub environment—Mission Control's orbital workspace. This is the first moment of \emph{presence}: the user is no longer a passive observer but an embodied participant floating in orbital space.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{Imagens/intro.png}
+\caption{Hub environment from user perspective after cutscene arrival. Earth floats in three-dimensional space with accurate proportional scale (compressed by factor $k = 0.000785$ from Appendix~\ref{app:physics_implementation}). The VR environment provides stereoscopic depth perception, enabling spatial cognition of orbital geometry discussed in Section~\ref{sec:ar_vr_review}.}
+\label{fig:intro}
+\end{figure}
+
+\FloatBarrier
+
+The Mission Control agent (CAPCOM) greets the user with spatial and interactional orientation:
+
+\begin{quote}
+\textit{CAPCOM:} Welcome to Mission Control. You're floating above Earth. Use your controllers to drift closer. Circle around and watch the continents slide beneath you, oceans catching light, night falling while dawn breaks on the other side. I'm Capcom. We can design orbits together, build trajectories, see how satellites actually move—or I can route you to three specialists:
+\begin{itemize}
+    \item a crew member aboard the ISS who lives this work every day,
+    \item an engineer who built Hubble to see what we couldn't from down here,
+    \item and a space enthusiast who dreams about what Voyager means beyond everything.
+\end{itemize}
+When you're ready to speak, press A on your right controller. I'll be listening. Enjoy the view—that blue marble beneath you is home.
+\end{quote}
+
+This welcome message demonstrates several integrated capabilities:
+
+\textbf{Voice Synthesis and Character Establishment}: CAPCOM's voice (ElevenLabs voice ID: \texttt{NOpBlnGInO9m6vDvFkFC}) speaks with authoritative encouragement, establishing a professional yet supportive tone. The character introduction from Appendix~\ref{app:agent_implementation} successfully differentiates Mission Control from the three specialists who will be encountered later.
+
+\textbf{Push-to-Talk Instruction}: The explicit instruction ``press A on your right controller'' educates the user about the interaction modality. This addresses the practical constraint identified in Section~\ref{subsec:voice_implementation}: VR users cannot easily type, so voice becomes the primary input method. The push-to-talk mechanism (Quest 3 A button mapped through \texttt{OVRInput.Get(OVRInput.Button.One)}) balances spontaneity with intentionality, preventing accidental voice activation.
+
+\textbf{Spatial Awareness Encouragement}: The invitation to ``drift closer'' and ``circle around'' acknowledges the VR locomotion system (Appendix~\ref{app:vr_implementation}). Users can physically move within their Guardian boundary and use controller input to translate their viewpoint, enabling the embodied learning described in Section~\ref{sec:ar_vr_review}. This freedom to observe Earth from multiple angles supports spatial cognition of orbital geometry.
+
+\textbf{Navigation Preview}: By mentioning three specialists (ISS, Hubble, Voyager), CAPCOM establishes the modular architecture (Objective~\#5) that will enable context-specific learning in dedicated Mission Spaces (Section~\ref{sec:iss_learning}, Section~\ref{sec:elliptical_exploration}, Section~\ref{sec:escape_concept}).
+
+\paragraph{Technical Validation} This arrival moment validates:
+\begin{itemize}
+    \item \textbf{VR rendering performance}: Maintaining 90 Hz stereoscopic frame rate on Quest 3 (Appendix~\ref{app:vr_implementation}) with high-resolution Earth textures (8K day map)
+    \item \textbf{Scene transition stability}: Smooth cutscene-to-Hub transition managed by \texttt{SceneTransitionManager} without stuttering
+    \item \textbf{Audio integration}: ElevenLabs TTS successfully playing through Quest 3 spatial audio system
+    \item \textbf{Agent system initialization}: \texttt{PromptConsole} ready to accept voice input with conversation context established
+\end{itemize}
+
+\subsection{Satellite Discovery: Object Interaction and Conversational Engagement}
+\label{subsec:satellite_discovery}
+
+After orienting to the environment, the user explores and discovers the simulation satellite—a three-dimensional spacecraft model positioned near Earth's surface. This discovery represents the first user-initiated interaction, transitioning from passive observation to active engagement.
+
+\textbf{User Question (Push-to-Talk Activation):}
+\begin{quote}
+\textit{USER:} Hey, Capcom. I see we have a satellite here. Is this the satellite that we can build?
+\end{quote}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{Imagens/satelite_zoomed_in.png}
+\caption{Close-up view of the simulation satellite model in the Hub environment. The user has moved their VR perspective to examine the spacecraft, demonstrating spatial navigation and object-focused attention. This satellite serves as the visual anchor for all subsequently created orbital trajectories.}
+\label{fig:satellite_zoomed}
+\end{figure}
+
+\FloatBarrier
+
+This interaction demonstrates the complete voice pipeline (Appendix~\ref{app:voice_implementation}) functioning in real-time:
+
+\begin{enumerate}
+    \item \textbf{Input Detection}: User presses and holds Quest 3 A button, triggering \texttt{PromptConsole.StartRecording()}
+    \item \textbf{Microphone Capture}: Unity's \texttt{Microphone.Start()} captures audio at 16 kHz sample rate
+    \item \textbf{Speech-to-Text}: On button release, audio converts to WAV format and transmits to ElevenLabs Scribe v2 API
+    \item \textbf{Transcription Result}: Text ``Hey, Capcom. I see we have a satellite here. Is this the satellite that we can build?'' returns within 1-2 seconds
+\end{enumerate}
+
+\textbf{Agent Response (Conversational Mode):}
+\begin{quote}
+\textit{CAPCOM:} [Music] Hello from Mission Control. Yes—this is your simulation satellite. We can build orbits by setting circular or elliptical paths. Tell me either the altitude for circular, or periapsis and apoapsis for elliptical, and I'll get it launched.
+\end{quote}
+
+This response validates the agent's \emph{conversational mode} (Appendix~\ref{app:agent_implementation})—situations where no tool execution is required, only explanatory dialogue. The \texttt{nonToolResponseTemplate} prompt guides GPT-4.1 to:
+\begin{itemize}
+    \item Acknowledge the user's observation (``Yes—this is your simulation satellite'')
+    \item Educate about available capabilities (circular vs elliptical orbit creation)
+    \item Prepare for subsequent tool use (``Tell me either the altitude for circular...'')
+\end{itemize}
+
+The response generates through the \texttt{OpenAIClient} (Appendix~\ref{app:agent_implementation}), synthesizes via ElevenLabs TTS with CAPCOM's voice profile, and plays through the Quest 3 audio system—completing the bidirectional voice cycle in approximately 4-6 seconds total latency (transcription + reasoning + synthesis).
+
+\paragraph{Educational Significance}
+This seemingly simple exchange establishes critical pedagogical foundations:
+\begin{itemize}
+    \item \textbf{Lowers barrier to entry}: The user asked a basic observational question and received a clear, encouraging answer. This validates that the platform welcomes curiosity without requiring prior technical knowledge.
+    \item \textbf{Disambiguates orbital parameters}: By explicitly stating ``altitude for circular'' vs ``periapsis and apoapsis for elliptical,'' CAPCOM teaches the vocabulary distinction that will support understanding in Section~\ref{sec:iss_learning} (circular) and Section~\ref{sec:elliptical_exploration} (elliptical).
+    \item \textbf{Invites agency}: The phrase ``you can build'' positions the learner as designer rather than observer, aligning with the exploratory learning paradigm described in Section~\ref{sec:motivation}.
+\end{itemize}
+
+\paragraph{Capabilities Demonstrated}
+This satellite discovery interaction validates:
+\begin{itemize}
+    \item \textbf{Complete voice pipeline}: STT (Scribe v2) → agent reasoning (GPT-4.1) → TTS (ElevenLabs) functioning end-to-end
+    \item \textbf{Push-to-talk mechanism}: User successfully activated recording, held button during speech, released to transmit
+    \item \textbf{Conversational intelligence}: Agent distinguished between conversational query and tool-requiring command
+    \item \textbf{VR spatial navigation}: User moved perspective to examine satellite, demonstrating 6DOF freedom
+    \item \textbf{Real-time responsiveness}: Total interaction cycle (speech → response) completed within 6-8 seconds without perceptible system lag
+\end{itemize}
+
+This completes the onboarding phase. The user now understands:
+\begin{itemize}
+    \item Where they are (floating in orbital space above Earth)
+    \item Who they're talking to (CAPCOM, Mission Control agent)
+    \item How to interact (push-to-talk voice commands)
+    \item What they can do (build circular/elliptical orbits, visit specialist missions)
+    \item What object they're manipulating (the simulation satellite)
+\end{itemize}
+
+With these foundations established, the learning journey can begin. Section~\ref{sec:iss_learning} demonstrates the first complete pedagogical cycle: asking about orbital altitude, consulting the ISS specialist, creating a circular orbit, and observing its motion.

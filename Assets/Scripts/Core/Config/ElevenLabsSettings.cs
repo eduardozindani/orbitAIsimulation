@@ -10,8 +10,8 @@ namespace Core.Config
     public class ElevenLabsSettings : ScriptableObject
 {
     [Header("API Configuration")]
-    [Tooltip("ElevenLabs API key")]
-    public string apiKey = "sk_3ec3c03f00fce191107dd999afd752104d169cb833b57d24";
+    [Tooltip("ElevenLabs API key - DO NOT commit with real values! Load from environment or local config.")]
+    public string apiKey = "";
 
     [Tooltip("Voice ID for text-to-speech (Mission Control voice)")]
     public string voiceId = "NOpBlnGInO9m6vDvFkFC";
