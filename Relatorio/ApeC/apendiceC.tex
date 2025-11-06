@@ -6,13 +6,13 @@ This appendix provides detailed technical specifications for the bidirectional v
 \section{System Architecture}
 \label{app:voice_architecture}
 
-The voice pipeline implements bidirectional audio through ElevenLabs cloud APIs, enabling natural spoken interaction with the agent system. Figure~\ref{fig:voice_dataflow} conceptually illustrates the data flow (implementation in code).
+The voice pipeline implements bidirectional audio through ElevenLabs cloud APIs, enabling natural spoken interaction with the agent system. The data flow follows this sequence: user speech → speech-to-text transcription → agent processing → text-to-speech synthesis → audio playback.
 
 \subsubsection*{Component Responsibilities}
 
 \begin{itemize}
 \item \textbf{PromptConsole}: Manages microphone capture, push-to-talk input detection, and audio playback
-\item \textbf{ElevenLabsClient}: Handles HTTP communication with ElevenLabs APIs (381 lines)
+\item \textbf{ElevenLabsClient}: Handles HTTP communication with ElevenLabs APIs (Assets/Scripts/AI/Services/ElevenLabsClient.cs, 394 lines)
 \item \textbf{Unity AudioSource}: Plays synthesized speech through Quest 3's spatial audio system
 \item \textbf{Unity Microphone}: Captures user voice input at 16 kHz sample rate
 \end{itemize}

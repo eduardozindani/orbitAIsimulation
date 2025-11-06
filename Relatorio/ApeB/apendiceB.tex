@@ -185,7 +185,7 @@ where $\theta$ is the true anomaly (angle from periapsis), $a$ is the semi-major
 
 \subsection{Sampling Algorithm}
 
-The \texttt{CalculateOrbitalPoint()} method (lines 217--231) samples Equation~\ref{eq:orbit_polar} at 128 evenly-spaced true anomaly angles $\theta \in [0, 2\pi)$. For each sample point:
+The \texttt{OrbitVisualizer.CalculateOrbitalPoint()} method (Assets/Scripts/Orbital/OrbitVisualizer.cs, lines 217--231) samples Equation~\ref{eq:orbit_polar} at 128 evenly-spaced true anomaly angles $\theta \in [0, 2\pi)$. For each sample point:
 
 \begin{align}
 r &= \frac{a(1 - e^2)}{1 + e \cos \theta} \\

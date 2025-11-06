@@ -1,31 +1,20 @@
-Having successfully created and observed a circular orbit (Section~\ref{sec:iss_learning}), the user's conceptual curiosity naturally expands to more complex orbital geometries. This section demonstrates iterative learning: building on foundational knowledge to explore elliptical orbits, eccentricity, and speed variation. The familiar learning cycle—question, specialist consultation, orbit creation, observation—repeats with increased sophistication.
+Building on circular orbit knowledge, the user explores elliptical geometries with visible speed variation.
 
-Elliptical orbits introduce geometric complexity well-suited to immersive VR visualization. Unlike circles, ellipses exhibit visible shape variation, speed changes (faster at periapsis, slower at apoapsis), and asymmetric properties difficult to grasp from equations alone. The demonstration shows how spatial observation supports conceptual understanding of Kepler's Second Law through visible speed differences.
-
-\subsection{Conceptual Question: Extending Beyond Circular Orbits}
+\subsection{Hubble Specialist Consultation}
 \label{subsec:elliptical_question}
 
-After exploring circular orbital motion, the user poses a natural progression:
+The user asks about elliptical orbits (Appendix~\ref{appendix:transcript}):
 
 \begin{quote}
 \textit{USER:} Great. I built a circular orbit. What's an elliptical orbit?
-\end{quote}
 
-This question demonstrates autonomous learning progression—not following a prescribed curriculum but pursuing self-directed conceptual development. CAPCOM recognizes this as an educational question and routes to an appropriate specialist:
-
-\begin{quote}
 \textit{CAPCOM:} Perfect question for Hubble—routing.
 \end{quote}
 
-The routing decision demonstrates contextual intelligence. Rather than answering directly, CAPCOM connects the user to mission-specific expertise. DR\_HARRISON, the Hubble specialist, serves as an ideal guide: Hubble operates in a near-circular orbit at 540 km altitude, providing a natural contrast for explaining elliptical geometry.
-
-\subsection{Hubble Specialist Explanation: Geometric and Operational Distinctions}
-\label{subsec:hubble_explanation}
-
-The scene transitions to Hubble Mission Space. DR\_HARRISON provides a comparative explanation:
+DR\_HARRISON provides a comparative explanation:
 
 \begin{quote}
-\textit{HUBBLE\_ENGINEER (DR\_HARRISON):} [Music] Circular means constant distance and speed—like Hubble ($\approx$540 km) for steady imaging and predictable servicing. Elliptical stretches the path: closer at periapsis (faster), farther at apoapsis (slower). Some science missions pick elliptical to linger where conditions are best or to avoid interference (e.g., high apogee above the radiation belts).
+\textit{HUBBLE\_ENGINEER (DR\_HARRISON):} Circular means constant distance and speed—like Hubble ($\approx$540 km) for steady imaging and predictable servicing. Elliptical stretches the path: closer at periapsis (faster), farther at apoapsis (slower). Some science missions pick elliptical to linger where conditions are best or to avoid interference (e.g., high apogee above the radiation belts).
 \end{quote}
 
 \begin{figure}[h]
@@ -37,7 +26,7 @@ The scene transitions to Hubble Mission Space. DR\_HARRISON provides a comparati
 
 \FloatBarrier
 
-DR\_HARRISON's explanation demonstrates effective pedagogical design through comparative framing, terminology introduction with physical context, and real-world mission justification. When the user asks why missions choose elliptical orbits if circular is simpler, DR\_HARRISON provides a concrete example:
+When asked why missions choose elliptical orbits:
 
 \begin{quote}
 \textit{USER:} Why choose elliptical if circular is simpler?
@@ -45,30 +34,16 @@ DR\_HARRISON's explanation demonstrates effective pedagogical design through com
 \textit{HUBBLE\_ENGINEER (DR\_HARRISON):} To optimize time in a region. Example: Chandra uses a highly elliptical orbit to spend long stretches far from Earth's radiation belts for cleaner X-ray observations. Trade-off: more complex tracking/operations.
 \end{quote}
 
-The Chandra X-ray Observatory example grounds abstract physics in mission engineering. Its highly elliptical orbit (perigee ~10,000 km, apogee ~140,000 km) allows the telescope to spend most of its 64-hour period at high altitude where radiation is minimal—critical for sensitive X-ray detectors. This illustrates orbital design as engineering optimization.
-
-DR\_HARRISON's voice and focus differ from ANASTASIA's, reinforcing the modular structure: Hub provides a general workspace while Mission Spaces offer specialist contexts with distinct personalities.
-
-\subsection{First Elliptical Orbit Creation}
+\subsection{Iterative Orbit Creation}
 \label{subsec:first_elliptical}
 
-After consultation, the user returns to Hub and requests orbit creation:
+After returning to Hub, the user requests elliptical orbit creation:
 
 \begin{quote}
-\textit{USER:} Back to Mission Control so I can build one.
-
-[After scene transition]
-
 \textit{USER:} Please build an elliptical orbit—anything interesting so I can compare.
-\end{quote}
 
-The intentionally vague request (``anything interesting'') tests the agent's ability to interpret qualitative intent. CAPCOM selects reasonable parameters without requiring exact specifications:
-
-\begin{quote}
 \textit{CAPCOM:} Elliptical orbit set: periapsis 400 km, apoapsis 2,000 km, inclination 0°. Watch it speed up near Earth and slow down far away.
 \end{quote}
-
-The 400 km × 2,000 km orbit creates a moderately elliptical trajectory. CAPCOM's instruction prepares the user to observe Kepler's Second Law in action.
 
 \begin{figure}[h]
 \centering
@@ -79,103 +54,36 @@ The 400 km × 2,000 km orbit creates a moderately elliptical trajectory. CAPCOM'
 
 \FloatBarrier
 
-The user requests time acceleration:
-
-\begin{quote}
-\textit{USER:} Can we run at maximum sim speed?
-
-\textit{CAPCOM:} Time acceleration: 100×. Ellipticity will be very clear.
-\end{quote}
-
-At 100× time scale, the satellite completes multiple orbits within seconds, making speed variation perceptible. This temporal compression enables observation of phenomena occurring over 90-120 minute real-time periods.
-
-\subsection{Iterative Refinement}
-\label{subsec:iterative_refinement}
-
-After observing the first orbit, the user provides qualitative feedback:
+After observing at 100× time acceleration, the user provides qualitative feedback:
 
 \begin{quote}
 \textit{USER:} Make it more elliptical; it still looks circular.
 \end{quote}
 
-This feedback demonstrates iterative exploration—a key learning pattern. The user requests greater geometric exaggeration to better observe the phenomenon, mirroring scientific practice of adjusting parameters to amplify observable effects.
-
-CAPCOM selects new parameters with lower periapsis:
+CAPCOM creates a more eccentric orbit:
 
 \begin{quote}
 \textit{CAPCOM:} Roger. New orbit: periapsis 200 km, apoapsis 1,000 km, inclination 0°. The speed contrast will be much more dramatic.
 \end{quote}
 
-The lower periapsis (200 km, near the atmospheric drag limit) creates more dramatic speed variation and a visually distinct trajectory. The user confirms observation:
-
-\begin{quote}
-\textit{USER:} Speed to maximum… oh, it already is.
-
-\textit{CAPCOM:} Confirmed—100× time. Enjoy the fast-forward view.
-\end{quote}
-
-\subsection{Visual Observation of Kepler's Second Law}
-\label{subsec:eccentricity_observation}
-
-With the refined orbit and time acceleration, the user observes the satellite's motion:
+The user observes visible speed variation:
 
 \begin{quote}
 \textit{USER:} Wow—huge difference between near and far.
 \end{quote}
 
-This reaction validates the educational effectiveness of immersive visualization. The user directly experiences Kepler's Second Law—satellites move faster at periapsis—rather than reading about it. This embodied observation supports spatial cognition principles discussed in Section~\ref{sec:ar_vr_review}.
-
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.85\textwidth]{Imagens/orbit_view3.png}
-\caption{Satellite at apoapsis (farthest point, slowest velocity) showing the ellipse's oblong shape from a fixed perspective.}
+\caption{Satellite at apoapsis (farthest point, slowest velocity).}
 \label{fig:orbit_view3}
 \end{figure}
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.85\textwidth]{Imagens/orbit_view4.png}
-\caption{Satellite at periapsis (closest point, fastest velocity) from the same perspective, demonstrating the geometric and kinematic contrast.}
+\caption{Satellite at periapsis (closest point, fastest velocity), demonstrating Kepler's Second Law through visible speed contrast.}
 \label{fig:orbit_view4}
 \end{figure}
 
 \FloatBarrier
-
-Figures~\ref{fig:orbit_view3} and~\ref{fig:orbit_view4} demonstrate spatial visualization power. From a fixed viewing angle, the learner observes the satellite at apoapsis (far, slow) and periapsis (near, fast). This comparison makes Kepler's Second Law visually intuitive: ellipses are motion paths with observable physical properties, not merely mathematical abstractions.
-
-The ability to observe from multiple angles leverages VR's 6DOF freedom (Section~\ref{subsec:vr_implementation}), supporting embodied learning theory: learners use body movement and spatial reasoning to build conceptual understanding.
-
-\paragraph{Educational Principles Validated}
-
-The elliptical orbit demonstration validates several learning approaches:
-
-\textbf{Visualization Over Equations}: Users observe consequences (speed varies with distance) without solving equations, lowering barriers to understanding orbital mechanics.
-
-\textbf{Iterative Refinement}: Two-step orbit creation (moderate → higher eccentricity) demonstrates non-linear learning driven by user feedback.
-
-\textbf{Comparative Learning}: Creating both circular and elliptical orbits in the same workspace enables mental comparison of geometric shapes and motion characteristics.
-
-\textbf{Real-Time Observation}: 100× time acceleration compresses 90-120 minute orbital cycles into seconds, making periapsis passage and apoapsis lingering perceptible.
-
-\paragraph{Capabilities Validated}
-
-This section demonstrates:
-\begin{itemize}
-    \item Elliptical orbit physics with speed variation calculation (Appendix~\ref{app:physics_implementation})
-    \item Parameter interpretation from vague requests (``anything interesting'')
-    \item Iterative refinement workflow responding to user feedback
-    \item Multiple functional specialists with distinct voices and knowledge domains
-    \item Visual comparison across perspectives and orbital phases
-    \item Time acceleration enabling rapid observation
-\end{itemize}
-
-Objectives validated:
-\begin{itemize}
-    \item \textbf{\#1 (Physics accuracy)}: Speed variation matches theoretical predictions
-    \item \textbf{\#2 (Natural language)}: Qualitative requests interpreted correctly
-    \item \textbf{\#3 (Multimodal VR)}: Spatial observation from multiple angles
-    \item \textbf{\#4 (Real-time coherence)}: Seamless scene transitions and tool execution
-    \item \textbf{\#5 (Modular architecture)}: Second Mission Space demonstrating system scalability
-\end{itemize}
-
-The next section (Section~\ref{sec:escape_concept}) demonstrates conceptual extension beyond bound orbits, progressing from circular to elliptical to hyperbolic escape trajectories through consultation with the Voyager specialist.

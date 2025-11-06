@@ -1,7 +1,10 @@
-Having followed the user's learning journey from initial Hub arrival through specialist consultations on circular orbits, elliptical geometries, and escape trajectories (Sections~\ref{sec:entering_environment}--\ref{sec:escape_concept}), we now shift from pedagogical narrative to quantitative validation. This section analyzes the technical performance underlying those educational experiences: tool execution reliability, real-time system responsiveness, and physics calculation accuracy. The measurements confirm that experiential effectiveness rests on computational rigor—validating both Objective~\#1 (physically accurate simulation) and Objective~\#4 (real-time system coherence) through operational data extracted from the demonstration session.
+Having followed the user's learning journey from initial Hub arrival through specialist consultations on circular orbits, elliptical geometries, and escape trajectories (Sections~\ref{sec:entering_environment}--\ref{sec:escape_concept}), we now shift from pedagogical narrative to technical validation. This section presents operational evidence validating Objectives~\#1 (physics accuracy), \#4 (real-time coherence), and \#5 (modular architecture) through measurements from the demonstration session, followed by honest assessment of validation scope and limitations.
 
-\subsection{Complete Tool Suite Execution and Usage Analysis}
-\label{subsec:tool_suite_execution}
+\subsection{Operational Validation}
+\label{subsec:operational_validation}
+
+\subsubsection{Tool Execution Reliability}
+\label{subsubsec:tool_execution}
 
 The demonstration session exercised the complete tool suite defined in \texttt{ToolSchemas.json} (Appendix~\ref{app:agent_implementation}). Table~\ref{tab:tool_usage} documents all invocations with their parameters and execution results.
 
@@ -32,18 +35,10 @@ The demonstration session exercised the complete tool suite defined in \texttt{T
 \end{tabular}
 \end{table}
 
-\paragraph{Tool Usage Patterns and Validation}
+Navigation tools (\texttt{route\_to\_mission}, \texttt{return\_to\_hub}) dominated usage (8 of 11 invocations), reflecting the pedagogical structure from Sections~\ref{sec:entering_environment}--\ref{sec:escape_concept}: learners alternate between specialist consultation (mission spaces) and hands-on experimentation (Hub workspace). All 11 invocations succeeded without errors or parameter validation failures. Unused tools (\texttt{pause\_simulation}, \texttt{reset\_simulation\_time}, \texttt{clear\_orbit}) reflect session flow rather than technical limitations; these capabilities remain functional and documented in Appendix~\ref{app:agent_implementation}.
 
-Navigation tools dominate the demonstration's tool invocations, with \texttt{route\_to\_mission} (4 uses) and \texttt{return\_to\_hub} (4 uses) accounting for 8 of 11 total tool calls. This reflects the pedagogical structure established in preceding sections: learners explore concepts through iterative cycles of specialist consultation (mission spaces) and hands-on experimentation (Hub workspace). The demonstration transcript concludes mid-conversation in Voyager Mission Space, representing an ongoing learning session rather than a completed workflow.
-
-Both orbit creation tools executed successfully with diverse parameters. The single \texttt{create\_circular\_orbit} invocation (422 km altitude, Section~\ref{sec:iss_learning}) and two \texttt{create\_elliptical\_orbit} calls (periapsis/apoapsis pairs of 400/2000 km and 200/1000 km, Section~\ref{sec:elliptical_exploration}) demonstrate that the physics engine (Appendix~\ref{app:physics_implementation}) correctly handles the full spectrum from circular to elliptical geometries. Similarly, \texttt{set\_simulation\_speed} executed twice with different multipliers (10× and 100×), enabling the time-accelerated observations described in Section~\ref{subsec:observing_motion} and Section~\ref{subsec:eccentricity_observation}.
-
-Three tools (\texttt{pause\_simulation}, \texttt{reset\_simulation\_time}, \texttt{clear\_orbit}) remain unused in this demonstration. Their absence reflects the narrative flow rather than technical limitations—the user's learning path did not require workspace clearing or temporal reset. These capabilities remain fully functional and documented in Appendix~\ref{app:agent_implementation}.
-
-Most significantly, all 13 tool invocations (4 routes + 4 returns + 1 circular orbit + 2 elliptical orbits + 2 speed adjustments) succeeded without errors, parameter validation failures, or execution exceptions. This 100\% success rate validates both the \texttt{ToolExecutor} implementation and the constraint checking logic defined in \texttt{ToolSchemas.json}.
-
-\subsection{Real-Time Performance Metrics and System Latency}
-\label{subsec:performance_metrics}
+\subsubsection{Performance Characterization}
+\label{subsubsec:performance_characterization}
 
 System responsiveness directly impacts educational effectiveness—excessive latency between user input and platform response disrupts conversational flow and spatial presence. Table~\ref{tab:performance_metrics} presents measured latencies for each interaction stage during the demonstration.
 
@@ -72,90 +67,45 @@ VR frame rate (Quest 3) & 90 Hz & Stereoscopic rendering throughout demo \\
 \end{tabular}
 \end{table}
 
-\paragraph{Voice Pipeline Latency Analysis}
+Voice interaction latency (4--7s) proved acceptable for educational dialogue, where conversational pacing naturally includes contemplative pauses; external API processing dominates this pipeline. Scene transitions (3--5s) via asynchronous loading maintained experiential continuity through persistent background music, smooth visual fades, and conversation context preservation. VR rendering stability (90 Hz sustained throughout) persisted during computationally intensive operations including 8K textures, scene transitions, and 100× time-accelerated animation—rendering optimizations (Appendix~\ref{app:vr_implementation}) validated real-time coherence under representative workload.
 
-The complete voice interaction cycle requires 4--7 seconds from Quest controller button press to audio playback, encompassing three sequential operations: speech-to-text transcription (1--2s), agent reasoning and response generation (2--3s), and text-to-speech synthesis (1--2s). This measured latency proves acceptable for educational dialogue, where conversational pacing naturally includes contemplative pauses. Unlike transactional voice assistants that prioritize sub-second responsiveness for simple queries, the platform delivers thoughtful, contextually rich explanations—a pedagogical trade-off favoring answer quality over immediacy. External API processing (ElevenLabs, OpenAI) contributes most latency rather than platform inefficiency, suggesting future optimizations through streaming TTS or local inference without fundamental architectural changes.
-
-\paragraph{Scene Transition Performance}
-
-Scene transitions between Hub and Mission Spaces complete in 3--5 seconds through Unity's asynchronous loading (\texttt{SceneManager.LoadSceneAsync()}) with mission logo overlays. This approach prevents frame drops or rendering stutters during asset streaming. The \texttt{SceneTransitionManager} (Section~\ref{sec:system_architecture}) maintains experiential continuity through persistent background music (\texttt{DontDestroyOnLoad}), smooth visual fades, and conversation context preservation via the \texttt{MissionContext} singleton. Learners experience seamless environment changes without spatial disorientation or cognitive disruption, enabling the pedagogical flow documented in Sections~\ref{sec:iss_learning}--\ref{sec:escape_concept}.
-
-\paragraph{VR Rendering Stability}
-
-The platform maintained Quest 3's target 90 Hz frame rate (11.1ms per frame) throughout the demonstration without judder or frame drops. This consistency persisted during computationally intensive operations: high-resolution Earth texture rendering (8K day map, Section~\ref{subsec:hub_arrival}), six scene transitions between Hub and Mission Spaces, and time-accelerated orbit animation at 100× playback (Section~\ref{subsec:eccentricity_observation}). The rendering optimizations documented in Appendix~\ref{app:vr_implementation}—single-pass instanced stereo rendering, texture compression, and asynchronous scene loading—enable this stability, validating that the platform achieves real-time system coherence under representative educational workloads.
-
-\subsection{Physics Accuracy Validation Against Published Mission Data}
+\subsection{Physics Fidelity Assessment}
 \label{subsec:physics_validation}
 
-Educational credibility requires physics fidelity—learners must trust that simulated phenomena reflect real orbital mechanics. Table~\ref{tab:physics_validation} compares simulation calculations against published mission data from authoritative sources.
+Educational credibility requires physics fidelity—learners must trust that simulated phenomena reflect real orbital mechanics. The platform implements vis-viva equation for velocity calculations:
 
-\begin{table}[h]
-\centering
-\caption{Physics Validation: Simulation vs Published Mission Data}
-\label{tab:physics_validation}
-\begin{tabular}{lrrrl}
-\hline
-\textbf{Mission} & \textbf{Altitude} & \textbf{Velocity (Published)} & \textbf{Velocity (Simulated)} & \textbf{Error} \\
-\hline
-ISS & 420 km & 7.66 km/s & 7.66 km/s & <0.01\% \\
-\hline
-User Demo Orbit & 422 km & 7.66 km/s* & 7.66 km/s & 0\% \\
-\hline
-Hubble (reference) & 540 km & 7.59 km/s & 7.59 km/s & <0.01\% \\
-\hline
-\end{tabular}\\
-\footnotesize{*Theoretical velocity calculated via vis-viva equation: $v = \sqrt{\mu/r}$ with $\mu = 398{,}600$ km³/s²}
-\end{table}
-
-\paragraph{Vis-Viva Equation Verification}
-
-The simulation's circular orbit velocity calculation uses the standard gravitational parameter $\mu = 398{,}600$ km³/s² and Earth's mean radius $R_\oplus = 6{,}371$ km:
 \begin{equation}
-v_{\text{circular}} = \sqrt{\frac{\mu}{r}} = \sqrt{\frac{398{,}600}{R_\oplus + h}}
-\label{eq:circular_velocity_validation}
+v_{\text{circular}} = \sqrt{\frac{\mu}{r}} \quad \text{and} \quad v_{\text{elliptical}}(r) = \sqrt{\mu \left(\frac{2}{r} - \frac{1}{a}\right)}
+\label{eq:visviva_implementation}
 \end{equation}
 
-For the user's 422 km demonstration orbit, this yields $v = \sqrt{398{,}600/6{,}793} = 7.66$ km/s, matching the real ISS velocity at 420 km altitude. The <0.01\% error arises from floating-point precision rather than physics inaccuracy.
+where $\mu = 398{,}600$ km³/s² (Earth's standard gravitational parameter), $r$ is orbital radius from Earth's center, and $a$ is semi-major axis. All calculations occur in real units (km, km/s, rad/s) before Unity scale conversion ($k = 0.000785$), ensuring displayed velocities reflect actual orbital mechanics verifiable against authoritative sources.
 
-\paragraph{Orbital Period Verification}
+\paragraph{Implementation Validation}
 
-ANASTASIA's statement that the ISS completes an orbit in ``~92.8 minutes'' can be verified through Kepler's Third Law:
-\begin{equation}
-T = 2\pi \sqrt{\frac{r^3}{\mu}} = 2\pi \sqrt{\frac{(6{,}793)^3}{398{,}600}} = 5{,}568 \text{ seconds} \approx 92.8 \text{ minutes}
-\label{eq:period_validation}
-\end{equation}
+Calculated velocities match analytical predictions from Equation~\ref{eq:visviva_implementation}:
+\begin{itemize}
+    \item ISS altitude (420 km): $v = \sqrt{398{,}600 / 6{,}791} = 7.66$ km/s, period $T = 2\pi\sqrt{r^3/\mu} = 92.8$ minutes
+    \item User demonstration orbit (422 km): $v = 7.66$ km/s (Section~\ref{sec:iss_learning})
+    \item Elliptical orbit (200 km $\times$ 1000 km): $v_p = 7.87$ km/s at periapsis, $v_a = 7.02$ km/s at apoapsis—12\% speed variation visually perceptible in VR (Section~\ref{sec:elliptical_exploration})
+\end{itemize}
 
-This confirms the agent's educational response accuracy: the physics calculations driving the simulation match the physical laws governing real spacecraft.
+\paragraph{Acknowledged Limitations}
 
-\paragraph{Real-Unit Calculation Before Visualization}
+The physics implementation validates arithmetic consistency (calculations follow Keplerian dynamics), but several limitations warrant acknowledgment for educational context:
 
-A critical implementation detail documented in Appendix~\ref{app:physics_implementation} ensures educational credibility: all physics calculations occur in \emph{real units} (km, km/s, radians/s) before conversion to Unity rendering space. The scale compression factor ($k = 0.000785$) applies exclusively to visualization, leaving underlying physics untouched. Displayed velocities (7.66 km/s) therefore reflect actual orbital mechanics, enabling learners to verify simulation results against authoritative sources (textbooks, NASA mission data) and confirm fidelity to published physical constants ($\mu = 398{,}600$ km³/s² for Earth). This design prioritizes physical accuracy over simplified approximations, supporting the thesis's claim (Section~\ref{sec:motivation}) that immersive visualization need not sacrifice rigor.
+\begin{itemize}
+    \item \textbf{Two-body approximation:} Simulation omits perturbations (J2 oblateness effects, atmospheric drag below 400 km, third-body gravitational influences) relevant for operational mission planning but negligible for educational visualization at demonstrated timescales.
+    \item \textbf{No orbit propagation validation:} Future work should compare simulated trajectories against published Two-Line Element (TLE) data from Space-Track.org over 24-hour propagation windows, providing external validation beyond analytical self-consistency.
+    \item \textbf{Simplified Kepler dynamics:} Platform demonstrates fundamental orbital mechanics concepts (circular/elliptical motion, velocity-altitude relationships, Kepler's Laws) appropriate for introductory education; advanced topics (station-keeping, orbital transfers, rendezvous) remain future extensions (Section~\ref{sec:open_source_delivery}).
+\end{itemize}
 
-\paragraph{Elliptical Orbit Speed Variation}
+This physics scope aligns with thesis objectives (Section~\ref{sec:objetivos}): demonstrating feasibility of agent-guided immersive learning for foundational orbital mechanics, not replacing professional mission planning tools.
 
-The elliptical orbits created in Section~\ref{sec:elliptical_exploration} demonstrate correct vis-viva equation application:
-\begin{equation}
-v(r) = \sqrt{\mu \left(\frac{2}{r} - \frac{1}{a}\right)}
-\label{eq:visviva_validation}
-\end{equation}
+\subsection{Integration Evidence}
+\label{subsec:integration_evidence}
 
-For the second elliptical orbit (periapsis 200 km, apoapsis 1000 km):
-\begin{align*}
-r_p &= 6{,}571 \text{ km}, \quad r_a = 7{,}371 \text{ km}, \quad a = \frac{r_p + r_a}{2} = 6{,}971 \text{ km} \\
-v_p &= \sqrt{398{,}600 \left(\frac{2}{6{,}571} - \frac{1}{6{,}971}\right)} \approx 7.87 \text{ km/s} \\
-v_a &= \sqrt{398{,}600 \left(\frac{2}{7{,}371} - \frac{1}{6{,}971}\right)} \approx 7.02 \text{ km/s}
-\end{align*}
-
-The user's observation (``Wow—huge difference between near and far,'' Section~\ref{subsec:eccentricity_observation}) confirms that this 12\% speed variation ($v_p / v_a \approx 1.12$) is visually perceptible in VR, validating both the physics calculation and the rendering system's ability to convey kinematic phenomena.
-
-\paragraph{Summary of Component Validation}
-
-The quantitative measurements in Sections~\ref{subsec:tool_suite_execution}--\ref{subsec:physics_validation} validate individual subsystems: all eight defined tools remain operational with 11 successful invocations and zero failures during demonstration; voice interaction latency (4--7s) and VR rendering performance (90 Hz sustained) support uninterrupted educational dialogue; and physics calculations match published mission data within <0.01\% error, enabling learners to verify results against authoritative sources. These technical metrics complement the pedagogical demonstrations in Sections~\ref{sec:entering_environment}--\ref{sec:escape_concept}. The following subsection presents evidence that all components operate reliably together during real-world usage.
-
-\subsection{Complete System Demonstration and Integration Evidence}
-\label{subsec:demonstration_integration}
-
-Sections~\ref{subsec:tool_suite_execution} through~\ref{subsec:physics_validation} validate component reliability through quantitative metrics. This subsection presents evidence of complete system integration: a continuous demonstration recording showing all subsystems operating together without interruption, manual intervention, or post-production editing. The recording validates that the conversational agent, orbital physics engine, voice synthesis pipeline, and VR environment maintain coherence across the full interaction workflow documented in Sections~\ref{sec:entering_environment}--\ref{sec:escape_concept}.
+Sections~\ref{subsec:operational_validation}--\ref{subsec:physics_validation} validated individual components through quantitative metrics. This subsection presents evidence of complete system integration: a continuous demonstration recording showing all subsystems operating together without interruption, manual intervention, or post-production editing.
 
 \paragraph{Video Documentation}
 
@@ -163,70 +113,65 @@ A demonstration recording captures the complete user session analyzed throughout
 
 \textbf{Access}: \url{https://www.youtube.com/watch?v=S73l4_CgTtY}
 
-\textbf{Duration}: 11 minutes, 47 seconds of uninterrupted interaction
+\textbf{Duration}: 19 minutes, 12 seconds of uninterrupted interaction
 
 \textbf{Recording Format}: Direct Quest 3 capture (first-person stereoscopic perspective, spatial audio, 90~Hz refresh maintained throughout)
 
-\textbf{Content Scope}: The recording covers all interaction scenarios presented in this chapter:
+\textbf{Content Scope}: The recording covers all interaction scenarios presented in this chapter: environment entry (Section~\ref{sec:entering_environment}), ISS consultation and circular orbit creation (Section~\ref{sec:iss_learning}), Hubble consultation and elliptical orbit exploration (Section~\ref{sec:elliptical_exploration}), and Voyager consultation on escape trajectories (Section~\ref{sec:escape_concept}). Tool execution included 9 scene transitions, 3 orbit configurations, and 2 time acceleration adjustments.
+
+\paragraph{Multimodal Coordination Evidence}
+
+The continuous recording demonstrates multimodal coordination across the complete workflow:
+
+\textbf{Context persistence:} The \texttt{MissionContext} singleton maintained conversation history across all 9 scene transitions. Specialists referenced prior exchanges when greeting the user (ANASTASIA: ``You're asking about good altitude choices''; DR\_HARRISON: ``You've built circular orbits—now let's explore elliptical geometry''; CARL: ``You're wondering about deep-space trajectories beyond circular and elliptical orbits''), demonstrating that the modular architecture (Objective~\#5) preserves state coherence despite environment changes.
+
+\textbf{Physics-dialogue synchronization:} Agent responses referenced visible trajectories during operation. Example: ``Watch it speed up near Earth and slow down far away'' spoken while elliptical orbit displayed on screen (Section~\ref{sec:elliptical_exploration}).
+
+\textbf{Misconception correction:} When the user asked ``Can I choose the speed?'', CAPCOM clarified the physics constraint in real-time: ``Speed is derived from altitude by physics. At 422 km, you need 7.66 km/s for a stable circular orbit'' (Section~\ref{sec:iss_learning}). This prevented conceptual error without disrupting learning flow.
+
+These observations provide qualitative evidence of system integration under representative educational workload, complementing quantitative metrics in Sections~\ref{subsec:operational_validation}--\ref{subsec:physics_validation}. The recording, combined with the open-source repository (Section~\ref{sec:open_source_delivery}), enables independent verification by the research community.
+
+\subsection{Validation Scope and Acknowledged Limitations}
+\label{subsec:validation_boundaries}
+
+The validation presented in Sections~\ref{subsec:operational_validation}--\ref{subsec:integration_evidence} demonstrates operational feasibility through a single extended demonstration session. While this approach documents integrated system performance under realistic usage, several limitations warrant explicit acknowledgment to properly contextualize the thesis contribution.
+
+\paragraph{Limited Sampling}
+
+The validation relies on a single demonstration session (N=1, duration 19:12) rather than systematic testing across multiple users and usage scenarios. This limitation affects generalizability:
+
+\textbf{Variance characterization:} Performance metrics (Tables~\ref{tab:tool_usage} and~\ref{tab:performance_metrics}) represent single measurements without statistical distribution; mean latencies and standard deviations across diverse sessions remain unquantified.
+
+\textbf{Failure mode exploration:} All 11 tool invocations succeeded in the demonstrated session. Edge case behavior—ambiguous voice commands, out-of-range parameter requests, API timeout handling, concurrent tool requests—remains untested. While the platform implements validation logic (constraint checking in \texttt{ToolSchemas.json}, parameter bounds in \texttt{OrbitController.cs}), systematic stress testing would characterize failure boundaries more completely.
+
+\textbf{User diversity:} The demonstration captures a single learner's interaction pattern. Variation across user populations (different prior knowledge levels, linguistic backgrounds, spatial cognition abilities, VR motion sensitivity) remains unexamined.
+
+\paragraph{No Comparative Baseline}
+
+Educational effectiveness is not measured against comparative baselines:
+
+\textbf{Traditional simulators:} Platform performance not compared to established orbital mechanics tools (Kerbal Space Program, Orbiter, AGI STK) in terms of learning curve, comprehension accuracy, or engagement metrics.
+
+\textbf{Textbook problem-solving:} No controlled study comparing immersive VR exploration versus traditional analytical problem sets for concept retention or transfer tasks.
+
+\textbf{User study absence:} Learning outcomes (pre/post-test knowledge gains, misconception remediation effectiveness, spatial understanding improvements) not quantified through empirical educational research methods.
+
+\paragraph{Physics Validation Constraints}
+
+As noted in Section~\ref{subsec:physics_validation}, the physics implementation demonstrates arithmetic consistency with Keplerian dynamics but lacks external validation against operational data:
+
+\textbf{No trajectory propagation testing:} Simulated orbits not compared against published Two-Line Element (TLE) sets from Space-Track.org over multi-orbit propagation windows.
+
+\textbf{Simplified dynamics:} Two-body approximation appropriate for introductory education but omits perturbation effects (J2, atmospheric drag, solar radiation pressure) relevant for advanced study or operational mission planning.
+
+\paragraph{Validation Interpretation}
+
+These boundaries define the thesis contribution as a \textbf{feasibility demonstration and architectural foundation} rather than comprehensive validation of educational efficacy. The work establishes:
+
 \begin{itemize}
-    \item Environment entry and orientation (Section~\ref{sec:entering_environment})
-    \item ISS mission consultation and circular orbit creation (Section~\ref{sec:iss_learning})
-    \item Hubble consultation and elliptical orbit exploration (Section~\ref{sec:elliptical_exploration})
-    \item Voyager consultation on escape trajectories (Section~\ref{sec:escape_concept})
-    \item Tool execution: 9 scene transitions, 3 orbit configurations, 2 time acceleration adjustments
+    \item Technical viability: All subsystems (conversational AI, physics simulation, VR rendering, voice I/O) integrate successfully and operate reliably under demonstrated conditions.
+    \item Architectural soundness: Modular design (Objective~\#5) supports extension and adaptation, as evidenced by straightforward mission addition procedures documented in Section~\ref{sec:open_source_delivery}.
+    \item Pedagogical promise: Qualitative observations (misconception correction, iterative refinement, conceptual progression) suggest educational potential warranting further empirical study.
 \end{itemize}
 
-The recording presents the platform as it functions during real usage—including natural pauses, user hesitations, and iterative refinement requests—without rehearsal or selective editing.
-
-\paragraph{System Integration Evidence}
-
-The continuous recording demonstrates multi-module coordination that isolated component tests cannot validate:
-
-\textbf{Cross-Module Reliability}: During 11:47 of operation, the system executed 14 tool calls without failures:
-\begin{itemize}
-    \item Voice transcription: All 18 user utterances correctly transcribed (ElevenLabs Scribe v2)
-    \item Tool selection: GPT-4 identified appropriate actions for all requests, including ambiguous queries requiring specialist routing
-    \item Physics calculations: Orbital parameters matched analytical predictions (e.g., 422~km altitude → 7.66~km/s velocity → 92.8~min period, within 0.3\% of published ISS data)
-    \item Scene transitions: 9 asynchronous scene loads completed without rendering artifacts or audio desynchronization
-    \item Audio synthesis: 22 agent responses generated and played without truncation or silence gaps
-\end{itemize}
-
-\textbf{Context Persistence}: The \texttt{MissionContext} singleton maintained conversation history across all 9 scene transitions. Specialists referenced prior exchanges when greeting the user:
-\begin{itemize}
-    \item ANASTASIA: ``You're asking about good altitude choices'' (referencing user's initial Hub question)
-    \item DR\_HARRISON: ``You've built circular orbits—now let's explore elliptical geometry'' (referencing prior ISS session)
-    \item CARL: ``You're wondering about deep-space trajectories beyond circular and elliptical orbits'' (building on Hubble discussion)
-\end{itemize}
-
-These contextual references—generated dynamically by GPT-4 from stored conversation history—demonstrate that the modular architecture (Objective~\#5) preserves state coherence despite environment changes.
-
-\textbf{Multimodal Synchronization}: Voice, visualization, and physics remained coordinated throughout:
-\begin{itemize}
-    \item Agent responses referenced visible trajectories: ``Watch it speed up near Earth and slow down far away'' (spoken while elliptical orbit displayed on screen)
-    \item Time acceleration changes (10× and 100×) applied immediately, with UI confirmation and perceptible motion changes
-    \item Scene transition audio cues (logo overlay, specialist introductions) synchronized with environment loading completion
-\end{itemize}
-
-\paragraph{Demonstration Characteristics}
-
-The recording exhibits characteristics consistent with authentic exploratory learning rather than scripted tutorial execution:
-
-\textbf{User Question Progression}: Questions evolved from concrete parameters (``What's a good altitude?'') to conceptual boundaries (``Is everything elliptical for deep-space missions?''). This progression—documented in full in Appendix~\ref{appendix:transcript}—emerged from the user's curiosity rather than predetermined learning objectives.
-
-\textbf{Iterative Refinement}: The user requested orbit adjustments based on visual observation: ``Make it more elliptical; it still looks circular'' led to a second elliptical orbit with greater eccentricity (200~km × 1,000~km vs initial 400~km × 2,000~km). This feedback loop—observe, critique, refine—demonstrates that the platform supports genuine experimentation.
-
-\textbf{Misconception Handling}: When the user asked ``Can I choose the speed?'', CAPCOM clarified the physics constraint: ``Speed is derived from altitude by physics. At 422~km, you need 7.66~km/s for a stable circular orbit.'' This real-time correction prevented a conceptual error without interrupting the learning flow.
-
-\textbf{Spatial Language}: User utterances reflected VR-enabled spatial cognition: ``It looks fast, but Earth is massive'' (scale perception), ``Wow—huge difference between near and far'' (Kepler's Second Law observation). These spontaneous reactions—captured in the recording's audio—suggest that immersive visualization supports intuitive understanding of orbital dynamics.
-
-\paragraph{Integration Validation Summary}
-
-The continuous demonstration recording provides evidence that:
-\begin{enumerate}
-    \item All subsystems operate reliably together during real-world usage (no failures across 14 tool invocations, 18 voice interactions, 9 scene transitions)
-    \item Modular architecture maintains state coherence despite frequent environment changes (conversation context preserved across all transitions)
-    \item Multimodal coordination persists throughout the interaction workflow (voice, visualization, physics synchronized)
-    \item The platform supports exploratory learning patterns (question progression, iterative refinement, misconception correction)
-\end{enumerate}
-
-These results validate Objective~\#4 (real-time system coherence) in an integrated scenario that isolated component tests cannot replicate. The recording, combined with the open-source repository discussed in Section~\ref{sec:open_source_delivery}, enables independent verification of these claims by the research community.
+Systematic evaluation through controlled user studies, comparative baseline testing, and longitudinal learning outcome measurement constitute essential future work (Chapter~\ref{chap:conclusions}) to transition from proof-of-concept to validated educational intervention.

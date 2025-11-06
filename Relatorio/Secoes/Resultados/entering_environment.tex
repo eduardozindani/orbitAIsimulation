@@ -16,9 +16,7 @@ The experience opens with a cinematic sequence. The user's viewpoint begins in d
 \label{fig:cut_scene}
 \end{figure}
 
-As the narrator speaks, the camera moves smoothly toward Earth over 28.7 seconds. This sequence serves two purposes: it establishes the cosmic scale of the environment the user is about to inhabit, and it frames the interaction paradigm. The phrase ``I'll guide the physics; you'll design the orbits'' positions the learner as active participant rather than passive observer—a signal that this platform prioritizes exploration over instruction.
-
-The camera animation is managed by the \texttt{ExperienceManager}, which coordinates the zoom from deep space to Hub position using Unity's Cinemachine interpolation. The transition occurs asynchronously while the narrator's synthesized voice continues, ensuring smooth audio-visual integration.
+As the narrator speaks, the camera moves smoothly toward Earth over 28.7 seconds, establishing the cosmic scale while framing the interaction paradigm. The phrase ``I'll guide the physics; you'll design the orbits'' positions the learner as active participant rather than passive observer.
 
 \subsection{Hub Environment Arrival: Spatial Presence and Agent Welcome}
 \label{subsec:hub_arrival}
@@ -34,21 +32,7 @@ When the cutscene concludes, the user arrives at the Hub—Mission Control's orb
 
 \FloatBarrier
 
-CAPCOM, the Mission Control agent, greets the user with both spatial and interactional orientation:
-
-\begin{quote}
-\textit{CAPCOM:} Welcome to Mission Control. You're floating above Earth. Use your controllers to drift closer. Circle around and watch the continents slide beneath you, oceans catching light, night falling while dawn breaks on the other side. I'm Capcom. We can design orbits together, build trajectories, see how satellites actually move—or I can route you to three specialists:
-\begin{itemize}
-    \item a crew member aboard the ISS who lives this work every day,
-    \item an engineer who built Hubble to see what we couldn't from down here,
-    \item and a space enthusiast who dreams about what Voyager means beyond everything.
-\end{itemize}
-When you're ready to speak, press A on your right controller. I'll be listening. Enjoy the view—that blue marble beneath you is home.
-\end{quote}
-
-CAPCOM's welcome accomplishes several tasks simultaneously. First, it orients the user spatially: ``you're floating above Earth.'' Second, it demonstrates the VR locomotion—users can move within their Guardian boundary and use controllers to navigate, allowing them to observe Earth from any angle. Third, it introduces the push-to-talk mechanism: ``press A on your right controller.'' This voice-first interface is essential in VR, where keyboards are impractical. Finally, CAPCOM previews the three Mission Spaces—ISS, Hubble, and Voyager—that represent the modular architecture enabling context-specific learning.
-
-The voice itself conveys character. CAPCOM speaks with professional warmth, balancing authority with encouragement. This tone, shaped through ElevenLabs synthesis with a carefully selected voice profile, distinguishes Mission Control from the three specialists who will appear later with their own vocal identities and expertise.
+CAPCOM greets the user, establishing orientation and interaction mechanics. The welcome message orients the user spatially (``floating above Earth''), introduces push-to-talk voice input (A button), explains available capabilities (orbit design and specialist consultation), and previews the three Mission Spaces—ISS, Hubble, and Voyager (full greeting in Appendix~\ref{appendix:transcript}). CAPCOM's professional warmth distinguishes Mission Control from the three specialists who will appear with their own vocal identities and expertise.
 
 \subsection{Satellite Discovery: First Interaction}
 \label{subsec:satellite_discovery}
@@ -68,20 +52,10 @@ After orienting to the environment, the user notices a spacecraft model floating
 
 \FloatBarrier
 
-This simple question exercises the complete voice pipeline for the first time. When the user presses and holds the A button, the Quest 3 microphone captures audio. Upon release, the recording transmits to ElevenLabs Scribe v2 for transcription. Within 1--2 seconds, the text returns: ``Hey, Capcom. I see we have a satellite here. Is this the satellite that we can build?'' The transcribed text passes to OpenAI's GPT-4.1, which generates a contextual response. That response synthesizes back into audio through ElevenLabs TTS, now in CAPCOM's voice, and plays through the headset's spatial audio system.
-
-The agent responds in conversational mode—no tool execution is required, only dialogue:
+This first voice interaction exercises the complete bidirectional speech pipeline. The agent responds in conversational mode:
 
 \begin{quote}
-\textit{CAPCOM:} [Music] Hello from Mission Control. Yes—this is your simulation satellite. We can build orbits by setting circular or elliptical paths. Tell me either the altitude for circular, or periapsis and apoapsis for elliptical, and I'll get it launched.
+\textit{CAPCOM:} Hello from Mission Control. Yes—this is your simulation satellite. We can build orbits by setting circular or elliptical paths. Tell me either the altitude for circular, or periapsis and apoapsis for elliptical, and I'll get it launched.
 \end{quote}
 
-CAPCOM's answer does more than confirm the satellite's identity. It teaches vocabulary: ``altitude'' defines circular orbits, while ``periapsis and apoapsis'' specify elliptical orbits. This disambiguation will support understanding when the user begins creating trajectories in subsequent sections. The phrase ``you can build'' reinforces agency—the learner is positioned as designer, not spectator.
-
-The entire interaction cycle—button press, speech, transcription, agent reasoning, synthesis, playback—completes in approximately 4--6 seconds. This latency, dominated by external API calls to ElevenLabs and OpenAI rather than platform inefficiency, proves acceptable for educational dialogue where thoughtful responses matter more than instant reactivity.
-
-\paragraph{Onboarding Complete}
-
-This first exchange, though brief, establishes the platform's interface paradigm. The user now understands where they are (orbital space above Earth), who they're speaking with (CAPCOM at Mission Control), how to communicate (push-to-talk voice), what they can do (design circular and elliptical orbits, consult mission specialists), and what object they'll be controlling (the simulation satellite). With these foundations in place, exploratory learning can begin.
-
-Section~\ref{sec:iss_learning} follows the first complete pedagogical cycle: the user asks a conceptual question about orbital altitude, consults the ISS specialist for guidance, returns to create a circular orbit, and observes its motion through VR visualization.
+CAPCOM's response introduces orbital terminology: ``altitude'' defines circular orbits, while ``periapsis and apoapsis'' specify elliptical paths. The complete interaction cycle—button press, speech transcription, agent response, audio synthesis—completes in 4--6 seconds, establishing the conversational rhythm that will support exploratory learning throughout subsequent sections.

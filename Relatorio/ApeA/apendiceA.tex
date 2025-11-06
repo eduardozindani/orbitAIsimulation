@@ -30,7 +30,7 @@ The agent system operates through structured prompts stored in the \texttt{Promp
 
 The Hub agent (Mission Control) uses three coordinated prompts:
 
-\subsubsection*{Tool Selection Prompt (460 lines)} Instructs GPT-4.1 to analyze user natural language input and return structured JSON identifying which tool to invoke. The prompt explicitly defines eight available tools:
+\subsubsection*{Tool Selection Prompt} Instructs GPT-4.1 to analyze user natural language input and return structured JSON identifying which tool to invoke. Stored in \texttt{PromptSettings.toolSelectionPrompt} (Assets/Scripts/Core/Config/PromptSettings.cs, lines 16--107), the prompt explicitly defines eight available tools:
 
 \begin{itemize}
 \item \textbf{Orbit Creation}: \texttt{create\_circular\_orbit}, \texttt{create\_elliptical\_orbit}
@@ -39,7 +39,31 @@ The Hub agent (Mission Control) uses three coordinated prompts:
 \item \textbf{Navigation}: \texttt{route\_to\_mission}, \texttt{return\_to\_hub}
 \end{itemize}
 
-\subsubsection*{Response Prompt (270 lines)} Generates natural language explanations of tool execution results. Includes explicit disambiguation guidance to prevent confusion between:
+\subsubsection*{Example Tool Selection Prompt Fragment}
+
+The following excerpt from \texttt{toolSelectionPrompt} illustrates the instruction format for tool \texttt{create\_circular\_orbit}:
+
+\begin{verbatim}
+1. create_circular_orbit
+   - Use when: User wants a simple orbit at one altitude
+   - Parameters:
+     * altitude_km (required): 160-35786 km
+     * inclination_deg (optional): 0-180° (0=equatorial, 90=polar)
+   - Examples: ISS orbit, geostationary orbit
+
+OUTPUT FORMAT (strict JSON only)
+{
+  "intent": "execute_tool" | "none",
+  "tool": "create_circular_orbit" | ... | null,
+  "parameters": {
+    // Tool-specific parameters
+  }
+}
+\end{verbatim}
+
+This structured format enables GPT-4.1 to reliably extract user intent and generate valid tool invocation JSON. The prompt includes routing guidance to distinguish between simulation control requests (handled by Hub tools) and educational queries (routed to Mission Space specialists).
+
+\subsubsection*{Response Prompt} Generates natural language explanations of tool execution results. Stored in \texttt{PromptSettings.responsePrompt} (Assets/Scripts/Core/Config/PromptSettings.cs, lines 111--197), it includes explicit disambiguation guidance to prevent confusion between:
 \begin{itemize}
 \item \textbf{Orbital velocity} (physics-calculated, 7.66 km/s for ISS)
 \item \textbf{Simulation time speed} (user-controllable playback multiplier)
@@ -49,7 +73,7 @@ The Hub agent (Mission Control) uses three coordinated prompts:
 
 \subsection{Mission Specialist Prompts}
 
-Mission Space specialists (ISS, Hubble, Voyager) use the \texttt{specialistSystemPrompt} (412 lines) which frames the agent as an enthusiastic mission expert focused on education rather than simulation control. Character configuration occurs through \texttt{MissionConfig} ScriptableObject assets:
+Mission Space specialists (ISS, Hubble, Voyager) use the \texttt{specialistSystemPrompt} (Assets/Scripts/Core/Config/PromptSettings.cs, lines 229--267), which frames the agent as an enthusiastic mission expert focused on education rather than simulation control. Character configuration occurs through \texttt{MissionConfig} ScriptableObject assets:
 
 \begin{itemize}
 \item \texttt{ISS\_Config.asset}: Character name ``Anastasia'', personality ``Professional engineer - clear, technical, friendly''
@@ -62,7 +86,7 @@ The \texttt{specialistIntroTemplate} generates concise 40-word, 10-15 second gre
 \section{Tool Schema and Validation}
 \label{app:agent_tools}
 
-The eight tools are defined in \texttt{ToolSchemas.json} (169 lines) with complete JSON Schema specifications. Table~\ref{tab:tool_constraints} documents parameter constraints enforced by the \texttt{ToolRegistry} validation system.
+The eight tools are defined in \texttt{ToolSchemas.json} (Assets/Resources/Tools/ToolSchemas.json, 168 lines) with complete JSON Schema specifications. Table~\ref{tab:tool_constraints} documents parameter constraints enforced by the \texttt{ToolRegistry} validation system.
 
 \begin{table}[h]
 \centering
@@ -133,7 +157,7 @@ Scene transitions preserve conversation history through Unity's \texttt{DontDest
 \section{API Integration}
 \label{app:agent_api}
 
-The \texttt{OpenAIClient} class (150 lines) implements asynchronous HTTP communication with OpenAI's Responses API endpoint (\texttt{https://api.openai.com/v1/responses}).
+The \texttt{OpenAIClient} class (Assets/Scripts/AI/Services/OpenAIClient.cs, 151 lines) implements asynchronous HTTP communication with OpenAI's Responses API endpoint (\texttt{/responses}).
 
 \subsection{Request Structure}
 
