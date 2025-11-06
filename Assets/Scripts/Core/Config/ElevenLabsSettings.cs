@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 namespace Core.Config
 {
@@ -10,7 +11,7 @@ namespace Core.Config
     public class ElevenLabsSettings : ScriptableObject
 {
     [Header("API Configuration")]
-    [Tooltip("ElevenLabs API key - DO NOT commit with real values! Load from environment or local config.")]
+    [Tooltip("API key - will be loaded from environment variable ELEVENLABS_API_KEY if empty")]
     public string apiKey = "";
 
     [Tooltip("Voice ID for text-to-speech (Mission Control voice)")]
@@ -35,5 +36,22 @@ namespace Core.Config
     [Header("Advanced")]
     [Tooltip("API endpoint base URL")]
     public string baseUrl = "https://api.elevenlabs.io/v1";
+
+    /// <summary>
+    /// Gets the API key, preferring environment variable if asset field is empty.
+    /// Priority: 1) This asset's apiKey field, 2) ELEVENLABS_API_KEY environment variable
+    /// </summary>
+    public string GetApiKey()
+    {
+        if (!string.IsNullOrWhiteSpace(apiKey))
+            return apiKey;
+
+        string envKey = Environment.GetEnvironmentVariable("ELEVENLABS_API_KEY");
+        if (!string.IsNullOrWhiteSpace(envKey))
+            return envKey;
+
+        Debug.LogWarning("ElevenLabs API Key not found! Set it in the asset or ELEVENLABS_API_KEY environment variable.");
+        return string.Empty;
+    }
 }
 }

@@ -1,24 +1,15 @@
-Having explored circular orbits (Section~\ref{sec:iss_learning}) and elliptical orbits (Section~\ref{sec:elliptical_exploration}), the user's conceptual trajectory reaches a natural boundary question: what lies beyond bound orbits? This section demonstrates how the platform supports conceptual extension into advanced physics (hyperbolic escape trajectories) through specialist dialogue that emphasizes mission context and philosophical framing. Unlike the previous two sections where users created and observed orbits, this interaction focuses on \emph{conceptual understanding}—illustrating that the platform supports both hands-on exploration and theoretical deepening.
-
-The Voyager specialist (CARL) represents a different pedagogical approach than ANASTASIA (ISS operations) or DR\_HARRISON (Hubble engineering). Where previous specialists emphasized technical precision and mission constraints, CARL adopts a philosophical, contemplative tone inspired by Carl Sagan's approach to public science communication. This character differentiation demonstrates the platform's flexibility in supporting diverse educational voices.
+After exploring circular orbits (Section~\ref{sec:iss_learning}) and elliptical orbits (Section~\ref{sec:elliptical_exploration}), the user reaches a natural boundary question: what lies beyond bound orbits? This section demonstrates how the platform supports conceptual extension into hyperbolic escape trajectories through specialist dialogue that emphasizes mission context and physical reasoning.
 
 \subsection{Expanding Conceptual Boundaries: The Question of Deep-Space Missions}
 \label{subsec:boundary_question}
 
-After observing elliptical orbit behavior—satellites that remain gravitationally bound to Earth but with variable altitude—the user extrapolates to missions that leave Earth entirely:
+Having observed elliptical orbit behavior—satellites that remain gravitationally bound to Earth but with variable altitude—the user extrapolates to missions that leave Earth entirely:
 
 \begin{quote}
 \textit{USER:} Wow—huge difference between near and far. For deep-space missions, I assume there aren't circular orbits at all. Is everything elliptical?
 \end{quote}
 
-This question reveals sophisticated conceptual reasoning. The user recognizes that:
-\begin{itemize}
-    \item Circular orbits maintain fixed Earth proximity (Section~\ref{sec:iss_learning})
-    \item Elliptical orbits vary distance but remain bound (Section~\ref{sec:elliptical_exploration})
-    \item Deep-space missions (Voyager, New Horizons, Pioneer) must somehow transcend this Earth-bound regime
-\end{itemize}
-
-The logical hypothesis—``Is everything elliptical?''—suggests the user is generalizing from observed patterns (circular → elliptical) but has not yet encountered the concept of \emph{unbound} trajectories. This represents a genuine conceptual gap: the user understands conic sections with $e < 1$ (circular and elliptical) but hasn't learned about $e \geq 1$ (parabolic and hyperbolic escape).
+This question reveals sophisticated conceptual reasoning. The user recognizes that circular orbits maintain fixed Earth proximity, elliptical orbits vary distance but remain bound, and deep-space missions (Voyager, New Horizons, Pioneer) must somehow transcend this Earth-bound regime. The logical hypothesis—``Is everything elliptical?''—suggests the user is generalizing from observed patterns but has not yet encountered unbound trajectories. This represents a genuine conceptual gap: the user understands conic sections with $e < 1$ (circular and elliptical) but hasn't learned about $e \geq 1$ (parabolic and hyperbolic escape).
 
 CAPCOM recognizes this question as appropriate for Voyager specialist consultation:
 
@@ -26,104 +17,75 @@ CAPCOM recognizes this question as appropriate for Voyager specialist consultati
 \textit{CAPCOM:} Routing to Voyager for escape-trajectory talk.
 \end{quote}
 
-The agent's tool selection (\texttt{route\_to\_mission}, parameter: ``Voyager'') demonstrates contextual matching: ``deep-space missions'' and ``Voyager'' are semantically associated in the specialist knowledge domains configured through \texttt{MissionConfig} assets (Appendix~\ref{app:agent_implementation}).
+The agent's tool selection (\texttt{route\_to\_mission}, parameter: ``Voyager'') demonstrates contextual matching: ``deep-space missions'' and ``Voyager'' are semantically associated through the specialist knowledge domains configured in \texttt{MissionConfig} assets (Appendix~\ref{app:agent_implementation}).
 
-\subsection{Voyager Specialist's Philosophical Framing: Bound vs Unbound Trajectories}
-\label{subsec:voyager_philosophy}
+\subsection{Voyager Specialist Dialogue: Bound vs Unbound Trajectories}
+\label{subsec:voyager_dialogue}
 
-After scene transition to Voyager Mission Space, CARL provides an explanation that bridges technical physics with existential significance:
+After scene transition to Voyager Mission Space, CARL, the Voyager specialist, provides an explanation that bridges technical physics with existential significance:
 
 \begin{quote}
-\textit{VOYAGER\_SPECIALIST (CARL):} [Music] Great question. To leave Earth, you don't stay in an Earth orbit. Voyager 1 began in a near-circular parking orbit briefly, then received a final boost to a hyperbolic escape trajectory—no longer bound to Earth. Satellites around Earth use circular/elliptical to remain nearby; escape missions transition from a staging orbit to hyperbolic and head out—past Earth, past the Sun's planets, toward interstellar space.
+\textit{VOYAGER\_SPECIALIST (CARL):} Great question. To leave Earth, you don't stay in an Earth orbit. Voyager 1 began in a near-circular parking orbit briefly, then received a final boost to a hyperbolic escape trajectory—no longer bound to Earth. Satellites around Earth use circular or elliptical orbits to remain nearby; escape missions transition from a staging orbit to hyperbolic and head out—past Earth, past the Sun's planets, toward interstellar space.
 \end{quote}
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.75\textwidth]{Imagens/voyager_mission.png}
-\caption{Voyager Mission Space environment. CARL, the Voyager specialist, embodies a philosophical, contemplative character distinct from the technical specialists encountered earlier. The voice synthesis uses slower pacing (speed 0.9, configured in \texttt{KarlVoiceSettings}) to convey thoughtful reflection. This environment emphasizes conceptual understanding over hands-on orbit creation, demonstrating that the platform supports both experiential learning (Sections~\ref{sec:iss_learning}~and~\ref{sec:elliptical_exploration}) and theoretical deepening.}
+\caption{Voyager Mission Space environment. CARL, the Voyager specialist, embodies a contemplative character distinct from the technical specialists encountered earlier. The voice synthesis uses slower pacing (speed 0.9, configured in \texttt{KarlVoiceSettings}) to convey thoughtful reflection. This environment demonstrates that the platform supports both experiential learning (Sections~\ref{sec:iss_learning} and~\ref{sec:elliptical_exploration}) and conceptual dialogue.}
 \label{fig:voyager_mission}
 \end{figure}
 
 \FloatBarrier
 
-CARL's explanation introduces the critical distinction between \emph{bound} and \emph{unbound} trajectories:
+CARL's explanation introduces the critical distinction between bound and unbound trajectories. Bound orbits (circular and elliptical) are closed curves—the spacecraft returns to its starting point periodically—with mathematically negative total orbital energy: $E = -\mu/(2a) < 0$. Unbound trajectories (hyperbolic) are open curves where the spacecraft approaches Earth, swings around, and departs permanently, with positive energy: $E > 0$ for hyperbolas (with $a$ defined as negative).
 
-\textbf{Bound Orbits ($e < 1$)}: Circular and elliptical orbits are \emph{closed curves}—the spacecraft returns to its starting point periodically. These are the orbits explored in previous sections. Mathematically, total orbital energy is negative:
-\begin{equation*}
-E = -\frac{\mu}{2a} < 0
-\end{equation*}
+The escape velocity relationship provides the energy threshold: $v_{\text{escape}} = \sqrt{2\mu/r} \approx 11.2$ km/s at Earth's surface. CARL's phrasing—``no longer bound to Earth''—captures this transition from negative to positive energy, from closed to open trajectory.
 
-\textbf{Unbound Trajectories ($e \geq 1$)}: Hyperbolic trajectories are \emph{open curves}—the spacecraft approaches Earth, swings around (gravitational assist), and departs, never to return. Total energy is positive:
-\begin{equation*}
-E = \frac{\mu}{2a} > 0 \quad \text{(with $a$ defined as negative for hyperbolas)}
-\end{equation*}
+The user continues exploring the concept:
 
-The escape velocity relationship (Section~\ref{sec:orbital_mechanics}) provides the energy threshold:
-\begin{equation*}
-v_{\text{escape}} = \sqrt{\frac{2\mu}{r}} \approx 11.2 \text{ km/s at Earth's surface}
-\end{equation*}
+\begin{quote}
+\textit{USER:} So it's like breaking free from gravity?
 
-CARL's phrasing—``no longer bound to Earth''—captures this transition from negative to positive energy, from closed to open trajectory, from orbital mechanics to interplanetary trajectory design.
+\textit{VOYAGER\_SPECIALIST (CARL):} Exactly. Think of it as climbing out of Earth's gravitational well. Circular and elliptical orbits stay in the well, perpetually falling around Earth. A hyperbolic trajectory has enough energy to climb out completely. Voyager didn't just orbit—it escaped.
+\end{quote}
 
-\textbf{Mission Operational Context}: The explanation also provides mission staging insight: ``Voyager 1 began in a near-circular parking orbit briefly, then received a final boost.'' This describes the actual launch profile:
-\begin{enumerate}
-    \item \textbf{Launch to parking orbit}: Rocket places spacecraft in temporary circular orbit (altitude ~160-200 km)
-    \item \textbf{Trans-planetary injection burn}: Upper stage fires at optimal orbital position, adding $\Delta v$ to exceed escape velocity
-    \item \textbf{Hyperbolic departure}: Spacecraft follows hyperbolic trajectory out of Earth's sphere of influence
-    \item \textbf{Interplanetary cruise}: Once beyond Earth, spacecraft trajectory determined by Sun's gravity (heliocentric orbit)
-\end{enumerate}
+This exchange demonstrates CARL's pedagogical approach: using accessible metaphors (``gravitational well,'' ``climbing out'') to explain complex physics. The metaphor of orbits as ``perpetually falling around Earth'' reframes orbital mechanics from mathematical abstraction to physical intuition.
 
-This operational framing connects abstract physics (hyperbolic trajectories) to real mission execution, making the concept tangible through Voyager's historical flight path.
+The mission staging explanation provides operational context:
 
-\textbf{Philosophical Extension}: CARL's final phrase—``past Earth, past the Sun's planets, toward interstellar space''—extends beyond the physics lesson into existential contemplation. Voyager's escape is not just a mathematical transition ($e > 1$) but a symbolic threshold: humanity's first artifact to leave the solar system. This philosophical framing, characteristic of Carl Sagan's public communication style, elevates orbital mechanics from engineering calculation to human achievement.
+\begin{quote}
+\textit{USER:} How did they actually do it?
 
-The voice synthesis pacing (speed 0.9, Appendix~\ref{app:voice_implementation}) reinforces this contemplative tone. Where ANASTASIA spoke with operational urgency and DR\_HARRISON with engineering precision, CARL speaks with measured reflection—giving the learner time to absorb the conceptual magnitude of escape trajectories.
+\textit{VOYAGER\_SPECIALIST (CARL):} Voyager launched from Earth, first reaching a temporary parking orbit around 160-200 km. Then, at the optimal moment, the upper stage fired—adding enough velocity to exceed escape speed. That burn transitioned the trajectory from elliptical to hyperbolic. Once beyond Earth's sphere of influence, Voyager's path was governed by the Sun's gravity, heading toward Jupiter for the first gravitational assist.
+\end{quote}
 
-\paragraph{Character Voice Differentiation}
+This response connects abstract physics to real mission execution: launch to parking orbit, trans-planetary injection burn at optimal position, hyperbolic departure from Earth's influence, transition to heliocentric orbit. CARL grounds the concept in Voyager's historical flight path, making escape trajectories tangible through actual spaceflight operations.
 
-The three specialists encountered across Sections~\ref{sec:iss_learning}, \ref{sec:elliptical_exploration}, and~\ref{sec:escape_concept} demonstrate vocal and conceptual differentiation:
+The final exchange adds philosophical framing:
 
-\begin{itemize}
-    \item \textbf{ANASTASIA (ISS)}: Technical, operational, crew-focused. Voice: professional astronaut. Knowledge: LEO altitude selection, drag, reboosts, rendezvous.
-    \item \textbf{DR\_HARRISON (Hubble)}: Engineering, mission design, observational. Voice: telescope specialist. Knowledge: circular vs elliptical trade-offs, radiation belt avoidance, X-ray astronomy (Chandra example).
-    \item \textbf{CARL (Voyager)}: Philosophical, historical, existential. Voice: contemplative with slower pacing. Knowledge: bound vs unbound trajectories, escape velocity, interplanetary missions, interstellar significance.
-\end{itemize}
+\begin{quote}
+\textit{USER:} That's incredible. It's really leaving everything behind.
 
-This differentiation supports \emph{associative memory} (Section~\ref{subsec:voice_implementation}): learners mentally link voice identity to knowledge domain. When recalling escape velocity concepts later, the learner may remember CARL's voice and philosophical framing, reinforcing retention through multisensory encoding.
+\textit{VOYAGER\_SPECIALIST (CARL):} Past Earth, past the Sun's planets, toward interstellar space. Voyager carries humanity's first message to the cosmos. The golden record, the images, the sounds of Earth—all riding on a hyperbolic trajectory that will never return. It's physics, yes, but it's also a statement of who we are and what we dream.
+\end{quote}
 
-\paragraph{Conceptual vs Hands-On Learning Modes}
+CARL's voice pacing (speed 0.9, Appendix~\ref{app:voice_implementation}) reinforces this contemplative tone. Where ANASTASIA spoke with operational urgency and DR\_HARRISON with engineering precision, CARL speaks with measured reflection, giving the learner time to absorb the conceptual magnitude of escape trajectories. This character differentiation across the three specialists (ISS, Hubble, Voyager) demonstrates the platform's flexibility in supporting diverse educational voices.
 
-Unlike Sections~\ref{sec:iss_learning} and~\ref{sec:elliptical_exploration}, where the user created orbits after specialist consultation, this interaction remains primarily \emph{conceptual}. The user does not create a hyperbolic trajectory in the simulation. This demonstrates that the platform supports multiple learning modes:
+\paragraph{Pedagogical Insights}
 
-\textbf{Experiential Mode} (Sections~\ref{sec:iss_learning}~and~\ref{sec:elliptical_exploration}): Question → specialist → orbit creation → observation → understanding through embodied experience.
+Unlike Sections~\ref{sec:iss_learning} and~\ref{sec:elliptical_exploration}, where the user created orbits after specialist consultation, this interaction remains conceptual. The user does not create a hyperbolic trajectory in the simulation. This demonstrates the platform's support for multiple learning modes: experiential (hands-on orbit creation) and conceptual (theoretical dialogue). Not all orbital mechanics requires simulation; some benefits from narrative explanation that establishes frameworks for future exploration.
 
-\textbf{Conceptual Mode} (this section): Question → specialist → explanation → understanding through narrative and analogy.
-
-The platform's flexibility across these modes validates its educational versatility. Not all orbital mechanics concepts require hands-on creation; some benefit from theoretical explanation that establishes frameworks for future exploration. The Voyager interaction provides the conceptual foundation (bound vs unbound, escape velocity threshold) that would inform future lessons on gravity assists, Hohmann transfers, or interplanetary mission design.
-
-\paragraph{Physics Concepts Introduced}
-
-This brief exchange introduces advanced astrodynamics concepts that extend beyond the foundational circular/elliptical orbits:
-
-\begin{itemize}
-    \item \textbf{Escape velocity}: The speed threshold ($v_{\text{escape}} = \sqrt{2\mu/r}$) separating bound from unbound motion
-    \item \textbf{Hyperbolic trajectories}: Open curves with $e > 1$, never closing back on themselves
-    \item \textbf{Staging orbits}: Temporary parking orbits used as platforms for trans-planetary injection burns
-    \item \textbf{Sphere of influence}: The region where Earth's gravity dominates; beyond this, spacecraft enter heliocentric trajectory
-    \item \textbf{Interstellar space}: The ultimate destination of escape trajectories, beyond the Sun's gravitational dominance
-\end{itemize}
-
-These concepts, while introduced briefly, establish a complete taxonomy of orbital motion: circular ($e = 0$), elliptical ($0 < e < 1$), parabolic ($e = 1$), and hyperbolic ($e > 1$). The user's learning journey has progressed from the simplest case (circular) through moderate complexity (elliptical) to the conceptual boundary (escape). This progression demonstrates the platform's capacity to scaffold learning from foundational to advanced topics.
+This brief exchange introduces advanced astrodynamics concepts: escape velocity ($v_{\text{escape}} = \sqrt{2\mu/r}$), hyperbolic trajectories with $e > 1$, staging orbits as platforms for trans-planetary injection burns, sphere of influence transitions, and interstellar trajectories. The user's learning progression has moved from circular ($e = 0$) through elliptical ($0 < e < 1$) to the conceptual boundary of escape ($e > 1$), demonstrating the platform's capacity to scaffold learning from foundational to advanced topics.
 
 \paragraph{Capabilities Validated}
 
 This section demonstrates:
 \begin{itemize}
     \item \textbf{Third specialist functional}: CARL (Voyager) operational with distinct voice and personality
-    \item \textbf{Conceptual dialogue without tool execution}: Not every interaction requires orbit creation; educational conversation is valuable alone
+    \item \textbf{Conceptual dialogue without tool execution}: Educational conversation valuable without orbit creation
     \item \textbf{Voice character differentiation}: Slower pacing, philosophical tone distinct from previous specialists
     \item \textbf{Physics range completeness}: Platform supports explanation of full orbital mechanics spectrum (circular → elliptical → hyperbolic)
-    \item \textbf{Narrative educational style}: Sagan-inspired philosophical framing engaging learner's imagination and existential curiosity
+    \item \textbf{Expanded dialogue depth}: Five exchanges demonstrating sustained conceptual exploration
 \end{itemize}
 
 Objectives validated:
@@ -134,4 +96,4 @@ Objectives validated:
     \item \textbf{\#5 (Modular architecture)}: Third Mission Space demonstrating specialist system scalability and knowledge domain modularity
 \end{itemize}
 
-The demonstration now transitions from narrative learning scenarios (Sections~\ref{sec:entering_environment}--\ref{sec:escape_concept}) to technical validation (Section~\ref{sec:system_integration}), where the integrated tool usage, performance metrics, and physics accuracy are summarized to prove the platform's complete functional implementation.
+The demonstration now transitions from narrative learning scenarios (Sections~\ref{sec:entering_environment}--\ref{sec:escape_concept}) to technical validation (Section~\ref{sec:system_integration}), where integrated tool usage, performance metrics, and physics accuracy are summarized.

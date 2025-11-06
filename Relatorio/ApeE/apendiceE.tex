@@ -1,0 +1,204 @@
+\chapter{Complete Demonstration Transcript}
+\label{appendix:transcript}
+
+This appendix contains the complete transcript of the demonstration session analyzed in Chapter~\ref{chap:results}. All dialogue has been transcribed from the video recording with light copy-editing for readability. System messages (scene transitions, time acceleration) are indicated with [SIM] annotations.
+
+\section*{Cast / Agent Identities}
+
+\begin{itemize}
+    \item \textbf{USER} — Platform user (learner perspective)
+    \item \textbf{CAPCOM} — Mission Control guide
+    \item \textbf{ISS\_CREW (ANASTASIA)} — ISS astronaut specialist
+    \item \textbf{HUBBLE\_ENGINEER (DR\_HARRISON)} — Hubble Space Telescope specialist
+    \item \textbf{VOYAGER\_SPECIALIST (CARL)} — Voyager deep-space mission specialist
+    \item \textbf{SIM} — Non-diegetic system messages (routing, time control)
+\end{itemize}
+
+\section*{Complete Interaction Transcript}
+
+\subsection*{Opening Sequence}
+
+\textbf{NARRATOR (Cutscene):} Above us, thousands of satellites trace perfect arcs—testaments to gravity, velocity, and the geometry of motion. You're about to join that tradition. I'll guide the physics; you'll design the orbits. Together, we'll explore how spacecraft navigate the cosmos.
+
+\subsection*{Hub Arrival and Initial Interaction}
+
+\textbf{CAPCOM:} Welcome to Mission Control. You're floating above Earth. Use your controllers to drift closer. Circle around and watch the continents slide beneath you, oceans catching light, night falling while dawn breaks on the other side. I'm Capcom. We can design orbits together, build trajectories, see how satellites actually move—or I can route you to three specialists:
+\begin{itemize}
+    \item a crew member aboard the ISS who lives this work every day,
+    \item an engineer who built Hubble to see what we couldn't from down here,
+    \item and a space enthusiast who dreams about what Voyager means beyond everything.
+\end{itemize}
+When you're ready to speak, press A on your right controller. I'll be listening. Enjoy the view—that blue marble beneath you is home.
+
+\medskip
+\noindent\textbf{USER:} Hey, Capcom. I see we have a satellite here. Is this the satellite that we can build?
+
+\medskip
+\noindent\textbf{CAPCOM:} [Music] Hello from Mission Control. Yes—this is your simulation satellite. We can build orbits by setting circular or elliptical paths. Tell me either the altitude for circular, or periapsis and apoapsis for elliptical, and I'll get it launched.
+
+\subsection*{ISS Mission Consultation (First Visit)}
+
+\textbf{USER:} Cool. Let's start with a circular orbit. I need an altitude—but what's a good altitude? What determines a good altitude?
+
+\medskip
+\noindent\textbf{CAPCOM:} [Music] Connecting you to the ISS mission for real-world examples. Stand by.
+
+\medskip
+\noindent\textbf{SIM:} [ROUTING → ISS\_CREW]
+
+\medskip
+\noindent\textbf{ISS\_CREW (ANASTASIA):} [Music] Hello from the ISS. For circular LEO orbits, engineers balance drag, launch energy, accessibility, and mission needs. The ISS flies around $\sim$420 km—high enough to limit atmospheric drag so we don't slow down too quickly, but not so high that crew/cargo launches become inefficient. It's also reachable from multiple launch sites. Too low: frequent reboosts. Too high: launches get harder and more expensive.
+
+\medskip
+\noindent\textbf{USER:} Would it be absurd to choose the same altitude as the ISS?
+
+\medskip
+\noindent\textbf{ISS\_CREW (ANASTASIA):} Not absurd at all—quite sensible. $\sim$420 km is a proven compromise. Many Earth-observation and crewed missions use similar altitudes for the same reasons. You'd be following decades of flight heritage.
+
+\medskip
+\noindent\textbf{USER:} Is the ISS circular?
+
+\medskip
+\noindent\textbf{ISS\_CREW (ANASTASIA):} Nearly. The path is close to circular with small variations (drag, gravity field). We keep it tight with periodic reboosts. Near-circular simplifies rendezvous and ops.
+
+\medskip
+\noindent\textbf{USER:} What was the altitude again? Please route me back to the hub.
+
+\medskip
+\noindent\textbf{ISS\_CREW (ANASTASIA):} $\sim$420 km. Handing you back. Safe travels.
+
+\medskip
+\noindent\textbf{SIM:} [RETURN → CAPCOM]
+
+\subsection*{Creating Circular Orbit}
+
+\textbf{USER:} I'll build a circular orbit at 422 km.
+
+\medskip
+\noindent\textbf{CAPCOM:} Copy. Circular orbit set at 422 km, inclination 0° (equatorial). Orbital speed $\sim$7.66 km/s—like the ISS, but over the equator.
+
+\medskip
+\noindent\textbf{USER:} Can I choose the speed?
+
+\medskip
+\noindent\textbf{CAPCOM:} In this sim, speed is derived from altitude by physics. At 422 km, you need $\sim$7.66 km/s for a stable circular orbit. If you want a different speed, pick a different altitude.
+
+\subsection*{ISS Mission Consultation (Second Visit - Orbital Period)}
+
+\textbf{USER:} How long does one lap take? It looks fast, but Earth is massive.
+
+\medskip
+\noindent\textbf{CAPCOM:} Routing you to the ISS for orbital period context.
+
+\medskip
+\noindent\textbf{SIM:} [ROUTING → ISS\_CREW]
+
+\medskip
+\noindent\textbf{ISS\_CREW (ANASTASIA):} At $\sim$420 km, the ISS completes a lap in $\sim$92.8 minutes—about 15 orbits/day. Higher altitude → slower speed → longer period. That's why we see a sunrise/sunset $\sim$every 45 minutes.
+
+\medskip
+\noindent\textbf{SIM:} [RETURN → CAPCOM]
+
+\medskip
+\noindent\textbf{USER:} With our current orbit ($\sim$92 minutes), can we speed up the simulation so I can see it go around?
+
+\medskip
+\noindent\textbf{CAPCOM:} Time acceleration: 10×. You'll see the $\sim$92-minute trip much faster.
+
+\medskip
+\noindent\textbf{SIM:} [TIME\_WARP 10×]
+
+\subsection*{Hubble Mission Consultation (Elliptical Orbits)}
+
+\textbf{USER:} Great. I built a circular orbit. What's an elliptical orbit?
+
+\medskip
+\noindent\textbf{CAPCOM:} Perfect question for Hubble—routing.
+
+\medskip
+\noindent\textbf{SIM:} [ROUTING → HUBBLE\_ENGINEER]
+
+\medskip
+\noindent\textbf{HUBBLE\_ENGINEER (DR\_HARRISON):} [Music] Circular means constant distance and speed—like Hubble ($\approx$540 km) for steady imaging and predictable servicing. Elliptical stretches the path: closer at periapsis (faster), farther at apoapsis (slower). Some science missions pick elliptical to linger where conditions are best or to avoid interference (e.g., high apogee above the radiation belts).
+
+\medskip
+\noindent\textbf{USER:} Why choose elliptical if circular is simpler?
+
+\medskip
+\noindent\textbf{HUBBLE\_ENGINEER (DR\_HARRISON):} To optimize time in a region. Example: Chandra uses a highly elliptical orbit to spend long stretches far from Earth's radiation belts for cleaner X-ray observations. Trade-off: more complex tracking/operations.
+
+\medskip
+\noindent\textbf{SIM:} [RETURN → CAPCOM]
+
+\subsection*{Creating Elliptical Orbits}
+
+\textbf{USER:} Back to Mission Control so I can build one.
+
+\medskip
+\noindent\textbf{CAPCOM:} You're back at the Hub.
+
+\medskip
+\noindent\textbf{USER:} Please build an elliptical orbit—anything interesting so I can compare.
+
+\medskip
+\noindent\textbf{CAPCOM:} Elliptical orbit set: periapsis 400 km, apoapsis 2,000 km, inclination 0°. Watch it speed up near Earth and slow down far away.
+
+\medskip
+\noindent\textbf{USER:} Can we run at maximum sim speed?
+
+\medskip
+\noindent\textbf{CAPCOM:} Time acceleration: 100×. Ellipticity will be very clear.
+
+\medskip
+\noindent\textbf{SIM:} [TIME\_WARP 100×]
+
+\medskip
+\noindent\textbf{USER:} Make it more elliptical; it still looks circular.
+
+\medskip
+\noindent\textbf{CAPCOM:} Roger. New orbit: periapsis 200 km, apoapsis 1,000 km, inclination 0°. The speed contrast will be much more dramatic.
+
+\medskip
+\noindent\textbf{USER:} Speed to maximum... oh, it already is.
+
+\medskip
+\noindent\textbf{CAPCOM:} Confirmed—100× time. Enjoy the fast-forward view.
+
+\medskip
+\noindent\textbf{USER:} Wow—huge difference between near and far.
+
+\subsection*{Voyager Mission Consultation (Escape Trajectories)}
+
+\textbf{USER:} For deep-space missions, I assume there aren't circular orbits at all. Is everything elliptical?
+
+\medskip
+\noindent\textbf{CAPCOM:} Routing to Voyager for escape-trajectory talk.
+
+\medskip
+\noindent\textbf{SIM:} [ROUTING → VOYAGER\_SPECIALIST]
+
+\medskip
+\noindent\textbf{VOYAGER\_SPECIALIST (CARL):} Great question. To leave Earth, you don't stay in an Earth orbit. Voyager 1 began in a near-circular parking orbit briefly, then received a final boost to a hyperbolic escape trajectory—no longer bound to Earth. Satellites around Earth use circular or elliptical orbits to remain nearby; escape missions transition from a staging orbit to hyperbolic and head out—past Earth, past the Sun's planets, toward interstellar space.
+
+\medskip
+\noindent\textbf{USER:} So it's like breaking free from gravity?
+
+\medskip
+\noindent\textbf{VOYAGER\_SPECIALIST (CARL):} Exactly. Think of it as climbing out of Earth's gravitational well. Circular and elliptical orbits stay in the well, perpetually falling around Earth. A hyperbolic trajectory has enough energy to climb out completely. Voyager didn't just orbit—it escaped.
+
+\medskip
+\noindent\textbf{USER:} How did they actually do it?
+
+\medskip
+\noindent\textbf{VOYAGER\_SPECIALIST (CARL):} Voyager launched from Earth, first reaching a temporary parking orbit around 160-200 km. Then, at the optimal moment, the upper stage fired—adding enough velocity to exceed escape speed. That burn transitioned the trajectory from elliptical to hyperbolic. Once beyond Earth's sphere of influence, Voyager's path was governed by the Sun's gravity, heading toward Jupiter for the first gravitational assist.
+
+\medskip
+\noindent\textbf{USER:} That's incredible. It's really leaving everything behind.
+
+\medskip
+\noindent\textbf{VOYAGER\_SPECIALIST (CARL):} Past Earth, past the Sun's planets, toward interstellar space. Voyager carries humanity's first message to the cosmos. The golden record, the images, the sounds of Earth—all riding on a hyperbolic trajectory that will never return. It's physics, yes, but it's also a statement of who we are and what we dream.
+
+\subsection*{End of Recorded Session}
+
+\medskip
+\noindent[Demonstration recording concludes. User remains in Voyager Mission Space, continuing exploratory dialogue.]

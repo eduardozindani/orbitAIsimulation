@@ -38,6 +38,13 @@ namespace AI.Services
 
             try
             {
+                string apiKey = _settings.GetApiKey();
+                if (string.IsNullOrWhiteSpace(apiKey))
+                {
+                    Debug.LogError("[ElevenLabsClient] API key is missing. Set it in ElevenLabsSettings asset or ELEVENLABS_API_KEY environment variable.");
+                    return null;
+                }
+
                 // Build request URL
                 string url = $"{_settings.baseUrl}/text-to-speech/{_settings.voiceId}";
 
@@ -63,7 +70,7 @@ namespace AI.Services
                     request.uploadHandler = new UploadHandlerRaw(bodyBytes);
                     request.downloadHandler = new DownloadHandlerBuffer();
                     request.SetRequestHeader("Content-Type", "application/json");
-                    request.SetRequestHeader("xi-api-key", _settings.apiKey);
+                    request.SetRequestHeader("xi-api-key", apiKey);
 
                     Debug.Log($"[ElevenLabsClient] Sending TTS request: {text.Substring(0, Math.Min(50, text.Length))}...");
 
@@ -232,6 +239,13 @@ namespace AI.Services
 
             try
             {
+                string apiKey = _settings.GetApiKey();
+                if (string.IsNullOrWhiteSpace(apiKey))
+                {
+                    Debug.LogError("[ElevenLabsClient] API key is missing. Set it in ElevenLabsSettings asset or ELEVENLABS_API_KEY environment variable.");
+                    return null;
+                }
+
                 Debug.Log($"[ElevenLabsClient] Starting speech-to-text for clip: {audioClip.length}s, {audioClip.frequency}Hz");
 
                 // Convert AudioClip to WAV bytes
@@ -259,7 +273,7 @@ namespace AI.Services
                 using (UnityWebRequest request = UnityWebRequest.Post(url, form))
                 {
                     // Add API key header
-                    request.SetRequestHeader("xi-api-key", _settings.apiKey);
+                    request.SetRequestHeader("xi-api-key", apiKey);
 
                     Debug.Log("[ElevenLabsClient] Sending STT request to Scribe v2...");
 

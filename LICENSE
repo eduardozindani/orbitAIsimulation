@@ -1,0 +1,86 @@
+ITA Academic License
+
+Copyright (c) 2025 Emerson Zindani
+Instituto Tecnológico de Aeronáutica (ITA)
+São José dos Campos, São Paulo, Brazil
+
+This software was developed as part of academic research at the Instituto
+Tecnológico de Aeronáutica (ITA).
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+1. The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+2. Academic and research use of this Software must acknowledge ITA and cite
+   the original work in any publications or presentations that result from
+   the use of this Software.
+
+3. Commercial use of this Software requires prior written permission from the
+   copyright holder and ITA.
+
+4. Any modifications or derivative works must clearly indicate that they are
+   derived from this Software and must not misrepresent the original work.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS, COPYRIGHT HOLDERS, OR ITA BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+---
+
+ATTRIBUTION
+
+If you use this Software in academic work, please cite:
+
+Zindani, E. (2025). Orbit AI Simulation: An Immersive Educational Platform
+for Space Mission Learning. Master's Thesis, Instituto Tecnológico de
+Aeronáutica (ITA), São José dos Campos, Brazil.
+
+---
+
+THIRD-PARTY LICENSES
+
+This project uses third-party services and assets:
+
+- OpenAI API: Subject to OpenAI's Terms of Use
+  https://openai.com/policies/terms-of-use
+
+- ElevenLabs API: Subject to ElevenLabs' Terms of Service
+  https://elevenlabs.io/terms
+
+- Meta XR SDK: Subject to Meta Platform Technologies SDK License
+  https://developer.oculus.com/licenses/
+
+- Unity Engine: Subject to Unity Terms of Service
+  https://unity.com/legal/terms-of-service
+
+- NASA 3D Models: Public Domain (where applicable)
+  https://nasa3d.arc.nasa.gov/
+
+Users of this Software must comply with all applicable third-party licenses.
+
+---
+
+CONTACT
+
+For questions, permissions, or collaborations:
+- Email: emzindani@gmail.com
+- Institution: Instituto Tecnológico de Aeronáutica (ITA)
+  https://www.ita.br/
+
+---
+
+Instituto Tecnológico de Aeronáutica (ITA)
+Praça Marechal Eduardo Gomes, 50
+Vila das Acácias
+12228-900 São José dos Campos - SP
+Brazil

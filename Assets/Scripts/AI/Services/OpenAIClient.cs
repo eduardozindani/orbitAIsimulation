@@ -27,8 +27,9 @@ public class OpenAIClient
     /// </summary>
     public async Task<string> CompleteAsync(string input, string instructions, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(_settings.ApiKey))
-            throw new InvalidOperationException("OpenAI API key is missing in OpenAISettings.");
+        string apiKey = _settings.GetApiKey();
+        if (string.IsNullOrWhiteSpace(apiKey))
+            throw new InvalidOperationException("OpenAI API key is missing. Set it in OpenAISettings asset or OPENAI_API_KEY environment variable.");
 
         var url = _settings.NormalizedBaseUrl + "/responses";
 
@@ -49,7 +50,7 @@ public class OpenAIClient
             req.uploadHandler = new UploadHandlerRaw(bodyRaw);
             req.downloadHandler = new DownloadHandlerBuffer();
             req.SetRequestHeader("Content-Type", "application/json");
-            req.SetRequestHeader("Authorization", "Bearer " + _settings.ApiKey);
+            req.SetRequestHeader("Authorization", "Bearer " + apiKey);
             req.timeout = 30; // seconds
 
             var op = req.SendWebRequest();

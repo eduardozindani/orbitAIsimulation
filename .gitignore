@@ -250,6 +250,28 @@ $RECYCLE.BIN/
 .Trash-*
 
 # ============================================================================
+# API KEYS & SENSITIVE CONFIGURATION
+# ============================================================================
+
+# CRITICAL: Never commit files with real API keys!
+# Users must configure their own keys locally or via environment variables
+
+# OpenAI Configuration (contains API keys)
+Assets/Resources/OpenAISettings.asset
+Assets/Resources/Agents/OpenAISettings.asset
+
+# ElevenLabs Configuration (contains API keys)
+Assets/Resources/Agents/ElevenLabsSettings.asset
+Assets/AnastasiaVoiceSettings.asset
+Assets/HubbleVoiceSettings.asset
+Assets/KarlVoiceSettings.asset
+
+# Local environment configuration
+.env
+.env.local
+*.local.asset
+
+# ============================================================================
 # OTHER
 # ============================================================================
 
