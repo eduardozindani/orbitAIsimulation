@@ -282,11 +282,11 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 ### Quick Start for Contributors
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
 3. Make your changes
 4. Test thoroughly (especially in VR!)
-5. Commit with clear messages: `git commit -m 'Add amazing feature'`
-6. Push to your fork: `git push origin feature/amazing-feature`
+5. Commit with clear messages: `git commit -m 'Add feature description'`
+6. Push to your fork: `git push origin feature/your-feature-name`
 7. Open a Pull Request
 
 ### Code Style
@@ -349,4 +349,4 @@ If you use this project in academic work, please cite:
 
 ---
 
-**Made with ❤️ at ITA - Instituto Tecnológico de Aeronáutica**
+**Instituto Tecnológico de Aeronáutica (ITA) - São José dos Campos, Brazil**
