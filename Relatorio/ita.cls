@@ -727,7 +727,7 @@
 
 			 	 \hspace{3cm}\hrulefill\hspace{3cm}
 				 \par
-				 \small{\itaadvisorname\ (\@itaadvisorinst )
+				 \small{\itaadvisortitle~\itaadvisorname\ (\@itaadvisorinst )
 				 \par
 				 \itaadvisorwordbabelll}
          \vspace*{\stretch{1}}
@@ -735,15 +735,13 @@
 				 \@ifundefined{@coadvisor}{}{      % Co-advisor eh opcional
 			 	 \hspace{3cm}\hrulefill\hspace{3cm}
 				 \par
-				 \small{\@itacoadvisorname\ (\@itacoadvisorinst )
+				 \small{\@itacoadvisortitle~\@itacoadvisorname\ (\@itacoadvisorinst )
 				 \par
 				 \itacoadvisorwordbabelll}
 				 \vspace*{\stretch{1}}
 				 }
 
-			 	 \hspace{3cm}\hrulefill\hspace{3cm}
-				 \par
-				 \small{\@bosscourse}
+			 	 \vspace*{\stretch{1}}
 				 \vspace*{\stretch{2}}
 
 				 \if@eng

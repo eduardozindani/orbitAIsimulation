@@ -10,7 +10,7 @@ A demonstration recording captures the complete user session analyzed throughout
 
 \textbf{Access}: \url{https://www.youtube.com/watch?v=S73l4_CgTtY}
 
-\textbf{Duration}: 11 minutes, 47 seconds of uninterrupted interaction
+\textbf{Duration}: 19 minutes, 12 seconds of uninterrupted interaction
 
 \textbf{Recording Format}: Direct Quest 3 capture (first-person stereoscopic perspective, spatial audio, 90~Hz refresh maintained throughout)
 
@@ -29,10 +29,10 @@ The recording presents the platform as it functions during real usage—includin
 
 The continuous recording demonstrates multi-module coordination that isolated component tests cannot validate:
 
-\textbf{Cross-Module Reliability}: During 11:47 of operation, the system executed 14 tool calls (Table~\ref{tab:tool_execution_summary}) without failures:
+\textbf{Cross-Module Reliability}: During 19:12 of operation, the system executed 14 tool calls (Table~\ref{tab:tool_execution_summary}) without failures:
 \begin{itemize}
     \item Voice transcription: All 18 user utterances correctly transcribed (ElevenLabs Scribe API)
-    \item Tool selection: GPT-4 identified appropriate actions for all requests, including ambiguous queries requiring specialist routing
+    \item Tool selection: GPT-4.1 identified appropriate actions for all requests, including ambiguous queries requiring specialist routing
     \item Physics calculations: Orbital parameters matched analytical predictions (e.g., 422~km altitude → 7.66~km/s velocity → 92.8~min period, within 0.3\% of published ISS data)
     \item Scene transitions: 9 asynchronous scene loads completed without rendering artifacts or audio desynchronization
     \item Audio synthesis: 22 agent responses generated and played without truncation or silence gaps
@@ -57,12 +57,12 @@ Simulation Control (\texttt{set\_simulation\_speed}) & 2 & 100\% \\
 
 \textbf{Context Persistence}: The \texttt{MissionContext} singleton (Section~\ref{sec:system_architecture}) maintained conversation history across all 9 scene transitions. Specialists referenced prior exchanges when greeting the user:
 \begin{itemize}
-    \item ANASTASIA: ``You're asking about good altitude choices'' (referencing user's initial Hub question)
-    \item DR\_HARRISON: ``You've built circular orbits—now let's explore elliptical geometry'' (referencing prior ISS session)
-    \item CARL: ``You're wondering about deep-space trajectories beyond circular and elliptical orbits'' (building on Hubble discussion)
+    \item Anastasia: ``You're asking about good altitude choices'' (referencing user's initial Hub question)
+    \item Dr. Harrison: ``You've built circular orbits—now let's explore elliptical geometry'' (referencing prior ISS session)
+    \item Karl: ``You're wondering about deep-space trajectories beyond circular and elliptical orbits'' (building on Hubble discussion)
 \end{itemize}
 
-These contextual references—generated dynamically by GPT-4 from stored conversation history—demonstrate that the modular architecture (Objective~\#5) preserves state coherence despite environment changes.
+These contextual references—generated dynamically by GPT-4.1 from stored conversation history—demonstrate that the modular architecture (Objective~\#5) preserves state coherence despite environment changes.
 
 \textbf{Multimodal Synchronization}: Voice, visualization, and physics remained coordinated throughout:
 \begin{itemize}

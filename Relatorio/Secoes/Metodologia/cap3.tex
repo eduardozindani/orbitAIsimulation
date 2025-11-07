@@ -17,36 +17,55 @@ These principles guided a four-phase development strategy. Phase 1 established t
 
 The platform architecture comprises two integrated spaces: the "Hub" (Mission Control) where users create custom orbits through conversation, and "Mission Spaces" (ISS, Hubble, Voyager) where specialists demonstrate real missions. Users navigate between these environments via voice commands (\texttt{route\_to\_mission}, \texttt{return\_to\_hub}), with conversational context preserved across transitions.
 
-The system separates conversational intelligence (OpenAI GPT-4 via Responses API\footnote{The platform uses OpenAI's Responses API with GPT-4 family models. The specific model version is configurable via \texttt{OpenAISettings} asset, allowing adaptation as newer models become available.}) from spatial visualization (Unity 3D), connected through a tool-calling interface. The agent interprets natural language, selects appropriate tools (\texttt{create\_circular\_orbit}, \texttt{create\_elliptical\_orbit}, \texttt{set\_simulation\_speed}, \texttt{pause\_simulation}, \texttt{reset\_simulation\_time}, \texttt{clear\_orbit}, \texttt{route\_to\_mission}, \texttt{return\_to\_hub}), and Unity executes the corresponding physics calculations and rendering.
+The system separates conversational intelligence (OpenAI GPT-4.1 via Responses API) from spatial visualization (Unity 3D), connected through a tool-calling interface. The agent interprets natural language, selects appropriate tools (\texttt{create\_circular\_orbit}, \texttt{create\_elliptical\_orbit}, \texttt{set\_simulation\_speed}, \texttt{pause\_simulation}, \texttt{reset\_simulation\_time}, \texttt{clear\_orbit}, \texttt{route\_to\_mission}, \texttt{return\_to\_hub}), and Unity executes the corresponding physics calculations and rendering.
 
 \subsection{Interaction Flow}
 \label{subsec:interaction_flow}
 
-Each user interaction follows a nine-step cycle from speech input to audio output:
+User interactions follow one of two primary workflow patterns depending on intent: orbit manipulation or scene navigation. Both share common stages (speech input, AI reasoning, audio output) but diverge in tool execution and timing.
+
+\subsubsection{Orbit Creation Workflow}
+
+When users create or modify orbits (\texttt{create\_circular\_orbit}, \texttt{create\_elliptical\_orbit}, \texttt{set\_simulation\_speed}), the interaction follows eight steps:
 
 \begin{enumerate}
-    \item User speaks request via Quest 3 microphone
+    \item User speaks orbital request via Quest 3 microphone
     \item ElevenLabs Scribe API transcribes audio to text
-    \item OpenAI GPT-4 interprets intent and selects appropriate tool
-    \item Unity's \texttt{ToolExecutor} validates parameters and invokes corresponding C\# method
-    \item \texttt{SceneTransitionManager} loads Mission Space (for \texttt{route\_to\_mission}); \texttt{OrbitController} calculates trajectory using vis-viva equation and renders visualization (for orbit creation)
-    \item Tool execution result returns to LLM as feedback
-    \item Agent generates educational response based on tool result and conversation context
-    \item ElevenLabs TTS synthesizes character-specific voice (Mission Control's authority, ISS specialist's precision, Voyager specialist's Sagan-like wonder)
-    \item Audio plays through Quest 3 spatial audio system
+    \item OpenAI GPT-4.1 interprets intent and selects appropriate orbit tool
+    \item Unity's \texttt{ToolExecutor} validates parameters and invokes \texttt{OrbitController}
+    \item \texttt{OrbitController} calculates trajectory using vis-viva equation and renders visualization in current scene
+    \item Tool execution result (orbital parameters, velocity, period) returns to LLM
+    \item Agent generates educational response explaining the created orbit
+    \item ElevenLabs TTS synthesizes voice and audio plays through Quest 3
 \end{enumerate}
 
-Conversation history is maintained across turns and scene transitions, enabling contextual dialogue. Users control all aspects—orbit creation, mission navigation, simulation parameters—through voice alone.
+\subsubsection{Navigation Workflow}
+
+When users navigate between environments (\texttt{route\_to\_mission}, \texttt{return\_to\_hub}), the interaction extends to nine steps:
+
+\begin{enumerate}
+    \item User speaks navigation request via Quest 3 microphone
+    \item ElevenLabs Scribe API transcribes audio to text
+    \item OpenAI GPT-4.1 interprets intent and selects navigation tool
+    \item Unity's \texttt{ToolExecutor} validates destination and prepares transition
+    \item Tool execution result confirms target scene
+    \item Agent generates contextual transition response (e.g., ``Connecting you to ISS specialist'')
+    \item ElevenLabs TTS synthesizes character-specific voice (Mission Control's authority, specialist's expertise)
+    \item Audio plays through Quest 3 spatial audio system
+    \item \textbf{After audio completes}, \texttt{SceneTransitionManager} loads Mission Space with conversation context preserved
+\end{enumerate}
+
+Both workflows maintain conversation history across turns via \texttt{MissionContext} singleton, enabling contextual dialogue. The critical distinction: orbit tools execute within the current scene (immediate visual feedback), while navigation tools trigger asynchronous scene transitions after AI response completes (preventing audio cutoff mid-sentence). Users control all aspects—orbit creation, mission navigation, simulation parameters—through voice alone.
 
 \section{Mixed Reality Design Rationale}
 \label{sec:mr_rationale}
 
-While the Quest 3 supports both VR and AR passthrough, the platform emphasizes immersive VR for pedagogical reasons. Orbital mechanics involves scales (420 km for ISS, 35,786 km for geostationary orbit) incompatible with domestic spaces—AR overlays would show trajectories passing through walls and furniture, creating perceptual friction between room-scale and cosmic-scale contexts. VR isolation places users within the orbital environment itself, establishing coherent spatial context where Earth floats in space and trajectories exist in their natural domain. The architecture supports AR passthrough for collaborative learning, museum installations, or classroom demonstrations where physical anchoring adds value, but the primary experience prioritizes the modality best suited to the content.
+While the Quest 3 hardware supports both VR and AR passthrough capabilities, the platform implementation focuses exclusively on immersive VR for pedagogical reasons. Orbital mechanics involves scales (420 km for ISS, 35,786 km for geostationary orbit) incompatible with domestic spaces—AR overlays would show trajectories passing through walls and furniture, creating perceptual friction between room-scale and cosmic-scale contexts. VR isolation places users within the orbital environment itself, establishing coherent spatial context where Earth floats in space and trajectories exist in their natural domain. The architecture could potentially support future AR passthrough implementation for collaborative learning, museum installations, or classroom demonstrations where physical anchoring adds value, though this extension was not implemented in the current work.
 
 \section{Technical Implementation}
 \label{sec:core_components}
 
-The system implements conversational AI (OpenAI GPT-4 for reasoning, ElevenLabs for voice synthesis/transcription) interfaced with Unity 6 (6000.0.47f1) physics simulation.\footnote{Unity 6 represents a major version upgrade from Unity 2020/2021 series, introducing significant improvements to the rendering pipeline, XR integration, and Android deployment workflows. Version specification matters for reproducibility as Unity projects are not forward-compatible across major versions.} The agent embodies four characters—Mission Control in the Hub, plus three mission specialists (ISS crew perspective for LEO operations, Hubble engineer for telescope mission design, Voyager/Sagan persona for interplanetary trajectories)—each with distinct voice profiles and expertise areas. Unity implements two-body orbital physics in C\#, calculates trajectories via vis-viva equation, and renders visualizations on Quest 3. The platform supports circular orbit creation (160-35,786 km altitude) and elliptical orbit creation (periapsis/apoapsis 160-100,000 km), with inclination constrained to 0-180°.
+The system implements conversational AI (OpenAI GPT-4.1 for reasoning, ElevenLabs for voice synthesis/transcription) interfaced with Unity 6 (6000.0.47f1) physics simulation. The agent embodies four characters—Mission Control in the Hub, plus three mission specialists (ISS crew perspective for LEO operations, Hubble engineer for telescope mission design, Voyager/Sagan persona for interplanetary trajectories)—each with distinct voice profiles and expertise areas. Unity implements two-body orbital physics in C\#, calculates trajectories via vis-viva equation, and renders visualizations on Quest 3. The platform supports circular orbit creation (160-35,786 km altitude) and elliptical orbit creation (periapsis/apoapsis 160-100,000 km), with inclination constrained to 0-180°.
 
 \section{Development and Version Control}
 \label{sec:version_control}

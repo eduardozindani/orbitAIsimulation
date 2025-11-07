@@ -22,7 +22,7 @@ The demonstration session exercised the complete tool suite defined in \texttt{T
 \hline
 \texttt{create\_circular\_orbit} & 1 & \texttt{altitude\_km}: 422, \texttt{inclination\_deg}: 0 & Circular orbit created; velocity calculated: 7.66 km/s; period: ~92.8 min \\
 \hline
-\texttt{create\_elliptical\_orbit} & 2 & First: \texttt{periapsis\_km}: 400, \texttt{apoapsis\_km}: 2000, \texttt{inclination\_deg}: 0. Second: 200, 1000, 0 & Elliptical orbits with eccentricities $e \approx 0.43$ and $e \approx 0.57$; speed variation observable in VR \\
+\texttt{create\_elliptical\_orbit} & 2 & First: \texttt{periapsis\_km}: 400, \texttt{apoapsis\_km}: 2000, \texttt{inclination\_deg}: 0. Second: 200, 1000, 0 & Elliptical orbits with eccentricities $e \approx 0.11$ and $e \approx 0.06$ (low eccentricity explains user's observation that orbit ``still looks circular''); speed variation observable in VR \\
 \hline
 \texttt{set\_simulation\_speed} & 2 & \texttt{speed\_multiplier}: 10 (1×), 100 (1×) & Time scale adjusted; satellite motion accelerated by factors of 10× and 100× \\
 \hline
@@ -35,7 +35,7 @@ The demonstration session exercised the complete tool suite defined in \texttt{T
 \end{tabular}
 \end{table}
 
-Navigation tools (\texttt{route\_to\_mission}, \texttt{return\_to\_hub}) dominated usage (8 of 11 invocations), reflecting the pedagogical structure from Sections~\ref{sec:entering_environment}--\ref{sec:escape_concept}: learners alternate between specialist consultation (mission spaces) and hands-on experimentation (Hub workspace). All 11 invocations succeeded without errors or parameter validation failures. Unused tools (\texttt{pause\_simulation}, \texttt{reset\_simulation\_time}, \texttt{clear\_orbit}) reflect session flow rather than technical limitations; these capabilities remain functional and documented in Appendix~\ref{app:agent_implementation}.
+Navigation tools (\texttt{route\_to\_mission}, \texttt{return\_to\_hub}) dominated usage (8 of 13 invocations), reflecting the pedagogical structure from Sections~\ref{sec:entering_environment}--\ref{sec:escape_concept}: learners alternate between specialist consultation (mission spaces) and hands-on experimentation (Hub workspace). All 13 invocations succeeded without errors or parameter validation failures. Unused tools (\texttt{pause\_simulation}, \texttt{reset\_simulation\_time}, \texttt{clear\_orbit}) reflect session flow rather than technical limitations; these capabilities remain functional and documented in Appendix~\ref{app:agent_implementation}.
 
 \subsubsection{Performance Characterization}
 \label{subsubsec:performance_characterization}
@@ -52,7 +52,7 @@ System responsiveness directly impacts educational effectiveness—excessive lat
 \hline
 Voice transcription (STT) & 1--2 s & ElevenLabs Scribe API speech-to-text processing time \\
 \hline
-Agent reasoning (LLM) & 2--3 s & OpenAI GPT-4 tool selection and response generation \\
+Agent reasoning (LLM) & 2--3 s & OpenAI GPT-4.1 tool selection and response generation \\
 \hline
 Voice synthesis (TTS) & 1--2 s & ElevenLabs text-to-speech audio generation \\
 \hline
@@ -62,12 +62,12 @@ Scene transition (Hub $\leftrightarrow$ Mission) & 3--5 s & Asynchronous scene l
 \hline
 Orbit creation (circular/elliptical) & <0.1 s & Physics calculation and trajectory rendering \\
 \hline
-VR frame rate (Quest 3) & 90 Hz & Stereoscopic rendering throughout demo \\
+VR frame rate (Quest 3) & Stable & Stereoscopic rendering maintained throughout demo \\
 \hline
 \end{tabular}
 \end{table}
 
-Voice interaction latency (4--7s) proved acceptable for educational dialogue, where conversational pacing naturally includes contemplative pauses; external API processing dominates this pipeline. Scene transitions (3--5s) via asynchronous loading maintained experiential continuity through persistent background music, smooth visual fades, and conversation context preservation. VR rendering stability (90 Hz sustained throughout) persisted during computationally intensive operations including 8K textures, scene transitions, and 100× time-accelerated animation—rendering optimizations (Appendix~\ref{app:vr_implementation}) validated real-time coherence under representative workload.
+Voice interaction latency (4--7s) proved acceptable for educational dialogue, where conversational pacing naturally includes contemplative pauses; external API processing dominates this pipeline. Scene transitions (3--5s) via asynchronous loading maintained experiential continuity through persistent background music, smooth visual fades, and conversation context preservation. VR rendering stability persisted during computationally intensive operations including 8K textures, scene transitions, and 100× time-accelerated animation—rendering optimizations (Appendix~\ref{app:vr_implementation}) validated real-time coherence under representative workload.
 
 \subsection{Physics Fidelity Assessment}
 \label{subsec:physics_validation}
@@ -123,7 +123,7 @@ A demonstration recording captures the complete user session analyzed throughout
 
 The continuous recording demonstrates multimodal coordination across the complete workflow:
 
-\textbf{Context persistence:} The \texttt{MissionContext} singleton maintained conversation history across all 9 scene transitions. Specialists referenced prior exchanges when greeting the user (ANASTASIA: ``You're asking about good altitude choices''; DR\_HARRISON: ``You've built circular orbits—now let's explore elliptical geometry''; CARL: ``You're wondering about deep-space trajectories beyond circular and elliptical orbits''), demonstrating that the modular architecture (Objective~\#5) preserves state coherence despite environment changes.
+\textbf{Context persistence:} The \texttt{MissionContext} singleton maintained conversation history across all 9 scene transitions. Specialists referenced prior exchanges when greeting the user (Anastasia: ``You're asking about good altitude choices''; Dr. Harrison: ``You've built circular orbits—now let's explore elliptical geometry''; Karl: ``You're wondering about deep-space trajectories beyond circular and elliptical orbits''), demonstrating that the modular architecture (Objective~\#5) preserves state coherence despite environment changes.
 
 \textbf{Physics-dialogue synchronization:} Agent responses referenced visible trajectories during operation. Example: ``Watch it speed up near Earth and slow down far away'' spoken while elliptical orbit displayed on screen (Section~\ref{sec:elliptical_exploration}).
 
@@ -142,7 +142,7 @@ The validation relies on a single demonstration session (N=1, duration 19:12) ra
 
 \textbf{Variance characterization:} Performance metrics (Tables~\ref{tab:tool_usage} and~\ref{tab:performance_metrics}) represent single measurements without statistical distribution; mean latencies and standard deviations across diverse sessions remain unquantified.
 
-\textbf{Failure mode exploration:} All 11 tool invocations succeeded in the demonstrated session. Edge case behavior—ambiguous voice commands, out-of-range parameter requests, API timeout handling, concurrent tool requests—remains untested. While the platform implements validation logic (constraint checking in \texttt{ToolSchemas.json}, parameter bounds in \texttt{OrbitController.cs}), systematic stress testing would characterize failure boundaries more completely.
+\textbf{Failure mode exploration:} All 13 tool invocations succeeded in the demonstrated session. Edge case behavior—ambiguous voice commands, out-of-range parameter requests, API timeout handling, concurrent tool requests—remains untested. While the platform implements validation logic (constraint checking in \texttt{ToolSchemas.json}, parameter bounds in \texttt{OrbitController.cs}), systematic stress testing would characterize failure boundaries more completely.
 
 \textbf{User diversity:} The demonstration captures a single learner's interaction pattern. Variation across user populations (different prior knowledge levels, linguistic backgrounds, spatial cognition abilities, VR motion sensitivity) remains unexamined.
 
