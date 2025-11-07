@@ -31,7 +31,7 @@ The continuous recording demonstrates multi-module coordination that isolated co
 
 \textbf{Cross-Module Reliability}: During 11:47 of operation, the system executed 14 tool calls (Table~\ref{tab:tool_execution_summary}) without failures:
 \begin{itemize}
-    \item Voice transcription: All 18 user utterances correctly transcribed (ElevenLabs Scribe v2)
+    \item Voice transcription: All 18 user utterances correctly transcribed (ElevenLabs Scribe API)
     \item Tool selection: GPT-4 identified appropriate actions for all requests, including ambiguous queries requiring specialist routing
     \item Physics calculations: Orbital parameters matched analytical predictions (e.g., 422~km altitude → 7.66~km/s velocity → 92.8~min period, within 0.3\% of published ISS data)
     \item Scene transitions: 9 asynchronous scene loads completed without rendering artifacts or audio desynchronization

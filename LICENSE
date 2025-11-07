@@ -1,11 +1,6 @@
-ITA Academic License
+MIT License
 
-Copyright (c) 2025 Emerson Zindani
-Instituto Tecnológico de Aeronáutica (ITA)
-São José dos Campos, São Paulo, Brazil
-
-This software was developed as part of academic research at the Instituto
-Tecnológico de Aeronáutica (ITA).
+Copyright (c) 2025 Eduardo Zindani
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -14,30 +9,20 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-1. The above copyright notice and this permission notice shall be included in
-   all copies or substantial portions of the Software.
-
-2. Academic and research use of this Software must acknowledge ITA and cite
-   the original work in any publications or presentations that result from
-   the use of this Software.
-
-3. Commercial use of this Software requires prior written permission from the
-   copyright holder and ITA.
-
-4. Any modifications or derivative works must clearly indicate that they are
-   derived from this Software and must not misrepresent the original work.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS, COPYRIGHT HOLDERS, OR ITA BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ---
 
-ATTRIBUTION
+ATTRIBUTION (OPTIONAL BUT APPRECIATED)
 
 If you use this Software in academic work, please cite:
 
@@ -72,13 +57,15 @@ Users of this Software must comply with all applicable third-party licenses.
 
 CONTACT
 
-For questions, permissions, or collaborations:
+For questions, contributions, or collaborations:
 - Email: emzindani@gmail.com
+- GitHub: https://github.com/ezindani/orbitAIsimulation
 - Institution: Instituto Tecnológico de Aeronáutica (ITA)
   https://www.ita.br/
 
 ---
 
+Developed as part of academic research at:
 Instituto Tecnológico de Aeronáutica (ITA)
 Praça Marechal Eduardo Gomes, 50
 Vila das Acácias

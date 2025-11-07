@@ -25,7 +25,7 @@ Your Unity project is now ready to be open sourced! This document provides a fin
 ### Documentation
 - [x] **README.md created** with comprehensive setup guide
 - [x] **CONTRIBUTING.md created** with contribution guidelines
-- [x] **LICENSE file created** (ITA Academic License)
+- [x] **LICENSE file created** (MIT License)
 - [x] **Git history cleanup guide** (GIT_HISTORY_CLEANUP.md)
 
 ---
@@ -216,7 +216,7 @@ Before making the repository public, verify:
 - [ ] Contributing guidelines are clear
 
 ### Legal/Academic
-- [ ] License mentions ITA
+- [ ] MIT License file is present and correct
 - [ ] Academic citation is correct
 - [ ] Third-party licenses acknowledged
 - [ ] No copyrighted content without permission

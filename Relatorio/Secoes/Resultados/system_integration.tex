@@ -40,7 +40,7 @@ Navigation tools (\texttt{route\_to\_mission}, \texttt{return\_to\_hub}) dominat
 \subsubsection{Performance Characterization}
 \label{subsubsec:performance_characterization}
 
-System responsiveness directly impacts educational effectiveness—excessive latency between user input and platform response disrupts conversational flow and spatial presence. Table~\ref{tab:performance_metrics} presents measured latencies for each interaction stage during the demonstration.
+System responsiveness directly impacts educational effectiveness—excessive latency between user input and platform response disrupts conversational flow and spatial presence. Table~\ref{tab:performance_metrics} presents measured latencies for each interaction stage during the demonstration.\footnote{Measurement methodology: Latencies were observed during the demonstration session via Unity console debug timestamps and video recording analysis. Values represent observed ranges (N=1 session, $\sim$18 voice interactions) under stable network conditions (WiFi, São José dos Campos, Brazil). External API latencies (STT, LLM, TTS) depend on network conditions and API server load; reported ranges reflect demonstration conditions rather than statistical distributions.}
 
 \begin{table}[h]
 \centering
@@ -50,9 +50,9 @@ System responsiveness directly impacts educational effectiveness—excessive lat
 \hline
 \textbf{Operation} & \textbf{Latency} & \textbf{Description} \\
 \hline
-Voice transcription (STT) & 1--2 s & ElevenLabs Scribe v2 speech-to-text processing time \\
+Voice transcription (STT) & 1--2 s & ElevenLabs Scribe API speech-to-text processing time \\
 \hline
-Agent reasoning (LLM) & 2--3 s & OpenAI GPT-4.1 tool selection and response generation \\
+Agent reasoning (LLM) & 2--3 s & OpenAI GPT-4 tool selection and response generation \\
 \hline
 Voice synthesis (TTS) & 1--2 s & ElevenLabs text-to-speech audio generation \\
 \hline

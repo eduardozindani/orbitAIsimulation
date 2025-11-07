@@ -53,7 +53,7 @@ Both services offer free tiers suitable for development and testing.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/orbitAIsimulation.git
+git clone https://github.com/ezindani/orbitAIsimulation.git
 cd orbitAIsimulation
 ```
 
@@ -298,7 +298,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## License
 
-This project is licensed under the **ITA License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 Developed as part of academic research at **Instituto Tecnológico de Aeronáutica (ITA)**, Brazil.
 
@@ -316,12 +316,12 @@ Developed as part of academic research at **Instituto Tecnológico de Aeronáuti
 - **Instituto Tecnológico de Aeronáutica (ITA)** - Brazil's premier aerospace engineering institute
 
 ### Contributors
-- Emerson Zindani - Lead Developer & Researcher
+- Eduardo Zindani - Lead Developer & Researcher
 
 ## Support
 
 For issues, questions, or suggestions:
-- Open an issue on [GitHub Issues](https://github.com/YOUR_USERNAME/orbitAIsimulation/issues)
+- Open an issue on [GitHub Issues](https://github.com/ezindani/orbitAIsimulation/issues)
 - Contact: emzindani@gmail.com
 
 ## Roadmap
@@ -340,7 +340,7 @@ If you use this project in academic work, please cite:
 ```bibtex
 @mastersthesis{zindani2025orbit,
   title={Orbit AI Simulation: An Immersive Educational Platform for Space Mission Learning},
-  author={Zindani, Emerson},
+  author={Zindani, Eduardo},
   year={2025},
   school={Instituto Tecnológico de Aeronáutica (ITA)},
   address={São José dos Campos, Brazil}

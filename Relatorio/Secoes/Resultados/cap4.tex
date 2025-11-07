@@ -5,12 +5,12 @@ This chapter demonstrates the complete functional platform through the lens of a
 
 The demonstration validates all six specific objectives established in Section~\ref{sec:objetivos} through integrated scenarios:
 \begin{itemize}
-    \item \textbf{Objective \#1 (Physically accurate simulation)}: Orbital velocities and periods match published mission data (ISS: 7.66 km/s at 422 km altitude)
+    \item \textbf{Objective \#1 (Physics-consistent simulation)}: Orbital velocities and periods match analytical predictions (user-created orbit at 422 km: 7.66 km/s, consistent with ISS velocity at nominal 420 km altitude)
     \item \textbf{Objective \#2 (Natural language interpretation)}: User questions like ``What's a good altitude?'' trigger appropriate tool selection and specialist routing
     \item \textbf{Objective \#3 (Multimodal VR interaction)}: Voice commands, spatial presence, and Quest 3 stereoscopic rendering enable embodied learning\footnote{This demonstration focuses on VR immersion. AR passthrough capabilities exist in the codebase (\texttt{ARHub.unity}) but are not exercised in this session.}
     \item \textbf{Objective \#4 (Real-time coherence)}: Scene transitions, voice synthesis, physics calculations, and rendering execute reliably without interruption
     \item \textbf{Objective \#5 (Modular architecture)}: Hub and three Mission Spaces (ISS, Hubble, Voyager) operate as distinct scenes sharing common infrastructure
-    \item \textbf{Objective \#6 (Open-source delivery)}: Complete source code, documentation, and deployment guides enable community validation
+    \item \textbf{Objective \#6 (Reproducible implementation)}: Complete source code, documentation, and deployment guides enable independent verification
 \end{itemize}
 
 The chapter structure follows the demonstration's pedagogical pattern: \emph{question $\rightarrow$ specialist guidance $\rightarrow$ hands-on creation $\rightarrow$ visual observation $\rightarrow$ iterative refinement}. This complete cycle repeats twice for circular orbits (Section~\ref{sec:iss_learning}) and elliptical orbits (Section~\ref{sec:elliptical_exploration}), demonstrating experiential learning through hands-on creation. The escape trajectory section (Section~\ref{sec:escape_concept}) demonstrates a complementary mode: conceptual dialogue without hands-on creation, showing the platform's flexibility to support both experiential and theoretical learning depending on pedagogical context.
@@ -35,6 +35,6 @@ The chapter structure follows the demonstration's pedagogical pattern: \emph{que
 \label{sec:system_integration}
 \input{Secoes/Resultados/system_integration}
 
-\section{Open-Source Platform Delivery}
-\label{sec:open_source_delivery}
+\section{Implementation Availability}
+\label{sec:implementation_availability}
 \input{Secoes/Resultados/open_source_delivery}
