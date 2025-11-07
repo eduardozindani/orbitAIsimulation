@@ -297,6 +297,16 @@ ENV/
 node_modules/
 
 # ============================================================================
+# DOCUMENTATION - Exclude from Repository
+# ============================================================================
+
+# Thesis/Report documentation (LaTeX source and PDFs)
+Relatorio/
+
+# Presentation slides
+slides/
+
+# ============================================================================
 # PROJECT SPECIFIC NOTES
 # ============================================================================
 
@@ -309,10 +319,8 @@ node_modules/
 # - Scene files (*.unity)
 # - Prefabs (*.prefab)
 # - Materials (*.mat)
-# - All .tex, .bib, .cls source files (your thesis!)
 
 # Repository structure:
 # - Assets/ = Unity game assets (tracked)
-# - Relatorio/ = LaTeX thesis (tracked source, ignored build artifacts)
 # - ProjectSettings/ = Unity configuration (tracked)
 # - Packages/ = Unity package dependencies (tracked)
