@@ -10,6 +10,9 @@ An immersive VR/AR educational platform that teaches space missions through AI-p
 
 Orbit AI Simulation allows users to explore real space missions (ISS, Voyager, Hubble) in virtual reality, converse with AI mission specialists, and manipulate orbital mechanics in real-time through natural language conversation.
 
+## Demo
+Here is a 8 minute demo of the functionality. https://youtu.be/Y9PWMZA4WV8
+
 ### Key Features
 
 - **AI-Powered Conversations**: Interact with mission specialists powered by OpenAI GPT-4
